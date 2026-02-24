@@ -569,6 +569,28 @@ body.toc-hidden #markdown-wrapper {
   font-size: 13px;
 }
 
+/* ============================================================================
+ * Highlight Mark Styles
+ * Support for ==highlight== syntax
+ * ============================================================================ */
+
+#markdown-content mark {
+  background-color: rgba(255, 255, 0, 0.8);
+  padding: 0 2px;
+  border-radius: 2px;
+  color: inherit;
+  font-weight: inherit;
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  #markdown-content mark {
+    background-color: rgba(255, 255, 0, 0.6);
+    color: inherit;
+  }
+}
+
+
 /* Print Styles - Only show content area */
 @media print {
 
