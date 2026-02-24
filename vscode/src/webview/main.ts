@@ -30,6 +30,7 @@ import {
 // VSCode-specific UI components
 import { createSettingsPanel, type SettingsPanel, type ThemeOption, type LocaleOption } from './settings-panel';
 import { createSearchPanel, type SearchPanel, type HighlightMatch, type SearchOptions } from './search-panel';
+import { createTOCPanel, type TOCPanel, type TOCHeading } from './toc-panel';
 
 // Declare global types for VSCode-specific variables
 declare global {
@@ -57,6 +58,7 @@ let renderQueue: Promise<void> = Promise.resolve();
 // UI components
 let settingsPanel: SettingsPanel | null = null;
 let searchPanel: SearchPanel | null = null;
+let tocPanel: TOCPanel | null = null; // TOC sidebar panel
 let currentHighlights: Map<HTMLElement, HTMLElement> = new Map(); // Original element → wrapper
 
 // Create plugin renderer using shared utility
@@ -95,6 +97,9 @@ async function initialize(): Promise<void> {
 
     // Initialize toolbar and settings panel (after theme is loaded)
     initializeUI();
+
+    // Initialize TOC panel
+    initializeTOC();
 
     // Render iframe is lazily created on first render request
     // No pre-initialization needed - ensureReady() is called in render()
@@ -238,7 +243,8 @@ async function handleUpdateContent(payload: UpdateContentPayload): Promise<void>
     renderer: pluginRenderer,
     translate: (key: string, subs?: string | string[]) => Localization.translate(key, subs),
     platform,
-    currentTaskManagerRef: { current: currentTaskManager },
+
+      currentTaskManagerRef: { current: currentTaskManager },
     // When scrollLine is provided (e.g., theme switch), use it; otherwise undefined
     targetLine: scrollLine,
     onHeadings: (headings) => {
@@ -248,6 +254,12 @@ async function handleUpdateContent(payload: UpdateContentPayload): Promise<void>
       vscodeBridge.postMessage('RENDER_PROGRESS', { completed, total });
     },
   });
+
+  // Update TOC after rendering
+  if (tocPanel) {
+    const headings = tocPanel.extractHeadingsFromContent(container as HTMLElement);
+    tocPanel.setHeadings(headings);
+  }
 }
 
 // ============================================================================
@@ -528,6 +540,31 @@ function handleOpenSearch(): void {
       searchPanel.show();
       searchPanel.focus();
     }
+  }
+}
+
+/**
+ * Initialize TOC (Table of Contents) panel
+ */
+function initializeTOC(): void {
+  tocPanel = createTOCPanel({
+    onItemClick: (heading) => {
+      // Scroll to the heading in the main content
+      tocPanel?.scrollToHeading(heading.id);
+    },
+    onVisibilityChange: (visible) => {
+      // Optional: notify extension or adjust layout
+      console.log('[VSCode Webview] TOC visibility:', visible);
+    }
+  });
+}
+
+/**
+ * Handle toggle TOC command
+ */
+function handleToggleTOC(): void {
+  if (tocPanel) {
+    tocPanel.toggle();
   }
 }
 
