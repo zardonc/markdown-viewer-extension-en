@@ -17,22 +17,23 @@
   height: 26px;
   padding: 0;
   margin: 0;
-  border: 1px solid var(--vscode-button-border, transparent);
+  border: 1px solid var(--vscode-panel-border, rgba(128, 128, 128, 0.3));
   border-radius: 4px;
-  background: var(--vscode-button-background, #0e639c);
-  color: var(--vscode-button-foreground, #ffffff);
+  background: var(--vscode-sideBar-background, rgba(255, 255, 255, 0.15));
+  color: var(--vscode-foreground, #cccccc);
   font-size: 14px;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 10000;
-  transition: background-color 0.2s, transform 0.2s;
-  opacity: 0.7;
+  transition: background-color 0.2s, opacity 0.2s, transform 0.2s;
+  opacity: 0.85;
+  backdrop-filter: blur(4px);
 }
 
 .vscode-toc-trigger:hover {
-  background: var(--vscode-button-hoverBackground, #1177bb);
+  background: var(--vscode-list-hoverBackground, rgba(128, 128, 128, 0.25));
   opacity: 1;
 }
 
@@ -41,7 +42,8 @@
 }
 
 .vscode-toc-trigger.active {
-  background: var(--vscode-button-hoverBackground, #1177bb);
+  background: var(--vscode-list-activeSelectionBackground, rgba(100, 100, 100, 0.3));
+  opacity: 1;
 }
 
 .vscode-toc-trigger svg {
