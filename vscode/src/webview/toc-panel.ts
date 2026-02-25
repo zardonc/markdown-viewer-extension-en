@@ -221,9 +221,36 @@ export function createTOCPanel(options: TOCPanelOptions = {}): TOCPanel {
 
   // Scroll to specific heading
   function scrollToHeading(id: string): void {
-    const targetEl = document.getElementById(id);
+    // Use querySelector with CSS.escape to handle special characters in ID
+    let targetEl: HTMLElement | null = null;
+    
+    try {
+      // Try getElementById first (most efficient)
+      targetEl = document.getElementById(id);
+      
+      // If not found, try querySelector with escaped ID
+      if (!targetEl) {
+        const escapedId = CSS.escape(id);
+        targetEl = document.querySelector(`#${escapedId}`);
+      }
+      
+      // If still not found, search in markdown-content container
+      if (!targetEl) {
+        const container = document.getElementById('markdown-content');
+        if (container) {
+          targetEl = container.querySelector(`[id="${CSS.escape(id)}"]`);
+        }
+      }
+    } catch (e) {
+      console.error('[TOC] Error finding element:', e);
+    }
+    
     if (targetEl) {
-      targetEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      // Use scrollIntoView with 'center' block to ensure element is in middle of viewport
+      // This provides better visibility and avoids being cut off at edges
+      targetEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    } else {
+      console.warn('[TOC] Target element not found for id:', id);
     }
   }
 
