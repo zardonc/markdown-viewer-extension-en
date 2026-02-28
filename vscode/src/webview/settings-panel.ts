@@ -176,12 +176,13 @@ export function createSettingsPanel(options: SettingsPanelOptions): SettingsPane
           <option value="center" ${tableLayout === 'center' ? 'selected' : ''} data-i18n="settings_table_layout_center">${Localization.translate('settings_table_layout_center')}</option>
         </select>
       </div>
-      <div class="vscode-settings-group">
-        <label class="vscode-settings-label" data-i18n="settings_docx_hr_display">${Localization.translate('settings_docx_hr_display')}</label>
-        <select class="vscode-settings-select" data-setting="docxHrDisplay">
-          <option value="hide" ${docxHrDisplay === 'hide' ? 'selected' : ''} data-i18n="settings_docx_hr_display_hide">${Localization.translate('settings_docx_hr_display_hide')}</option>
-          <option value="line" ${docxHrDisplay === 'line' ? 'selected' : ''} data-i18n="settings_docx_hr_display_line">${Localization.translate('settings_docx_hr_display_line')}</option>
-          <option value="pageBreak" ${docxHrDisplay === 'pageBreak' ? 'selected' : ''} data-i18n="settings_docx_hr_display_page_break">${Localization.translate('settings_docx_hr_display_page_break')}</option>
+ <div class="vscode-settings-group">
+ <label class="vscode-settings-label" data-i18n="settings_docx_hr_display">${Localization.translate('settings_docx_hr_display')}</label>
+ <select class="vscode-settings-select" data-setting="docxHrDisplay">
+ <option value="hide" ${docxHrDisplay === 'hide' ? 'selected' : ''} data-i18n="settings_docx_hr_display_hide">${Localization.translate('settings_docx_hr_display_hide')}</option>
+ <option value="line" ${docxHrDisplay === 'line' ? 'selected' : ''} data-i18n="settings_docx_hr_display_line">${Localization.translate('settings_docx_hr_display_line')}</option>
+ <option value="pageBreak" ${docxHrDisplay === 'pageBreak' ? 'selected' : ''} data-i18n="settings_docx_hr_display_page_break">${Localization.translate('settings_docx_hr_display_page_break')}</option>
+ </select>
  </div>
  <div class="vscode-settings-divider"></div>
  <div class="vscode-settings-group">
@@ -210,7 +211,7 @@ export function createSettingsPanel(options: SettingsPanelOptions): SettingsPane
   const tableLayoutSelect = panel.querySelector('[data-setting="tableLayout"]') as HTMLSelectElement;
   const emojiStyleSelect = panel.querySelector('[data-setting="emojiStyle"]') as HTMLSelectElement;
   const frontmatterDisplaySelect = panel.querySelector('[data-setting="frontmatterDisplay"]') as HTMLSelectElement;
-const clearCacheBtn = panel.querySelector('.vscode-cache-clear-btn') as HTMLButtonElement;
+ const clearCacheBtn = panel.querySelector('.vscode-cache-clear-btn') as HTMLButtonElement;
  const cacheItemsValue = panel.querySelector('[data-cache-stat="items"]') as HTMLElement;
  const cacheSizeValue = panel.querySelector('[data-cache-stat="size"]') as HTMLElement;
 
