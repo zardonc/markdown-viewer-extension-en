@@ -190,3 +190,15 @@ export type {
   GenerateToolbarHTMLOptions,
   ToolbarManagerInstance,
 } from './toolbar';
+
+// =============================================================================
+// HTML Export Types
+// =============================================================================
+
+export type {
+  ExportFormat,
+  HtmlExportOptions,
+  HtmlExportResult,
+  HtmlProgressCallback,
+  HtmlExporter,
+} from './html';

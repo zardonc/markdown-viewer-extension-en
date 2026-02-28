@@ -12,6 +12,7 @@ import type { AsyncTaskManager, FrontmatterDisplay } from '../../../src/core/mar
 import { wrapFileContent } from '../../../src/utils/file-wrapper';
 import type { ScrollSyncController } from '../../../src/core/line-based-scroll';
 import type { EmojiStyle } from '../../../src/types/docx.js';
+import HtmlExporter from '../../../src/exporters/html-exporter';
 // Shared modules (same as Chrome/Mobile)
 import Localization from '../../../src/utils/localization';
 import themeManager from '../../../src/utils/theme-manager';
@@ -60,6 +61,9 @@ let settingsPanel: SettingsPanel | null = null;
 let searchPanel: SearchPanel | null = null;
 let tocPanel: TOCPanel | null = null; // TOC sidebar panel
 let currentHighlights: Map<HTMLElement, HTMLElement> = new Map(); // Original element → wrapper
+
+// Create HTML exporter
+const htmlExporter = new HtmlExporter();
 
 // Create plugin renderer using shared utility
 const pluginRenderer = createPluginRenderer(platform);
@@ -183,11 +187,15 @@ function handleExtensionMessage(message: ExtensionMessage): void {
       handleOpenSearch();
       break;
 
-    case 'SCROLL_TO_LINE':
-      handleScrollToLine(payload as ScrollToLinePayload);
-      break;
+ case 'SCROLL_TO_LINE':
+ handleScrollToLine(payload as ScrollToLinePayload);
+ break;
 
-    default:
+ case 'EXPORT_HTML':
+ handleExportHtml(true); // Default to embed images
+ break;
+
+ default:
       // Ignore unknown messages or responses
       break;
   }
@@ -310,6 +318,56 @@ async function handleExportDocx(): Promise<void> {
       vscodeBridge.postMessage('EXPORT_DOCX_RESULT', { success: false, error });
     },
   });
+}
+
+/**
+ * Handle HTML export
+ */
+async function handleExportHtml(embedImages: boolean): Promise<void> {
+  try {
+    const container = document.getElementById('markdown-content');
+    if (!container) {
+      vscodeBridge.postMessage('EXPORT_HTML_RESULT', { success: false, error: 'Content container not found' });
+      return;
+    }
+
+    const filename = currentFilename.replace(/\.[^.]+$/, '.html') || 'document.html';
+
+    vscodeBridge.postMessage('EXPORT_PROGRESS', { completed: 0, total: 100, phase: 'processing' });
+
+    const result = await htmlExporter.exportToHtml(
+      container as HTMLElement,
+      { embedImages, inlineStyles: true, filename, skipDownload: true }, // Skip download, we'll handle it
+      (completed, total) => {
+        vscodeBridge.postMessage('EXPORT_PROGRESS', { completed, total, phase: 'processing' });
+      }
+    );
+
+    if (result.success && result.htmlContent) {
+      // Convert HTML content to base64 for transfer to extension host
+      // Use chunked approach to avoid call stack overflow for large content
+      const encoder = new TextEncoder();
+      const htmlBytes = encoder.encode(result.htmlContent);
+      
+      // Convert Uint8Array to base64 without using spread operator (avoids call stack limit)
+      let binary = '';
+      const chunkSize = 8192;
+      for (let i = 0; i < htmlBytes.length; i += chunkSize) {
+        const chunk = htmlBytes.subarray(i, Math.min(i + chunkSize, htmlBytes.length));
+        binary += String.fromCharCode.apply(null, Array.from(chunk));
+      }
+      const base64 = btoa(binary);
+
+      // Send to extension host for save dialog
+      vscodeBridge.postMessage('DOWNLOAD_HTML', { filename, data: base64, mimeType: 'text/html' });
+      vscodeBridge.postMessage('EXPORT_HTML_RESULT', { success: true, filename: result.filename });
+    } else {
+      vscodeBridge.postMessage('EXPORT_HTML_RESULT', { success: false, error: result.error });
+    }
+  } catch (error) {
+    const errMsg = error instanceof Error ? error.message : String(error);
+    vscodeBridge.postMessage('EXPORT_HTML_RESULT', { success: false, error: errMsg });
+  }
 }
 
 // ============================================================================
@@ -485,16 +543,16 @@ function initializeUI(): void {
         await handleUpdateContent({ content: currentMarkdown, filename: currentFilename, forceRender: true, scrollLine });
       }
     },
-    onClearCache: async () => {
-      await platform.cache.clear();
-      // Reload cache stats
-      await loadCacheStats();
-    },
-    onShow: () => {
-      // Refresh cache stats when panel is shown
-      loadCacheStats();
-    }
-  });
+ onClearCache: async () => {
+ await platform.cache.clear();
+ // Reload cache stats
+ await loadCacheStats();
+ },
+ onShow: () => {
+ // Refresh cache stats when panel is shown
+ loadCacheStats();
+ },
+ });
   document.body.appendChild(settingsPanel.getElement());
 
   // Create search panel

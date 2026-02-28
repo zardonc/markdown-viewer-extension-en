@@ -619,12 +619,36 @@
     "message": "Zoom out",
     "description": "Toolbar zoom out tooltip"
   },
-  "welcome_message": {
-    "message": "Open a markdown file to get started",
-    "description": "Welcome message on empty state"
-  },
-  "zoom": {
-    "message": "Zoom",
-    "description": "Menu item for zoom"
-  }
+ "welcome_message": {
+ "message": "Open a markdown file to get started",
+ "description": "Welcome message on empty state"
+ },
+ "export_btn": {
+ "message": "Export",
+ "description": "Export button label"
+ },
+ "export_select_format": {
+ "message": "Export Document",
+ "description": "Label for export format selector"
+ },
+ "export_docx_title": {
+ "message": "Export to Word",
+ "description": "Title for DOCX export option"
+ },
+ "export_docx_desc": {
+ "message": ".docx file (Microsoft Word)",
+ "description": "Description for DOCX export option"
+ },
+ "export_html_title": {
+ "message": "Export to HTML",
+ "description": "Title for HTML export option"
+ },
+ "export_html_desc": {
+ "message": "Standalone HTML file",
+ "description": "Description for HTML export option"
+ },
+ "zoom": {
+ "message": "Zoom",
+ "description": "Menu item for zoom"
+ }
 }

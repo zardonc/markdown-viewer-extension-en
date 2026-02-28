@@ -257,9 +257,26 @@ export class MarkdownPreviewPanel {
       
       this._postToWebview('EXPORT_DOCX');
     });
-  }
+ }
 
-  /**
+ /**
+ * Export to HTML
+ */
+ public async exportToHtml(onProgress?: (progress: number) => void): Promise<boolean> {
+ return new Promise((resolve) => {
+ // Store callbacks
+ this._exportProgressCallback = onProgress || null;
+ this._exportResultResolver = (success: boolean) => {
+ this._exportProgressCallback = null;
+ this._exportResultResolver = null;
+ resolve(success);
+ };
+
+ this._postToWebview('EXPORT_HTML');
+ });
+ }
+
+ /**
    * Set callback for render progress updates
    */
   public setRenderProgressCallback(callback: ((completed: number, total: number) => void) | null): void {
@@ -430,20 +447,31 @@ export class MarkdownPreviewPanel {
           }
           break;
 
-        case 'EXPORT_DOCX_RESULT':
-          // Export completed - resolve the promise
-          if (this._exportResultResolver) {
-            const result = payload as { success: boolean } | undefined;
-            this._exportResultResolver(result?.success ?? false);
-          }
-          break;
+ case 'EXPORT_DOCX_RESULT':
+ // Export completed - resolve the promise
+ if (this._exportResultResolver) {
+ const result = payload as { success: boolean } | undefined;
+ this._exportResultResolver(result?.success ?? false);
+ }
+ break;
 
-        case 'REVEAL_LINE':
-          // Preview scrolled, sync editor (Preview → Editor)
-          if (payload && typeof (payload as { line: number }).line === 'number') {
-            this._onPreviewScroll((payload as { line: number }).line);
-          }
-          break;
+ case 'EXPORT_HTML_RESULT':
+ // HTML Export completed - resolve the promise
+ if (this._exportResultResolver) {
+ const result = payload as { success: boolean } | undefined;
+ this._exportResultResolver(result?.success ?? false);
+ }
+      break;
+    case 'DOWNLOAD_HTML':
+      // HTML export download - save HTML file
+      response = await this._handleDownloadHtml(payload as { filename: string; data: string; mimeType: string });
+      break;
+    case 'REVEAL_LINE':
+      // Preview scrolled, sync editor (Preview → Editor)
+      if (payload && typeof (payload as { line: number }).line === 'number') {
+        this._onPreviewScroll((payload as { line: number }).line);
+      }
+      break;
 
         case 'OPEN_URL':
           // Open external URL in default browser
@@ -651,6 +679,35 @@ export class MarkdownPreviewPanel {
       const buffer = Buffer.from(data, 'base64');
       await vscode.workspace.fs.writeFile(uri, buffer);
       vscode.window.showInformationMessage(`File saved: ${uri.fsPath}`);
+    }
+  }
+
+  private async _handleDownloadHtml(payload: { filename: string; data: string; mimeType: string }): Promise<void> {
+    const { filename, data, mimeType } = payload;
+
+    // Build default save path based on current document directory
+    let defaultUri: vscode.Uri;
+    if (this._document) {
+      const docDir = path.dirname(this._document.uri.fsPath);
+      defaultUri = vscode.Uri.file(path.join(docDir, filename));
+    } else {
+      defaultUri = vscode.Uri.file(filename);
+    }
+
+    // Ask user for save location
+    const uri = await vscode.window.showSaveDialog({
+      defaultUri,
+      filters: {
+        'HTML Files': ['html', 'htm'],
+        'All Files': ['*']
+      }
+    });
+
+    if (uri) {
+      // Decode base64 and write file
+      const buffer = Buffer.from(data, 'base64');
+      await vscode.workspace.fs.writeFile(uri, buffer);
+      vscode.window.showInformationMessage(`HTML exported: ${uri.fsPath}`);
     }
   }
 

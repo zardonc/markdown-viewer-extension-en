@@ -15,40 +15,40 @@ import type { FrontmatterDisplay } from '../../../src/core/viewer/viewer-control
 export type TableLayout = 'left' | 'center';
 
 export interface SettingsPanelOptions {
-  /** Current theme ID */
-  currentTheme?: string;
-  /** Current locale */
-  currentLocale?: string;
-  /** DOCX HR display mode setting */
-  docxHrDisplay?: 'pageBreak' | 'line' | 'hide';
-  /** DOCX emoji style setting */
-  docxEmojiStyle?: EmojiStyle;
-  /** Frontmatter display mode */
-  frontmatterDisplay?: FrontmatterDisplay;
-  /** Table merge empty cells setting */
-  tableMergeEmpty?: boolean;
-  /** Table layout setting */
-  tableLayout?: TableLayout;
-  /** Theme changed callback */
-  onThemeChange?: (themeId: string) => void;
-  /** Locale changed callback */
-  onLocaleChange?: (locale: string) => void;
-  /** DOCX HR display changed callback */
-  onDocxHrDisplayChange?: (display: 'pageBreak' | 'line' | 'hide') => void;
-  /** DOCX emoji style changed callback */
-  onDocxEmojiStyleChange?: (style: EmojiStyle) => void;
-  /** Frontmatter display changed callback */
-  onFrontmatterDisplayChange?: (display: FrontmatterDisplay) => void;
-  /** Table merge empty cells changed callback */
-  onTableMergeEmptyChange?: (enabled: boolean) => void;
-  /** Table layout changed callback */
-  onTableLayoutChange?: (layout: TableLayout) => void;
-  /** Cache clear callback */
-  onClearCache?: () => Promise<void>;
-  /** Called when panel is shown, use to refresh dynamic data */
-  onShow?: () => void;
-  /** Close panel callback */
-  onClose?: () => void;
+ /** Current theme ID */
+ currentTheme?: string;
+ /** Current locale */
+ currentLocale?: string;
+ /** DOCX HR display mode setting */
+ docxHrDisplay?: 'pageBreak' | 'line' | 'hide';
+ /** DOCX emoji style setting */
+ docxEmojiStyle?: EmojiStyle;
+ /** Frontmatter display mode */
+ frontmatterDisplay?: FrontmatterDisplay;
+ /** Table merge empty cells setting */
+ tableMergeEmpty?: boolean;
+ /** Table layout setting */
+ tableLayout?: TableLayout;
+ /** Theme changed callback */
+ onThemeChange?: (themeId: string) => void;
+ /** Locale changed callback */
+ onLocaleChange?: (locale: string) => void;
+ /** DOCX HR display changed callback */
+ onDocxHrDisplayChange?: (display: 'pageBreak' | 'line' | 'hide') => void;
+ /** DOCX emoji style changed callback */
+ onDocxEmojiStyleChange?: (style: EmojiStyle) => void;
+ /** Frontmatter display changed callback */
+ onFrontmatterDisplayChange?: (display: FrontmatterDisplay) => void;
+ /** Table merge empty cells changed callback */
+ onTableMergeEmptyChange?: (enabled: boolean) => void;
+ /** Table layout changed callback */
+ onTableLayoutChange?: (layout: TableLayout) => void;
+ /** Cache clear callback */
+ onClearCache?: () => Promise<void>;
+ /** Called when panel is shown, use to refresh dynamic data */
+ onShow?: () => void;
+ /** Close panel callback */
+ onClose?: () => void;
 }
 
 export interface SettingsPanel {
@@ -182,10 +182,9 @@ export function createSettingsPanel(options: SettingsPanelOptions): SettingsPane
           <option value="hide" ${docxHrDisplay === 'hide' ? 'selected' : ''} data-i18n="settings_docx_hr_display_hide">${Localization.translate('settings_docx_hr_display_hide')}</option>
           <option value="line" ${docxHrDisplay === 'line' ? 'selected' : ''} data-i18n="settings_docx_hr_display_line">${Localization.translate('settings_docx_hr_display_line')}</option>
           <option value="pageBreak" ${docxHrDisplay === 'pageBreak' ? 'selected' : ''} data-i18n="settings_docx_hr_display_page_break">${Localization.translate('settings_docx_hr_display_page_break')}</option>
-        </select>
-      </div>
-      <div class="vscode-settings-divider"></div>
-      <div class="vscode-settings-group">
+ </div>
+ <div class="vscode-settings-divider"></div>
+ <div class="vscode-settings-group">
         <div class="vscode-cache-stats">
           <div class="vscode-cache-stat-item">
             <span class="vscode-cache-stat-label" data-i18n="cache_stat_item_label">${Localization.translate('cache_stat_item_label')}</span>
@@ -211,11 +210,11 @@ export function createSettingsPanel(options: SettingsPanelOptions): SettingsPane
   const tableLayoutSelect = panel.querySelector('[data-setting="tableLayout"]') as HTMLSelectElement;
   const emojiStyleSelect = panel.querySelector('[data-setting="emojiStyle"]') as HTMLSelectElement;
   const frontmatterDisplaySelect = panel.querySelector('[data-setting="frontmatterDisplay"]') as HTMLSelectElement;
-  const clearCacheBtn = panel.querySelector('.vscode-cache-clear-btn') as HTMLButtonElement;
-  const cacheItemsValue = panel.querySelector('[data-cache-stat="items"]') as HTMLElement;
-  const cacheSizeValue = panel.querySelector('[data-cache-stat="size"]') as HTMLElement;
+const clearCacheBtn = panel.querySelector('.vscode-cache-clear-btn') as HTMLButtonElement;
+ const cacheItemsValue = panel.querySelector('[data-cache-stat="items"]') as HTMLElement;
+ const cacheSizeValue = panel.querySelector('[data-cache-stat="size"]') as HTMLElement;
 
-  // Track current locale for language button
+ // Track current locale for language button
   let activeLocale = currentLocale;
 
   // Set initial values
@@ -283,9 +282,9 @@ export function createSettingsPanel(options: SettingsPanelOptions): SettingsPane
       clearCacheBtn.disabled = false;
       clearCacheBtn.textContent = Localization.translate('cache_clear');
     }
-  });
+ });
 
-  // Click outside to close
+ // Click outside to close
   const handleClickOutside = (e: MouseEvent) => {
     if (visible && !panel.contains(e.target as Node)) {
       // Don't close if clicking the settings button itself

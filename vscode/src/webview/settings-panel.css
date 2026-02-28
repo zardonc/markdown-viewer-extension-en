@@ -245,7 +245,7 @@
   opacity: 0.8;
 }
 
-.vscode-cache-clear-btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
+ :disabled {
+ opacity: 0.5;
+ cursor: not-allowed;
 }
