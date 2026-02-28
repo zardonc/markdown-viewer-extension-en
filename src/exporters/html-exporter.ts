@@ -13,12 +13,22 @@ import type {
  * Download a blob as a file
  */
 async function downloadBlob(blob: Blob, filename: string): Promise<void> {
-  const url = URL.createObjectURL(blob);
-  try {
-    await platform.download(url, filename);
-  } finally {
-    URL.revokeObjectURL(url);
-  }
+ const url = URL.createObjectURL(blob);
+ try {
+ if (globalThis.platform?.file) {
+ await globalThis.platform.file.download(url, filename);
+ } else {
+ // Fallback: create a download link
+ const a = document.createElement('a');
+ a.href = url;
+ a.download = filename;
+ document.body.appendChild(a);
+ a.click();
+ document.body.removeChild(a);
+ }
+ } finally {
+ URL.revokeObjectURL(url);
+ }
 }
 
 /**
@@ -249,31 +259,132 @@ class HtmlExporter {
     styles: string,
     embedImages: boolean
   ): string {
-    const title = this.extractTitle(content) || 'Markdown Export';
-    
-    // Get body classes from original document
-    const bodyClasses = document.body.className;
-    
-    return `<!DOCTYPE html>
+  const title = this.extractTitle(content) || 'Markdown Export';
+
+  return `<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>${this.escapeHtml(title)}</title>
-  <style>
+ <style>
+/* KaTeX CSS - Critical styles for math formula rendering */
+.katex {text-rendering: auto; font: normal 1.21em KaTeX_Main, Times New Roman, serif; line-height: 1.2; text-indent: 0;}
+.katex * {-ms-high-contrast-adjust: none !important; border-color: currentColor;}
+.katex .katex-mathml {clip: rect(1px,1px,1px,1px); border: 0; height: 1px; overflow: hidden; padding: 0; position: absolute; width: 1px;}
+.katex .katex-html > .newline {display: block;}
+.katex .base {position: relative; display: inline-block; white-space: nowrap; width: min-content;}
+.katex .strut {display: inline-block;}
+.katex .vlist-t {border-collapse: collapse; display: inline-table; table-layout: fixed;}
+.katex .vlist-r {display: table-row;}
+.katex .vlist {display: table-cell; position: relative; vertical-align: bottom;}
+.katex .vlist > span {display: block; height: 0; position: relative;}
+.katex .vlist > span > span {display: inline-block;}
+.katex .vlist > span > .pstrut {overflow: hidden; width: 0;}
+.katex .vlist-t2 {margin-right: -2px;}
+.katex .vlist-s {display: table-cell; font-size: 1px; min-width: 2px; vertical-align: bottom; width: 2px;}
+.katex .msupsub {text-align: left;}
+.katex .mfrac > span > span {text-align: center;}
+.katex .mfrac .frac-line {border-bottom-style: solid; display: inline-block; width: 100%; min-height: 1px;}
+.katex .overline .overline-line, .katex .underline .underline-line, .katex .hline {border-bottom-style: solid; display: inline-block; width: 100%; min-height: 1px;}
+.katex .hdashline {border-bottom-style: dashed; display: inline-block; width: 100%; min-height: 1px;}
+.katex .mspace {display: inline-block;}
+.katex .llap, .katex .rlap, .katex .clap {position: relative; width: 0;}
+.katex .llap > .inner, .katex .rlap > .inner, .katex .clap > .inner {position: absolute;}
+.katex .llap > .fix, .katex .rlap > .fix, .katex .clap > .fix {display: inline-block;}
+.katex .llap > .inner {right: 0;}
+.katex .clap > .inner, .katex .rlap > .inner {left: 0;}
+.katex .clap > .inner > span {margin-left: -50%; margin-right: 50%;}
+.katex .rule {border: 0 solid; display: inline-block; position: relative;}
+.katex .sqrt > .root {margin-left: 0.27777778em; margin-right: -0.55555556em;}
+.katex .mtable {display: inline-table; table-layout: fixed;}
+.katex .mfrac, .katex .mover, .katex .munder, .katex .munderover {display: inline-flex; flex-direction: column; text-align: center;}
+.katex .mfrac > span, .katex .mover > span, .katex .munder > span, .katex .munderover > span {justify-content: center;}
+.katex .munder, .katex .mover {position: relative;}
+.katex .munder .base, .katex .mover .base {width: 100%;}
+.katex .munder .bottom, .katex .mover .top {position: absolute; width: 100%;}
+.katex .munder .bottom {bottom: 0;}
+.katex .mover .top {top: 0;}
+.katex .munder > .vlist, .katex .mover > .vlist {display: flex; flex-direction: column;}
+.katex .munder > .vlist > span, .katex .mover > .vlist > span {display: flex; justify-content: center;}
+
+/* CRITICAL: SVG styling - prevents horizontal lines in underbrace/overbrace */
+.katex svg {fill: currentColor; stroke: currentColor; fill-rule: nonzero; fill-opacity: 1; stroke-width: 1; stroke-linecap: butt; stroke-linejoin: miter; stroke-miterlimit: 4; stroke-dasharray: none; stroke-dashoffset: 0; stroke-opacity: 1; display: block; height: inherit; position: absolute; width: 100%;}
+.katex svg path {stroke: none !important;}
+
+.katex img {border-style: none; max-height: none; max-width: none; min-height: 0; min-width: 0;}
+
+/* CRITICAL: Stretchy elements for braces and arrows */
+.katex .stretchy {display: block; overflow: hidden; position: relative; width: 100%;}
+.katex .stretchy:before, .katex .stretchy:after {content: "";}
+.katex .hide-tail {overflow: hidden; position: relative; width: 100%;}
+.katex .halfarrow-left {left: 0; overflow: hidden; position: absolute; width: 50.2%;}
+.katex .halfarrow-right {overflow: hidden; position: absolute; right: 0; width: 50.2%;}
+.katex .brace-left {left: 0; overflow: hidden; position: absolute; width: 25.1%;}
+.katex .brace-center {left: 25%; overflow: hidden; position: absolute; width: 50%;}
+.katex .brace-right {overflow: hidden; position: absolute; right: 0; width: 25.1%;}
+.katex .x-arrow-pad {padding: 0 0.5em;}
+.katex .x-arrow {text-align: center;}
+
+.katex .mord, .katex .mbin, .katex .mrel, .katex .mopen, .katex .mclose, .katex .mpunct, .katex .mop {display: inline-block;}
+.katex .mop-limits {display: inline-flex; flex-direction: column; text-align: center;}
+.katex .msubsup {display: inline-flex; flex-direction: column; text-align: left; position: relative;}
+.katex .msubsup > .sup {position: absolute; top: 0; left: 0;}
+.katex .msubsup > .sub {position: absolute; bottom: 0; left: 0;}
+.katex .mtext {font-family: KaTeX_Main;}
+.katex .mathnormal {font-family: KaTeX_Math; font-style: italic;}
+.katex .mathit {font-family: KaTeX_Math; font-style: italic;}
+.katex .mathrm {font-style: normal;}
+.katex .mathbf {font-family: KaTeX_Main; font-weight: bold;}
+.katex .boldsymbol {font-family: KaTeX_Math; font-style: italic; font-weight: bold;}
+.katex .mtable .vertical-separator {display: inline-block; min-width: 1px;}
+.katex .mtable .arraycolsep {display: inline-block;}
+.katex .mtable .col-align-c > .vlist-t {text-align: center;}
+.katex .mtable .col-align-l > .vlist-t {text-align: left;}
+.katex .mtable .col-align-r > .vlist-t {text-align: right;}
+.katex .svg-align {text-align: left;}
+.katex .accent > .vlist-t {text-align: center;}
+.katex .accent .accent-body {position: relative;}
+.katex .accent .accent-body:not(.accent-full) {width: 0;}
+.katex .overlay {display: block;}
+.katex .op-symbol {position: relative;}
+.katex .op-symbol.small-op {font-family: KaTeX_Size1;}
+.katex .op-symbol.large-op {font-family: KaTeX_Size2;}
+.katex .op-limits > .vlist-t {text-align: center;}
+.katex .delimsizing {position: relative;}
+.katex .delimsizing.size1 {font-family: KaTeX_Size1;}
+.katex .delimsizing.size2 {font-family: KaTeX_Size2;}
+.katex .delimsizing.size3 {font-family: KaTeX_Size3;}
+.katex .delimsizing.size4 {font-family: KaTeX_Size4;}
+.katex .nulldelimiter {display: inline-block; width: 0.12em;}
+.katex .delimcenter {position: relative;}
+.katex .sout {border-bottom-style: solid; border-bottom-width: 0.08em;}
+
+/* Reset and base styles */
 /* Reset and base styles */
 * {
   box-sizing: border-box;
 }
+
+html {
+  scroll-behavior: smooth;
+}
+
 body {
-  font-family: var(--vscode-font-family, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif);
-  font-size: var(--vscode-font-size, 13px);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  font-size: 16px;
   line-height: 1.6;
-  color: var(--vscode-foreground, #cccccc);
-  background-color: var(--vscode-editor-background, #1e1e1e);
-  padding: 20px;
-  max-width: 1000px;
+  color: #333;
+  background-color: #fff;
+  padding: 40px 20px;
+  max-width: 900px;
   margin: 0 auto;
+}
+
+/* Content container */
+#markdown-wrapper, #markdown-page, #markdown-content {
+  max-width: none;
+  margin: 0;
 }
 
 /* Highlight mark */
@@ -284,18 +395,27 @@ mark {
   border-radius: 2px;
 }
 
-/* Code blocks */
+/* Code blocks - light theme */
 pre, code {
-  font-family: var(--vscode-editor-font-family, 'Consolas', 'Courier New', monospace);
-  background-color: var(--vscode-textCodeBlock-background, #1e1e1e);
-  border-radius: 3px;
+  font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+  border-radius: 4px;
 }
 pre {
-  padding: 12px;
+  background-color: #f6f8fa;
+  border: 1px solid #e1e4e8;
+  padding: 16px;
   overflow-x: auto;
+  font-size: 14px;
 }
 code {
-  padding: 2px 4px;
+  background-color: rgba(27, 31, 35, 0.05);
+  padding: 0.2em 0.4em;
+  font-size: 85%;
+}
+pre code {
+  background-color: transparent;
+  padding: 0;
+  font-size: inherit;
 }
 
 /* Headers */
@@ -305,10 +425,14 @@ h1, h2, h3, h4, h5, h6 {
   font-weight: 600;
   line-height: 1.25;
 }
+h1 { font-size: 2em; border-bottom: 1px solid #e1e4e8; padding-bottom: 0.3em; }
+h2 { font-size: 1.5em; border-bottom: 1px solid #e1e4e8; padding-bottom: 0.3em; }
+h3 { font-size: 1.25em; }
+h4 { font-size: 1em; }
 
 /* Links */
 a {
-  color: var(--vscode-textLink-foreground, #3794ff);
+  color: #0366d6;
   text-decoration: none;
 }
 a:hover {
@@ -319,42 +443,62 @@ a:hover {
 img {
   max-width: 100%;
   height: auto;
+  display: block;
+  margin: 16px auto;
 }
 
-/* Tables */
+/* Tables - light theme */
 table {
   border-collapse: collapse;
   width: 100%;
   margin: 16px 0;
+  display: block;
+  overflow-x: auto;
 }
 th, td {
-  border: 1px solid var(--vscode-panel-border, #454545);
-  padding: 8px 12px;
+  border: 1px solid #dfe2e5;
+  padding: 12px 16px;
   text-align: left;
 }
 th {
-  background-color: var(--vscode-editor-background, #1e1e1e);
+  background-color: #f6f8fa;
   font-weight: 600;
+}
+tr:nth-child(2n) {
+  background-color: #f6f8fa;
 }
 
 /* Blockquotes */
 blockquote {
-  border-left: 4px solid var(--vscode-textBlockQuote-border, #454545);
-  padding-left: 16px;
-  margin-left: 0;
-  color: var(--vscode-textBlockQuote-foreground, #cccccc);
+  border-left: 4px solid #dfe2e5;
+  padding: 0 16px;
+  margin: 0 0 16px 0;
+  color: #6a737d;
 }
 
 /* Lists */
 ul, ol {
   padding-left: 2em;
+  margin: 0 0 16px 0;
+}
+li {
+  margin: 0.25em 0;
 }
 
-/* Custom styles from theme */
-${styles}
-  </style>
+/* Horizontal rule */
+hr {
+  border: 0;
+  border-top: 1px solid #e1e4e8;
+  margin: 24px 0;
+}
+
+/* Paragraph */
+p {
+  margin: 0 0 16px 0;
+}
+</style>
 </head>
-<body class="${bodyClasses}">
+<body>
 ${content.innerHTML}
 </body>
 </html>`;
@@ -367,7 +511,6 @@ ${content.innerHTML}
     const h1 = content.querySelector('h1');
     return h1?.textContent?.trim() || null;
   }
-
   /**
    * Escape HTML special characters
    */
