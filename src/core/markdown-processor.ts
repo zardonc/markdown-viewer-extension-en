@@ -11,6 +11,7 @@ import remarkGemoji from 'remark-gemoji';
 import remarkSuperSub from '../plugins/remark-super-sub';
 import remarkHighlight from '../plugins/remark-highlight';
 import remarkTocFilter from '../plugins/remark-toc-filter';
+import { remarkAlert } from 'remark-github-blockquote-alert';
 import remarkRehype from 'remark-rehype';
 import GithubSlugger from 'github-slugger';
 import rehypeSlugShared from './rehype-slug-shared';
@@ -587,9 +588,10 @@ export function createMarkdownProcessor(
     .use(remarkCjkFriendly)
     .use(remarkGfm, { singleTilde: false })
     .use(remarkMath)
-    .use(remarkHighlight) // Support ==highlight== syntax (before math for proper nesting)
-    .use(remarkGemoji)
-    .use(remarkSuperSub)
+.use(remarkHighlight) // Support ==highlight== syntax (before math for proper nesting)
+		.use(remarkAlert) // GitHub-style alerts: [!NOTE], [!TIP], [!IMPORTANT], [!WARNING], [!CAUTION]
+		.use(remarkGemoji)
+		.use(remarkSuperSub)
     .use(remarkTocFilter);  // Filter out [toc] markers in rendered HTML
 
   // Register all plugins from plugin registry

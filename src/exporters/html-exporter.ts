@@ -494,7 +494,84 @@ hr {
 
 /* Paragraph */
 p {
-  margin: 0 0 16px 0;
+ margin: 0 0 16px 0;
+}
+
+/* GitHub-style Alert Styles */
+.markdown-alert {
+ padding: 0.5em 1em;
+ margin-bottom: 1em;
+ border-left: 0.25em solid #d1d5db;
+ background-color: #f9fafb;
+ border-radius: 0 4px 4px 0;
+}
+
+.markdown-alert-title {
+ font-weight: 600;
+ display: flex;
+ align-items: center;
+ gap: 0.5em;
+ margin-bottom: 0.25em;
+}
+
+/* NOTE - Blue */
+.markdown-alert-note {
+ border-left-color: #0969da;
+ background-color: #cce5ff;
+}
+.markdown-alert-note .markdown-alert-title {
+ color: #0969da;
+}
+.markdown-alert-note .markdown-alert-title::before {
+ content: "ℹ️";
+}
+
+/* TIP - Green */
+.markdown-alert-tip {
+ border-left-color: #1a7f37;
+ background-color: #c8e6c9;
+}
+.markdown-alert-tip .markdown-alert-title {
+ color: #1a7f37;
+}
+.markdown-alert-tip .markdown-alert-title::before {
+ content: "💡";
+}
+
+/* IMPORTANT - Purple */
+.markdown-alert-important {
+ border-left-color: #8250df;
+ background-color: #e8d5f9;
+}
+.markdown-alert-important .markdown-alert-title {
+ color: #8250df;
+}
+.markdown-alert-important .markdown-alert-title::before {
+ content: "❗";
+}
+
+/* WARNING - Orange */
+.markdown-alert-warning {
+ border-left-color: #9a6700;
+ background-color: #fff3cd;
+}
+.markdown-alert-warning .markdown-alert-title {
+ color: #9a6700;
+}
+.markdown-alert-warning .markdown-alert-title::before {
+ content: "⚠️";
+}
+
+/* CAUTION - Red */
+.markdown-alert-caution {
+ border-left-color: #cf222e;
+ background-color: #f8d7da;
+}
+.markdown-alert-caution .markdown-alert-title {
+ color: #cf222e;
+}
+.markdown-alert-caution .markdown-alert-title::before {
+ content: "🚨";
 }
 </style>
 </head>
