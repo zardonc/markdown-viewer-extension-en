@@ -71,9 +71,11 @@ export class SvgPlugin extends BasePlugin {
     if (content.includes('<svg')) {
       return false;
     }
-    return content.startsWith('http://') || 
-           content.startsWith('https://') ||
-           content.startsWith('file://') ||
+    // Remote URLs are passed directly to the renderer for loading via <img>
+    if (content.startsWith('http://') || content.startsWith('https://')) {
+      return false;
+    }
+    return content.startsWith('file://') ||
            content.startsWith('data:') ||
            content.includes('/') || // Relative paths
            content.includes('\\'); // Windows paths
