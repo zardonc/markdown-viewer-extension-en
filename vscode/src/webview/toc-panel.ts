@@ -61,6 +61,7 @@ export function createTOCPanel(options: TOCPanelOptions = {}): TOCPanel {
   let headings: TOCHeading[] = [];
   let currentActiveId: string | null = null;
   let scrollListener: (() => void) | null = null;
+  let isScrollingProgrammatically = false;
 
   // Create sidebar container
   const sidebar = document.createElement('div');
@@ -204,6 +205,9 @@ export function createTOCPanel(options: TOCPanelOptions = {}): TOCPanel {
 
   // Scroll to specific heading
   function scrollToHeading(id: string): void {
+    // Mark as programmatically scrolling to prevent scroll observer interference
+    isScrollingProgrammatically = true;
+    
     // Use querySelector with CSS.escape to handle special characters in ID
     let targetEl: HTMLElement | null = null;
     
@@ -226,14 +230,23 @@ export function createTOCPanel(options: TOCPanelOptions = {}): TOCPanel {
       }
     } catch (e) {
       console.error('[TOC] Error finding element:', e);
+      isScrollingProgrammatically = false;
     }
     
     if (targetEl) {
-      // Use scrollIntoView with 'center' block to ensure element is in middle of viewport
-      // This provides better visibility and avoids being cut off at edges
-      targetEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      // Use 'auto' for immediate scroll instead of 'smooth' to avoid scroll observer interference
+      targetEl.scrollIntoView({ behavior: 'auto', block: 'center' });
+      
+      // Manually update the active heading immediately
+      highlightActiveHeading(id);
+      
+      // Reset the flag after a short delay to allow normal scroll observer to resume
+      setTimeout(() => {
+        isScrollingProgrammatically = false;
+      }, 300);
     } else {
       console.warn('[TOC] Target element not found for id:', id);
+      isScrollingProgrammatically = false;
     }
   }
 
@@ -257,6 +270,11 @@ export function createTOCPanel(options: TOCPanelOptions = {}): TOCPanel {
 
   // Update active heading based on scroll position
   function updateActiveHeadingOnScroll(): void {
+    // Skip if we're doing programmatic scrolling (user clicked TOC item)
+    if (isScrollingProgrammatically) {
+      return;
+    }
+    
     const scrollY = window.scrollY;
     let currentHeading: TOCHeading | null = null;
 
