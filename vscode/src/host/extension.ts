@@ -245,6 +245,18 @@ export function activate(context: vscode.ExtensionContext) {
     })
   );
 
+  // Register toggle TOC command
+  context.subscriptions.push(
+    vscode.commands.registerCommand('markdownViewer.toggleTOC', () => {
+      const panel = MarkdownPreviewPanel.currentPanel;
+      if (panel) {
+        panel.toggleTOC();
+      } else {
+        vscode.window.showWarningMessage('Please open the Markdown preview first');
+      }
+    })
+  );
+
   // Register Markdown tools
   registerNumberHeadingsCommand(context, cacheStorage);
 

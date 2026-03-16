@@ -327,6 +327,12 @@
         "title": "%command.openSettings.title%",
         "category": "%category.markdownTools%",
         "icon": "$(gear)"
+      },
+      {
+        "command": "markdownViewer.toggleTOC",
+        "title": "Toggle Table of Contents",
+        "category": "Markdown Viewer",
+        "icon": "$(list-flat)"
       }
     ],
     "menus": {
@@ -398,6 +404,11 @@
         },
         {
           "submenu": "markdownViewer.exportMenu",
+          "when": "activeWebviewPanelId == markdownViewerAdvanced",
+          "group": "navigation@1"
+        },
+        {
+          "command": "markdownViewer.toggleTOC",
           "when": "activeWebviewPanelId == markdownViewerAdvanced",
           "group": "navigation@1"
         },

@@ -33,8 +33,6 @@ export interface TOCPanel {
   setHeadings: (headings: TOCHeading[]) => void;
   /** Get the panel root element */
   getElement: () => HTMLElement;
-  /** Get the trigger button element */
-  getTriggerElement: () => HTMLElement;
   /** Cleanup and remove listeners */
   dispose: () => void;
   /** Highlight active heading by ID */
@@ -70,17 +68,6 @@ export function createTOCPanel(options: TOCPanelOptions = {}): TOCPanel {
   sidebar.setAttribute('role', 'navigation');
   sidebar.setAttribute('aria-label', Localization.translate('toc_title') || 'Table of Contents');
 
-  // Create trigger button
-  const triggerBtn = document.createElement('button');
-  triggerBtn.className = 'vscode-toc-trigger';
-  triggerBtn.setAttribute('aria-label', Localization.translate('toc_toggle') || 'Toggle Table of Contents');
-  triggerBtn.setAttribute('title', Localization.translate('toc_toggle') || 'Toggle Table of Contents');
-  triggerBtn.innerHTML = `
-    <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
-      <path d="M2 3h12v1H2V3zm0 4.5h12v1H2v-1zm0 4.5h12v1H2v-1z"/>
-    </svg>
-  `;
-
   // Create sidebar header
   const header = document.createElement('div');
   header.className = 'vscode-toc-header';
@@ -103,7 +90,6 @@ export function createTOCPanel(options: TOCPanelOptions = {}): TOCPanel {
   content.appendChild(tocList);
 
   // Add to document
-  document.body.appendChild(triggerBtn);
   document.body.appendChild(sidebar);
 
   // Get header elements
@@ -113,13 +99,10 @@ export function createTOCPanel(options: TOCPanelOptions = {}): TOCPanel {
   // Update translations
   function updateLabels(): void {
     const tocTitleText = Localization.translate('toc_title') || 'Table of Contents';
-    const toggleText = Localization.translate('toc_toggle') || 'Toggle Table of Contents';
     const closeText = Localization.translate('close') || 'Close';
 
     if (tocTitle) tocTitle.textContent = tocTitleText;
     sidebar.setAttribute('aria-label', tocTitleText);
-    triggerBtn.setAttribute('aria-label', toggleText);
-    triggerBtn.setAttribute('title', toggleText);
     if (closeBtn) closeBtn.setAttribute('aria-label', closeText);
   }
 
@@ -300,7 +283,6 @@ export function createTOCPanel(options: TOCPanelOptions = {}): TOCPanel {
     if (visible) return;
 
     sidebar.classList.add('visible');
-    triggerBtn.classList.add('active');
     visible = true;
 
     // Setup scroll observer for auto-highlight
@@ -322,7 +304,6 @@ export function createTOCPanel(options: TOCPanelOptions = {}): TOCPanel {
     if (!visible) return;
 
     sidebar.classList.remove('visible');
-    triggerBtn.classList.remove('active');
     visible = false;
 
     onVisibilityChange?.(false);
@@ -358,11 +339,6 @@ export function createTOCPanel(options: TOCPanelOptions = {}): TOCPanel {
     return sidebar;
   }
 
-  // Get trigger element
-  function getTriggerElement(): HTMLElement {
-    return triggerBtn;
-  }
-
   // Cleanup
   function dispose(): void {
     if (scrollListener) {
@@ -370,12 +346,10 @@ export function createTOCPanel(options: TOCPanelOptions = {}): TOCPanel {
       scrollListener = null;
     }
 
-    triggerBtn.remove();
     sidebar.remove();
   }
 
   // Event listeners
-  triggerBtn.addEventListener('click', toggle);
   closeBtn?.addEventListener('click', hide);
 
   // Keyboard shortcut: Escape to close
@@ -388,7 +362,7 @@ export function createTOCPanel(options: TOCPanelOptions = {}): TOCPanel {
   // Click outside to close
   document.addEventListener('click', (e) => {
     const target = e.target as HTMLElement;
-    if (visible && !sidebar.contains(target) && !triggerBtn.contains(target)) {
+    if (visible && !sidebar.contains(target)) {
       hide();
     }
   });
@@ -403,7 +377,6 @@ export function createTOCPanel(options: TOCPanelOptions = {}): TOCPanel {
     isVisible,
     setHeadings,
     getElement,
-    getTriggerElement,
     dispose,
     highlightActiveHeading,
     scrollToHeading,

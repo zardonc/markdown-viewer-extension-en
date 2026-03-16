@@ -242,6 +242,21 @@ export class MarkdownPreviewPanel {
     }
   }
 
+  /**
+   * Toggle TOC (Table of Contents) panel in webview
+   */
+  public toggleTOC(): void {
+    // If webview is ready, send message immediately
+    if (this._isWebviewReady) {
+      this._postToWebview('TOGGLE_TOC');
+    } else {
+      // Queue the operation for when webview is ready
+      this._pendingOperations.push(() => {
+        this._postToWebview('TOGGLE_TOC');
+      });
+    }
+  }
+
   // Export result resolver (for async export completion)
   private _exportResultResolver: ((success: boolean) => void) | null = null;
 

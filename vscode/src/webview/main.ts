@@ -183,11 +183,15 @@ function handleExtensionMessage(message: ExtensionMessage): void {
       handleOpenSettings();
       break;
 
-    case 'OPEN_SEARCH':
+case 'OPEN_SEARCH':
       handleOpenSearch();
       break;
 
- case 'SCROLL_TO_LINE':
+    case 'TOGGLE_TOC':
+      handleToggleTOC();
+      break;
+
+   case 'SCROLL_TO_LINE':
  handleScrollToLine(payload as ScrollToLinePayload);
  break;
 
