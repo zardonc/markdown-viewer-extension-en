@@ -339,6 +339,22 @@
     "message": "Palauta",
     "description": "Reset button"
   },
+  "save_as_drawio": {
+    "message": "Tallenna DrawIO-muodossa",
+    "description": "Context menu item for saving a PlantUML diagram as DrawIO"
+  },
+  "save_as_png": {
+    "message": "Tallenna PNG-muodossa",
+    "description": "Context menu item for saving a diagram as PNG"
+  },
+  "save_as_svg": {
+    "message": "Tallenna SVG-muodossa",
+    "description": "Context menu item for saving a diagram as SVG"
+  },
+  "save_image_as": {
+    "message": "Tallenna kuva nimellä…",
+    "description": "Context menu item for saving an image"
+  },
   "search_case_sensitive": {
     "message": "Kirjainkoko",
     "description": "Toggle case sensitive search"

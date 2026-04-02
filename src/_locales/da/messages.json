@@ -339,6 +339,22 @@
     "message": "Nulstil",
     "description": "Reset button"
   },
+  "save_as_drawio": {
+    "message": "Gem som DrawIO",
+    "description": "Context menu item for saving a PlantUML diagram as DrawIO"
+  },
+  "save_as_png": {
+    "message": "Gem som PNG",
+    "description": "Context menu item for saving a diagram as PNG"
+  },
+  "save_as_svg": {
+    "message": "Gem som SVG",
+    "description": "Context menu item for saving a diagram as SVG"
+  },
+  "save_image_as": {
+    "message": "Gem billede som…",
+    "description": "Context menu item for saving an image"
+  },
   "search_case_sensitive": {
     "message": "Forskel på store/små bogstaver",
     "description": "Toggle case sensitive search"

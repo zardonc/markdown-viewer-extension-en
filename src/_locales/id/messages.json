@@ -339,6 +339,22 @@
     "message": "Atur ulang",
     "description": "Reset button"
   },
+  "save_as_drawio": {
+    "message": "Simpan sebagai DrawIO",
+    "description": "Context menu item for saving a PlantUML diagram as DrawIO"
+  },
+  "save_as_png": {
+    "message": "Simpan sebagai PNG",
+    "description": "Context menu item for saving a diagram as PNG"
+  },
+  "save_as_svg": {
+    "message": "Simpan sebagai SVG",
+    "description": "Context menu item for saving a diagram as SVG"
+  },
+  "save_image_as": {
+    "message": "Simpan gambar sebagai…",
+    "description": "Context menu item for saving an image"
+  },
   "search_case_sensitive": {
     "message": "Cocokkan huruf besar/kecil",
     "description": "Toggle case sensitive search"

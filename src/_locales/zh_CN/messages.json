@@ -622,5 +622,21 @@
   "zoom": {
     "message": "缩放",
     "description": "Menu item for zoom"
+  },
+  "save_image_as": {
+    "message": "图片另存为…",
+    "description": "Context menu item for saving an image"
+  },
+  "save_as_png": {
+    "message": "保存为 PNG",
+    "description": "Context menu item for saving a diagram as PNG"
+  },
+  "save_as_svg": {
+    "message": "保存为 SVG",
+    "description": "Context menu item for saving a diagram as SVG"
+  },
+  "save_as_drawio": {
+    "message": "保存为 DrawIO",
+    "description": "Context menu item for saving a PlantUML diagram as DrawIO"
   }
 }

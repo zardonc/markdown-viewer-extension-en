@@ -21,6 +21,7 @@ import {
   handleThemeSwitchFlow,
   exportDocxFlow,
 } from '../../../src/core/viewer/viewer-host';
+import { setupImageContextMenu } from '../../../src/ui/image-context-menu';
 
 declare global {
   var bridge: PlatformBridgeAPI | undefined;
@@ -123,6 +124,18 @@ async function initialize(): Promise<void> {
 
     // Set up link click handling via event delegation
     setupLinkHandling();
+
+    // Setup image context menu (shared cross-platform)
+    const contentContainer = document.getElementById('markdown-content');
+    if (contentContainer) {
+      setupImageContextMenu({
+        container: contentContainer,
+        onDownload: ({ filename, data, mimeType }) => {
+          bridge.sendRequest('DOWNLOAD_FILE', { filename, data, mimeType });
+        },
+        translate: (key) => Localization.translate(key),
+      });
+    }
 
     // Set up message handlers from host app (Flutter)
     setupMessageHandlers();

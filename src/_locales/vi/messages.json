@@ -339,6 +339,22 @@
     "message": "Đặt lại",
     "description": "Reset button"
   },
+  "save_as_drawio": {
+    "message": "Lưu dưới dạng DrawIO",
+    "description": "Context menu item for saving a PlantUML diagram as DrawIO"
+  },
+  "save_as_png": {
+    "message": "Lưu dưới dạng PNG",
+    "description": "Context menu item for saving a diagram as PNG"
+  },
+  "save_as_svg": {
+    "message": "Lưu dưới dạng SVG",
+    "description": "Context menu item for saving a diagram as SVG"
+  },
+  "save_image_as": {
+    "message": "Lưu hình ảnh dưới dạng…",
+    "description": "Context menu item for saving an image"
+  },
   "search_case_sensitive": {
     "message": "Phân biệt chữ hoa/thường",
     "description": "Toggle case sensitive search"

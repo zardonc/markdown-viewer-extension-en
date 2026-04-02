@@ -339,6 +339,22 @@
     "message": "Сбросить",
     "description": "Reset button"
   },
+  "save_as_drawio": {
+    "message": "Сохранить как DrawIO",
+    "description": "Context menu item for saving a PlantUML diagram as DrawIO"
+  },
+  "save_as_png": {
+    "message": "Сохранить как PNG",
+    "description": "Context menu item for saving a diagram as PNG"
+  },
+  "save_as_svg": {
+    "message": "Сохранить как SVG",
+    "description": "Context menu item for saving a diagram as SVG"
+  },
+  "save_image_as": {
+    "message": "Сохранить изображение как…",
+    "description": "Context menu item for saving an image"
+  },
   "search_case_sensitive": {
     "message": "С учётом регистра",
     "description": "Toggle case sensitive search"

@@ -339,6 +339,22 @@
     "message": "Atstatyti",
     "description": "Reset button"
   },
+  "save_as_drawio": {
+    "message": "Išsaugoti kaip DrawIO",
+    "description": "Context menu item for saving a PlantUML diagram as DrawIO"
+  },
+  "save_as_png": {
+    "message": "Išsaugoti kaip PNG",
+    "description": "Context menu item for saving a diagram as PNG"
+  },
+  "save_as_svg": {
+    "message": "Išsaugoti kaip SVG",
+    "description": "Context menu item for saving a diagram as SVG"
+  },
+  "save_image_as": {
+    "message": "Išsaugoti vaizdą kaip…",
+    "description": "Context menu item for saving an image"
+  },
   "search_case_sensitive": {
     "message": "Skirti didžiąsias/mažąsias",
     "description": "Toggle case sensitive search"

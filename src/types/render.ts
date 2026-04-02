@@ -17,6 +17,10 @@ export interface RenderResult {
   format: string;
   success?: boolean;
   error?: string;
+  /** Intermediate SVG content (for renderers that produce SVG before PNG) */
+  svg?: string;
+  /** Intermediate DrawIO XML (for PlantUML renderer) */
+  drawioXml?: string;
 }
 
 // =============================================================================

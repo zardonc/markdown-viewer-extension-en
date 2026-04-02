@@ -41,7 +41,8 @@ export function findI18nKeysInCode() {
     try {
       const content = fs.readFileSync(filePath, 'utf8');
 
-      const translatePattern = /translate\s*\(\s*['"]([^'"]+)['"]/g;
+      // Match translate('key'), translate?.('key'), t('key')
+      const translatePattern = /translate\??\s*\.?\s*\(\s*['"]([^'"]+)['"]/g;
       let match;
       while ((match = translatePattern.exec(content)) !== null) {
         keysUsedInCode.add(match[1]);

@@ -339,6 +339,22 @@
     "message": "Sıfırla",
     "description": "Reset button"
   },
+  "save_as_drawio": {
+    "message": "DrawIO olarak kaydet",
+    "description": "Context menu item for saving a PlantUML diagram as DrawIO"
+  },
+  "save_as_png": {
+    "message": "PNG olarak kaydet",
+    "description": "Context menu item for saving a diagram as PNG"
+  },
+  "save_as_svg": {
+    "message": "SVG olarak kaydet",
+    "description": "Context menu item for saving a diagram as SVG"
+  },
+  "save_image_as": {
+    "message": "Resmi farklı kaydet…",
+    "description": "Context menu item for saving an image"
+  },
   "search_case_sensitive": {
     "message": "Büyük/küçük harf duyarlı",
     "description": "Toggle case sensitive search"

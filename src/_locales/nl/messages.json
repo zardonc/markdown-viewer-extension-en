@@ -339,6 +339,22 @@
     "message": "Resetten",
     "description": "Reset button"
   },
+  "save_as_drawio": {
+    "message": "Opslaan als DrawIO",
+    "description": "Context menu item for saving a PlantUML diagram as DrawIO"
+  },
+  "save_as_png": {
+    "message": "Opslaan als PNG",
+    "description": "Context menu item for saving a diagram as PNG"
+  },
+  "save_as_svg": {
+    "message": "Opslaan als SVG",
+    "description": "Context menu item for saving a diagram as SVG"
+  },
+  "save_image_as": {
+    "message": "Afbeelding opslaan als…",
+    "description": "Context menu item for saving an image"
+  },
   "search_case_sensitive": {
     "message": "Hoofdlettergevoelig",
     "description": "Toggle case sensitive search"

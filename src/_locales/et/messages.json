@@ -339,6 +339,22 @@
     "message": "Lähtesta",
     "description": "Reset button"
   },
+  "save_as_drawio": {
+    "message": "Salvesta DrawIO-na",
+    "description": "Context menu item for saving a PlantUML diagram as DrawIO"
+  },
+  "save_as_png": {
+    "message": "Salvesta PNG-na",
+    "description": "Context menu item for saving a diagram as PNG"
+  },
+  "save_as_svg": {
+    "message": "Salvesta SVG-na",
+    "description": "Context menu item for saving a diagram as SVG"
+  },
+  "save_image_as": {
+    "message": "Salvesta pilt kui…",
+    "description": "Context menu item for saving an image"
+  },
   "search_case_sensitive": {
     "message": "Tõstutundlik",
     "description": "Toggle case sensitive search"

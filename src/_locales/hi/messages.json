@@ -339,6 +339,22 @@
     "message": "रीसेट",
     "description": "Reset button"
   },
+  "save_as_drawio": {
+    "message": "DrawIO के रूप में सहेजें",
+    "description": "Context menu item for saving a PlantUML diagram as DrawIO"
+  },
+  "save_as_png": {
+    "message": "PNG के रूप में सहेजें",
+    "description": "Context menu item for saving a diagram as PNG"
+  },
+  "save_as_svg": {
+    "message": "SVG के रूप में सहेजें",
+    "description": "Context menu item for saving a diagram as SVG"
+  },
+  "save_image_as": {
+    "message": "छवि इस रूप में सहेजें…",
+    "description": "Context menu item for saving an image"
+  },
   "search_case_sensitive": {
     "message": "केस मिलाएं",
     "description": "Toggle case sensitive search"

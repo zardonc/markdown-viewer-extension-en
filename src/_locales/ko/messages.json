@@ -339,6 +339,22 @@
     "message": "재설정",
     "description": "Reset button"
   },
+  "save_as_drawio": {
+    "message": "DrawIO로 저장",
+    "description": "Context menu item for saving a PlantUML diagram as DrawIO"
+  },
+  "save_as_png": {
+    "message": "PNG로 저장",
+    "description": "Context menu item for saving a diagram as PNG"
+  },
+  "save_as_svg": {
+    "message": "SVG로 저장",
+    "description": "Context menu item for saving a diagram as SVG"
+  },
+  "save_image_as": {
+    "message": "이미지를 다른 이름으로 저장…",
+    "description": "Context menu item for saving an image"
+  },
   "search_case_sensitive": {
     "message": "대소문자 구분",
     "description": "Toggle case sensitive search"

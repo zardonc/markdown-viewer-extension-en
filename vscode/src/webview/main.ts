@@ -31,6 +31,7 @@ import {
 // VSCode-specific UI components
 import { createSettingsPanel, type SettingsPanel, type ThemeOption, type LocaleOption } from './settings-panel';
 import { createSearchPanel, type SearchPanel, type HighlightMatch, type SearchOptions } from './search-panel';
+import { setupImageContextMenu } from '../../../src/ui/image-context-menu';
 
 // Declare global types for VSCode-specific variables
 declare global {
@@ -593,6 +594,17 @@ function initializeUI(): void {
     }
   });
   document.body.appendChild(searchPanel.getElement());
+
+  // Setup image context menu for saving images (shared cross-platform implementation)
+  if (contentContainer) {
+    setupImageContextMenu({
+      container: contentContainer,
+      onDownload: ({ filename, data, mimeType }) => {
+        vscodeBridge.sendRequest('DOWNLOAD_FILE', { filename, data, mimeType });
+      },
+      translate: (key) => Localization.translate(key),
+    });
+  }
 }
 
 /**

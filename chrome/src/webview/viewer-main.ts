@@ -31,6 +31,7 @@ import {
   renderMarkdownFlow,
   handleThemeSwitchFlow,
 } from '../../../src/core/viewer/viewer-host';
+import { setupImageContextMenu } from '../../../src/ui/image-context-menu';
 
 // Extend Window interface for global access
 declare global {
@@ -561,6 +562,33 @@ export async function initializeViewerMain(options: ViewerMainOptions): Promise<
 
   // Setup message listener for theme/locale/file changes
   setupMessageListener();
+
+  // Setup image context menu (shared cross-platform)
+  const contentContainer = document.getElementById('markdown-content');
+  if (contentContainer) {
+    setupImageContextMenu({
+      container: contentContainer,
+      onDownload: ({ filename, data, mimeType }) => {
+        // Use <a download> for browser-based download
+        const blob = new Blob(
+          [Uint8Array.from(atob(data), c => c.charCodeAt(0))],
+          { type: mimeType }
+        );
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        a.style.display = 'none';
+        document.body.appendChild(a);
+        a.click();
+        setTimeout(() => {
+          document.body.removeChild(a);
+          URL.revokeObjectURL(url);
+        }, 100);
+      },
+      translate: (key) => Localization.translate(key),
+    });
+  }
 
   // Start file tracking for local files
   if (currentUrl.startsWith('file://')) {

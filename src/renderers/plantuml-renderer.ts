@@ -129,7 +129,9 @@ export class PlantumlRenderer extends BaseRenderer {
       base64: base64Data,
       width: canvas.width,
       height: canvas.height,
-      format: 'png'
+      format: 'png',
+      svg,
+      drawioXml,
     };
   }
 }
