@@ -363,6 +363,21 @@ h1.clickable-title:hover {
   box-shadow: none;
 }
 
+.btn-project {
+  width: 100%;
+  padding: 10px 16px;
+  gap: 6px;
+  background: var(--color-primary-light);
+  border-color: var(--color-primary-subtle);
+  color: var(--color-primary);
+  font-weight: 600;
+}
+
+.btn-project:hover {
+  background: var(--color-primary-subtle);
+  border-color: var(--color-primary);
+}
+
 .btn.danger {
   background: var(--color-danger-bg);
   border-color: var(--color-danger-border);

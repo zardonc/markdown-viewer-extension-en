@@ -635,6 +635,30 @@
     "message": "शुरू करने के लिए एक मार्कडाउन फ़ाइल खोलें",
     "description": "Welcome message on empty state"
   },
+  "workspace_choose_directory": {
+    "message": "निर्देशिका चुनें",
+    "description": "Button to open directory picker"
+  },
+  "workspace_desc": {
+    "message": "समर्थित फ़ाइलों को ब्राउज़ और पूर्वावलोकन करने के लिए स्थानीय निर्देशिका खोलें।",
+    "description": "Workspace landing page description"
+  },
+  "workspace_open": {
+    "message": "कार्यक्षेत्र खोलें",
+    "description": "Button in popup to open workspace page"
+  },
+  "workspace_recent": {
+    "message": "हाल के कार्यक्षेत्र",
+    "description": "Title for recent workspaces list"
+  },
+  "workspace_select_file": {
+    "message": "पूर्वावलोकन के लिए फ़ाइल चुनें",
+    "description": "Placeholder text when no file is selected"
+  },
+  "workspace_title": {
+    "message": "कार्यक्षेत्र",
+    "description": "Workspace landing page title"
+  },
   "zoom": {
     "message": "ज़ूम",
     "description": "Menu item for zoom"

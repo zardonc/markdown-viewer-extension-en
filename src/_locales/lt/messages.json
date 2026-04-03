@@ -635,6 +635,30 @@
     "message": "Norėdami pradėti, atidarykite markdown failą",
     "description": "Welcome message on empty state"
   },
+  "workspace_choose_directory": {
+    "message": "Pasirinkti katalogą",
+    "description": "Button to open directory picker"
+  },
+  "workspace_desc": {
+    "message": "Atidarykite vietinį katalogą, kad galėtumėte naršyti ir peržiūrėti palaikomus failus.",
+    "description": "Workspace landing page description"
+  },
+  "workspace_open": {
+    "message": "Atidaryti darbo sritį",
+    "description": "Button in popup to open workspace page"
+  },
+  "workspace_recent": {
+    "message": "Naujausios darbo sritys",
+    "description": "Title for recent workspaces list"
+  },
+  "workspace_select_file": {
+    "message": "Pasirinkite failą peržiūrai",
+    "description": "Placeholder text when no file is selected"
+  },
+  "workspace_title": {
+    "message": "Darbo sritis",
+    "description": "Workspace landing page title"
+  },
   "zoom": {
     "message": "Mastelis",
     "description": "Menu item for zoom"

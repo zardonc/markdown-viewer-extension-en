@@ -11,6 +11,12 @@ import type {
  * @returns Current document URL without hash
  */
 export function getCurrentDocumentUrl(): string {
+  // In embedded viewer mode, use the filename from the parent
+  const viewerFilename = document.documentElement.dataset.viewerFilename;
+  if (viewerFilename) {
+    return `file:///${viewerFilename}`;
+  }
+
   const url = document.location.href;
   try {
     const urlObj = new URL(url);

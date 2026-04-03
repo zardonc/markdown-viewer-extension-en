@@ -635,6 +635,30 @@
     "message": "Başlamak için bir markdown dosyası açın",
     "description": "Welcome message on empty state"
   },
+  "workspace_choose_directory": {
+    "message": "Dizin seç",
+    "description": "Button to open directory picker"
+  },
+  "workspace_desc": {
+    "message": "Desteklenen dosyaları göz atmak ve önizlemek için yerel bir dizin açın.",
+    "description": "Workspace landing page description"
+  },
+  "workspace_open": {
+    "message": "Çalışma alanını aç",
+    "description": "Button in popup to open workspace page"
+  },
+  "workspace_recent": {
+    "message": "Son çalışma alanları",
+    "description": "Title for recent workspaces list"
+  },
+  "workspace_select_file": {
+    "message": "Önizlenecek dosyayı seçin",
+    "description": "Placeholder text when no file is selected"
+  },
+  "workspace_title": {
+    "message": "Çalışma Alanı",
+    "description": "Workspace landing page title"
+  },
   "zoom": {
     "message": "Yakınlaştır",
     "description": "Menu item for zoom"

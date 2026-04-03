@@ -635,6 +635,30 @@
     "message": "Open een markdown-bestand om te beginnen",
     "description": "Welcome message on empty state"
   },
+  "workspace_choose_directory": {
+    "message": "Map kiezen",
+    "description": "Button to open directory picker"
+  },
+  "workspace_desc": {
+    "message": "Open een lokale map om ondersteunde bestanden te bekijken en een voorbeeld te zien.",
+    "description": "Workspace landing page description"
+  },
+  "workspace_open": {
+    "message": "Werkruimte openen",
+    "description": "Button in popup to open workspace page"
+  },
+  "workspace_recent": {
+    "message": "Recente werkruimtes",
+    "description": "Title for recent workspaces list"
+  },
+  "workspace_select_file": {
+    "message": "Selecteer een bestand om te bekijken",
+    "description": "Placeholder text when no file is selected"
+  },
+  "workspace_title": {
+    "message": "Werkruimte",
+    "description": "Workspace landing page title"
+  },
   "zoom": {
     "message": "Zoomen",
     "description": "Menu item for zoom"

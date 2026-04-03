@@ -635,6 +635,30 @@
     "message": "Åpne en markdown-fil for å komme i gang",
     "description": "Welcome message on empty state"
   },
+  "workspace_choose_directory": {
+    "message": "Velg katalog",
+    "description": "Button to open directory picker"
+  },
+  "workspace_desc": {
+    "message": "Åpne en lokal katalog for å bla gjennom og forhåndsvise støttede filer.",
+    "description": "Workspace landing page description"
+  },
+  "workspace_open": {
+    "message": "Åpne arbeidsområde",
+    "description": "Button in popup to open workspace page"
+  },
+  "workspace_recent": {
+    "message": "Nylige arbeidsområder",
+    "description": "Title for recent workspaces list"
+  },
+  "workspace_select_file": {
+    "message": "Velg en fil å forhåndsvise",
+    "description": "Placeholder text when no file is selected"
+  },
+  "workspace_title": {
+    "message": "Arbeidsområde",
+    "description": "Workspace landing page title"
+  },
   "zoom": {
     "message": "Zoom",
     "description": "Menu item for zoom"

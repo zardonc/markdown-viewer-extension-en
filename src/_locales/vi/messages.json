@@ -635,6 +635,30 @@
     "message": "Mở tệp markdown để bắt đầu",
     "description": "Welcome message on empty state"
   },
+  "workspace_choose_directory": {
+    "message": "Chọn thư mục",
+    "description": "Button to open directory picker"
+  },
+  "workspace_desc": {
+    "message": "Mở thư mục cục bộ để duyệt và xem trước các tệp được hỗ trợ.",
+    "description": "Workspace landing page description"
+  },
+  "workspace_open": {
+    "message": "Mở không gian làm việc",
+    "description": "Button in popup to open workspace page"
+  },
+  "workspace_recent": {
+    "message": "Không gian làm việc gần đây",
+    "description": "Title for recent workspaces list"
+  },
+  "workspace_select_file": {
+    "message": "Chọn tệp để xem trước",
+    "description": "Placeholder text when no file is selected"
+  },
+  "workspace_title": {
+    "message": "Không gian làm việc",
+    "description": "Workspace landing page title"
+  },
   "zoom": {
     "message": "Thu phóng",
     "description": "Menu item for zoom"

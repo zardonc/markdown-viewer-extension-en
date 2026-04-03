@@ -635,6 +635,30 @@
     "message": "Buka fail markdown untuk bermula",
     "description": "Welcome message on empty state"
   },
+  "workspace_choose_directory": {
+    "message": "Pilih direktori",
+    "description": "Button to open directory picker"
+  },
+  "workspace_desc": {
+    "message": "Buka direktori tempatan untuk menyemak imbas dan pratonton fail yang disokong.",
+    "description": "Workspace landing page description"
+  },
+  "workspace_open": {
+    "message": "Buka ruang kerja",
+    "description": "Button in popup to open workspace page"
+  },
+  "workspace_recent": {
+    "message": "Ruang kerja terkini",
+    "description": "Title for recent workspaces list"
+  },
+  "workspace_select_file": {
+    "message": "Pilih fail untuk pratonton",
+    "description": "Placeholder text when no file is selected"
+  },
+  "workspace_title": {
+    "message": "Ruang Kerja",
+    "description": "Workspace landing page title"
+  },
   "zoom": {
     "message": "Zum",
     "description": "Menu item for zoom"

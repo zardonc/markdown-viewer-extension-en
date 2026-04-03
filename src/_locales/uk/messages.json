@@ -635,6 +635,30 @@
     "message": "Відкрийте markdown-файл, щоб почати",
     "description": "Welcome message on empty state"
   },
+  "workspace_choose_directory": {
+    "message": "Вибрати каталог",
+    "description": "Button to open directory picker"
+  },
+  "workspace_desc": {
+    "message": "Відкрийте локальний каталог для перегляду та попереднього перегляду підтримуваних файлів.",
+    "description": "Workspace landing page description"
+  },
+  "workspace_open": {
+    "message": "Відкрити робочий простір",
+    "description": "Button in popup to open workspace page"
+  },
+  "workspace_recent": {
+    "message": "Нещодавні робочі простори",
+    "description": "Title for recent workspaces list"
+  },
+  "workspace_select_file": {
+    "message": "Виберіть файл для попереднього перегляду",
+    "description": "Placeholder text when no file is selected"
+  },
+  "workspace_title": {
+    "message": "Робочий простір",
+    "description": "Workspace landing page title"
+  },
   "zoom": {
     "message": "Масштаб",
     "description": "Menu item for zoom"

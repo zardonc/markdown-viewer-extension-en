@@ -635,6 +635,30 @@
     "message": "Alustamiseks avage markdown fail",
     "description": "Welcome message on empty state"
   },
+  "workspace_choose_directory": {
+    "message": "Vali kataloog",
+    "description": "Button to open directory picker"
+  },
+  "workspace_desc": {
+    "message": "Avage kohalik kataloog toetatud failide sirvimiseks ja eelvaateks.",
+    "description": "Workspace landing page description"
+  },
+  "workspace_open": {
+    "message": "Ava tööala",
+    "description": "Button in popup to open workspace page"
+  },
+  "workspace_recent": {
+    "message": "Hiljutised tööalad",
+    "description": "Title for recent workspaces list"
+  },
+  "workspace_select_file": {
+    "message": "Valige eelvaadatav fail",
+    "description": "Placeholder text when no file is selected"
+  },
+  "workspace_title": {
+    "message": "Tööala",
+    "description": "Workspace landing page title"
+  },
   "zoom": {
     "message": "Suum",
     "description": "Menu item for zoom"

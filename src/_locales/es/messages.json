@@ -635,6 +635,30 @@
     "message": "Abre un archivo markdown para comenzar",
     "description": "Welcome message on empty state"
   },
+  "workspace_choose_directory": {
+    "message": "Elegir directorio",
+    "description": "Button to open directory picker"
+  },
+  "workspace_desc": {
+    "message": "Abra un directorio local para explorar y previsualizar archivos compatibles.",
+    "description": "Workspace landing page description"
+  },
+  "workspace_open": {
+    "message": "Abrir espacio de trabajo",
+    "description": "Button in popup to open workspace page"
+  },
+  "workspace_recent": {
+    "message": "Espacios de trabajo recientes",
+    "description": "Title for recent workspaces list"
+  },
+  "workspace_select_file": {
+    "message": "Seleccione un archivo para previsualizar",
+    "description": "Placeholder text when no file is selected"
+  },
+  "workspace_title": {
+    "message": "Espacio de trabajo",
+    "description": "Workspace landing page title"
+  },
   "zoom": {
     "message": "Zoom",
     "description": "Menu item for zoom"

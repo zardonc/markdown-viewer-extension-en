@@ -635,6 +635,30 @@
     "message": "マークダウンファイルを開いて始めましょう",
     "description": "Welcome message on empty state"
   },
+  "workspace_choose_directory": {
+    "message": "ディレクトリを選択",
+    "description": "Button to open directory picker"
+  },
+  "workspace_desc": {
+    "message": "ローカルディレクトリを開いてサポートされているファイルを閲覧・プレビューします。",
+    "description": "Workspace landing page description"
+  },
+  "workspace_open": {
+    "message": "ワークスペースを開く",
+    "description": "Button in popup to open workspace page"
+  },
+  "workspace_recent": {
+    "message": "最近のワークスペース",
+    "description": "Title for recent workspaces list"
+  },
+  "workspace_select_file": {
+    "message": "プレビューするファイルを選択",
+    "description": "Placeholder text when no file is selected"
+  },
+  "workspace_title": {
+    "message": "ワークスペース",
+    "description": "Workspace landing page title"
+  },
   "zoom": {
     "message": "ズーム",
     "description": "Menu item for zoom"

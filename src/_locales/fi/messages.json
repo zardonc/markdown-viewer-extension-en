@@ -635,6 +635,30 @@
     "message": "Avaa markdown-tiedosto aloittaaksesi",
     "description": "Welcome message on empty state"
   },
+  "workspace_choose_directory": {
+    "message": "Valitse hakemisto",
+    "description": "Button to open directory picker"
+  },
+  "workspace_desc": {
+    "message": "Avaa paikallinen hakemisto tuettujen tiedostojen selaamiseen ja esikatseluun.",
+    "description": "Workspace landing page description"
+  },
+  "workspace_open": {
+    "message": "Avaa työtila",
+    "description": "Button in popup to open workspace page"
+  },
+  "workspace_recent": {
+    "message": "Viimeisimmät työtilat",
+    "description": "Title for recent workspaces list"
+  },
+  "workspace_select_file": {
+    "message": "Valitse tiedosto esikatseltavaksi",
+    "description": "Placeholder text when no file is selected"
+  },
+  "workspace_title": {
+    "message": "Työtila",
+    "description": "Workspace landing page title"
+  },
   "zoom": {
     "message": "Zoomaus",
     "description": "Menu item for zoom"

@@ -635,6 +635,30 @@
     "message": "開啟一個 Markdown 檔案開始",
     "description": "Welcome message on empty state"
   },
+  "workspace_choose_directory": {
+    "message": "選擇目錄",
+    "description": "Button to open directory picker"
+  },
+  "workspace_desc": {
+    "message": "開啟本機目錄以瀏覽和預覽支援的檔案。",
+    "description": "Workspace landing page description"
+  },
+  "workspace_open": {
+    "message": "開啟工作區",
+    "description": "Button in popup to open workspace page"
+  },
+  "workspace_recent": {
+    "message": "最近的工作區",
+    "description": "Title for recent workspaces list"
+  },
+  "workspace_select_file": {
+    "message": "選擇檔案以預覽",
+    "description": "Placeholder text when no file is selected"
+  },
+  "workspace_title": {
+    "message": "工作區",
+    "description": "Workspace landing page title"
+  },
   "zoom": {
     "message": "縮放",
     "description": "Menu item for zoom"

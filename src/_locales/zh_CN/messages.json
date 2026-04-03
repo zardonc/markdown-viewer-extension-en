@@ -339,6 +339,22 @@
     "message": "重置",
     "description": "Reset button"
   },
+  "save_as_drawio": {
+    "message": "保存为 DrawIO",
+    "description": "Context menu item for saving a PlantUML diagram as DrawIO"
+  },
+  "save_as_png": {
+    "message": "保存为 PNG",
+    "description": "Context menu item for saving a diagram as PNG"
+  },
+  "save_as_svg": {
+    "message": "保存为 SVG",
+    "description": "Context menu item for saving a diagram as SVG"
+  },
+  "save_image_as": {
+    "message": "图片另存为…",
+    "description": "Context menu item for saving an image"
+  },
   "search_case_sensitive": {
     "message": "区分大小写",
     "description": "Match case sensitivity toggle tooltip"
@@ -619,24 +635,32 @@
     "message": "打开一个 Markdown 文件开始",
     "description": "Welcome message on empty state"
   },
+  "workspace_choose_directory": {
+    "message": "选择目录",
+    "description": "Button to open directory picker"
+  },
+  "workspace_desc": {
+    "message": "打开本地目录以浏览和预览支持的文件。",
+    "description": "Workspace landing page description"
+  },
+  "workspace_open": {
+    "message": "打开工作区",
+    "description": "Button in popup to open workspace page"
+  },
+  "workspace_recent": {
+    "message": "最近的工作区",
+    "description": "Title for recent workspaces list"
+  },
+  "workspace_select_file": {
+    "message": "选择文件以预览",
+    "description": "Placeholder text when no file is selected"
+  },
+  "workspace_title": {
+    "message": "工作区",
+    "description": "Workspace landing page title"
+  },
   "zoom": {
     "message": "缩放",
     "description": "Menu item for zoom"
-  },
-  "save_image_as": {
-    "message": "图片另存为…",
-    "description": "Context menu item for saving an image"
-  },
-  "save_as_png": {
-    "message": "保存为 PNG",
-    "description": "Context menu item for saving a diagram as PNG"
-  },
-  "save_as_svg": {
-    "message": "保存为 SVG",
-    "description": "Context menu item for saving a diagram as SVG"
-  },
-  "save_as_drawio": {
-    "message": "保存为 DrawIO",
-    "description": "Context menu item for saving a PlantUML diagram as DrawIO"
   }
 }

@@ -58,6 +58,8 @@ export const createBuildConfig = () => {
       'core/background': 'chrome/src/host/background.ts',
       'core/offscreen-render-worker': 'chrome/src/webview/offscreen-render-worker.ts',
       'ui/popup/popup': 'chrome/src/popup/popup.ts',
+      'ui/workspace/workspace': 'chrome/src/workspace/workspace.ts',
+      'ui/workspace/viewer-embed': 'chrome/src/workspace/viewer-embed.ts',
       'ui/styles': 'src/ui/styles.css'
     },
     bundle: true,
@@ -98,6 +100,9 @@ export const createBuildConfig = () => {
                 { src: 'chrome/manifest.json', dest: 'dist/chrome/manifest.json', log: '📄 Copied manifest.json from chrome/' },
                 { src: 'chrome/src/popup/popup.html', dest: 'dist/chrome/ui/popup/popup.html' },
                 { src: 'chrome/src/popup/popup.css', dest: 'dist/chrome/ui/popup/popup.css' },
+                { src: 'chrome/src/workspace/workspace.html', dest: 'dist/chrome/ui/workspace/workspace.html' },
+                { src: 'chrome/src/workspace/workspace.css', dest: 'dist/chrome/ui/workspace/workspace.css' },
+                { src: 'chrome/src/workspace/viewer-embed.html', dest: 'dist/chrome/ui/workspace/viewer-embed.html' },
                 { src: 'chrome/src/webview/offscreen-render.html', dest: 'dist/chrome/ui/offscreen-render.html' }
               ];
 

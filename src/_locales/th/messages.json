@@ -635,6 +635,30 @@
     "message": "เปิดไฟล์ markdown เพื่อเริ่มต้น",
     "description": "Welcome message on empty state"
   },
+  "workspace_choose_directory": {
+    "message": "เลือกไดเรกทอรี",
+    "description": "Button to open directory picker"
+  },
+  "workspace_desc": {
+    "message": "เปิดไดเรกทอรีในเครื่องเพื่อเรียกดูและดูตัวอย่างไฟล์ที่รองรับ",
+    "description": "Workspace landing page description"
+  },
+  "workspace_open": {
+    "message": "เปิดพื้นที่ทำงาน",
+    "description": "Button in popup to open workspace page"
+  },
+  "workspace_recent": {
+    "message": "พื้นที่ทำงานล่าสุด",
+    "description": "Title for recent workspaces list"
+  },
+  "workspace_select_file": {
+    "message": "เลือกไฟล์เพื่อดูตัวอย่าง",
+    "description": "Placeholder text when no file is selected"
+  },
+  "workspace_title": {
+    "message": "พื้นที่ทำงาน",
+    "description": "Workspace landing page title"
+  },
   "zoom": {
     "message": "ซูม",
     "description": "Menu item for zoom"

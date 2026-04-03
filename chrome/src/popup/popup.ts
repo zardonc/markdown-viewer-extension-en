@@ -10,4 +10,11 @@ import { initializePopup } from '../../../src/ui/popup/popup-core';
 // Initialize when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
   initializePopup();
+
+  // Open Project button
+  const openProjectBtn = document.getElementById('open-project-btn');
+  openProjectBtn?.addEventListener('click', () => {
+    chrome.tabs.create({ url: chrome.runtime.getURL('ui/workspace/workspace.html') });
+    window.close();
+  });
 });

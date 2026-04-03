@@ -635,6 +635,30 @@
     "message": "Откройте файл markdown, чтобы начать",
     "description": "Welcome message on empty state"
   },
+  "workspace_choose_directory": {
+    "message": "Выбрать каталог",
+    "description": "Button to open directory picker"
+  },
+  "workspace_desc": {
+    "message": "Откройте локальный каталог для просмотра и предварительного просмотра поддерживаемых файлов.",
+    "description": "Workspace landing page description"
+  },
+  "workspace_open": {
+    "message": "Открыть рабочее пространство",
+    "description": "Button in popup to open workspace page"
+  },
+  "workspace_recent": {
+    "message": "Недавние рабочие пространства",
+    "description": "Title for recent workspaces list"
+  },
+  "workspace_select_file": {
+    "message": "Выберите файл для предварительного просмотра",
+    "description": "Placeholder text when no file is selected"
+  },
+  "workspace_title": {
+    "message": "Рабочее пространство",
+    "description": "Workspace landing page title"
+  },
   "zoom": {
     "message": "Масштаб",
     "description": "Menu item for zoom"
