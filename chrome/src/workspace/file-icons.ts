@@ -9,10 +9,10 @@ const A = 'xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 
 export const chevronRight = `<svg ${A}><path d="m9 18 6-6-6-6"/></svg>`;
 export const chevronDown = `<svg ${A}><path d="m6 9 6 6 6-6"/></svg>`;
 
-// ─── Folder / file icons (material-icon-theme, colorful) ───
-export const folderClosed = mi.folder;
-export const folderOpen = mi.folderOpen;
-export const folderPlus = mi.folderOpen;
+// ─── Folder icons (Lucide, stroke-based, follows currentColor) ───
+export const folderClosed = `<svg ${A}><path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"/></svg>`;
+export const folderOpen = `<svg ${A}><path d="m6 14 1.5-2.9A2 2 0 0 1 9.24 10H20a2 2 0 0 1 1.94 2.5l-1.54 6a2 2 0 0 1-1.95 1.5H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h3.9a2 2 0 0 1 1.69.9l.81 1.2a2 2 0 0 0 1.67.9H18a2 2 0 0 1 2 2v2"/></svg>`;
+export const folderPlus = `<svg ${A}><path d="M12 10v6"/><path d="M9 13h6"/><path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"/></svg>`;
 
 // ─── Extension → icon mapping ───
 const extMap: Record<string, string> = {

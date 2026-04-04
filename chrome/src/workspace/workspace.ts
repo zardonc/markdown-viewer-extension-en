@@ -22,7 +22,6 @@ interface TreeNode {
   name: string;
   kind: 'file' | 'directory';
   handle: FileSystemFileHandle | FileSystemDirectoryHandle;
-  children?: TreeNode[];
 }
 
 // ─── DOM refs ───
@@ -54,20 +53,12 @@ function isSupportedFile(name: string): boolean {
   return SUPPORTED_EXTENSIONS.has(name.slice(dot + 1).toLowerCase());
 }
 
-// ─── Directory traversal ───
+// ─── Directory traversal (single level) ───
 async function readDirectory(dirHandle: FileSystemDirectoryHandle): Promise<TreeNode[]> {
   const entries: TreeNode[] = [];
   for await (const [name, handle] of dirHandle as any) {
     if (name.startsWith('.') || name === 'node_modules') continue;
-
-    if (handle.kind === 'directory') {
-      const children = await readDirectory(handle as FileSystemDirectoryHandle);
-      if (children.length > 0) {
-        entries.push({ name, kind: 'directory', handle, children });
-      }
-    } else {
-      entries.push({ name, kind: 'file', handle });
-    }
+    entries.push({ name, kind: handle.kind, handle });
   }
   // Sort: directories first, then alphabetical
   entries.sort((a, b) => {
@@ -106,12 +97,16 @@ function renderTree(nodes: TreeNode[], container: HTMLElement, depth = 0) {
       childContainer.className = 'tree-children';
       container.appendChild(childContainer);
 
-      renderTree(node.children!, childContainer, depth + 1);
-
-      item.addEventListener('click', () => {
+      let loaded = false;
+      item.addEventListener('click', async () => {
         const isOpen = childContainer.classList.toggle('open');
         chevronEl.innerHTML = isOpen ? chevronDown : chevronRight;
         icon.innerHTML = isOpen ? folderOpen : folderClosed;
+        if (isOpen && !loaded) {
+          loaded = true;
+          const children = await readDirectory(node.handle as FileSystemDirectoryHandle);
+          renderTree(children, childContainer, depth + 1);
+        }
       });
     } else {
       icon.innerHTML = getFileIcon(node.name);
