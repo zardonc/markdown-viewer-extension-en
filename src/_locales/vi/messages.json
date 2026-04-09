@@ -184,7 +184,7 @@
     "description": "Toast shown during export"
   },
   "extensionDescription": {
-    "message": "Markdown sang Word hoàn hảo — Mermaid, PlantUML, Vega, drawio, canvas, infographic, Graphviz, LaTeX (có thể chỉnh sửa), tô sáng mã, xử lý cục bộ.",
+    "message": "Markdown sang Word hoàn hảo — Mermaid, PlantUML, Vega, drawio, infographic, Graphviz, LaTeX, tô sáng mã, xử lý cục bộ.",
     "description": "Extension description shown in Chrome Web Store"
   },
   "extensionName": {

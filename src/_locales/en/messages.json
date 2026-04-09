@@ -184,7 +184,7 @@
     "description": "Fallback message when DOCX export fails"
   },
   "extensionDescription": {
-    "message": "Markdown to perfect Word — Mermaid, PlantUML, Vega, drawio, canvas, Infographic, Graphviz, LaTeX (editable), code highlight, local processing.",
+    "message": "Markdown to perfect Word — Mermaid, PlantUML, Vega, drawio, Infographic, Graphviz, LaTeX, code highlight, local processing.",
     "description": "Extension description shown in Chrome Web Store"
   },
   "extensionName": {

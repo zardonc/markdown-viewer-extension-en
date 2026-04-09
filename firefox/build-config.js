@@ -61,6 +61,9 @@ export const createBuildConfig = () => {
     entryPoints: {
       'core/content-detector': 'chrome/src/webview/content-detector.ts',
       'core/main': 'firefox/src/webview/main.ts',
+      'core/drawio2svg': 'src/renderers/entries/drawio2svg-global.ts',
+      'core/draw-uml': 'src/renderers/entries/draw-uml-global.ts',
+      'core/render-worker': 'firefox/src/host/render-worker.ts',
       'core/background': 'firefox/src/host/background.ts',
       'ui/popup/popup': 'firefox/src/popup/popup.ts',  // Firefox popup with Firefox platform
       'ui/styles': 'src/ui/styles.css'
@@ -94,6 +97,27 @@ export const createBuildConfig = () => {
     minify: true,
     sourcemap: false,
     plugins: [
+      // Redirect @markdown-viewer/drawio2svg and draw-uml imports to shims
+      // ONLY for files under src/renderers/ — these run in the render worker
+      // where the real libraries are loaded via separate <script> tags.
+      {
+        name: 'drawio2svg-shim',
+        setup(build) {
+          const shimPath = path.resolve(projectRoot, 'src/renderers/entries/drawio2svg-shim.ts');
+          const drawUmlShimPath = path.resolve(projectRoot, 'src/renderers/entries/draw-uml-shim.ts');
+          const renderersDir = path.resolve(projectRoot, 'src/renderers');
+          build.onResolve({ filter: /^@markdown-viewer\/drawio2svg$/ }, (args) => {
+            if (args.importer.endsWith('drawio2svg-global.ts')) return undefined;
+            if (!args.importer.startsWith(renderersDir)) return undefined;
+            return { path: shimPath };
+          });
+          build.onResolve({ filter: /^@markdown-viewer\/draw-uml$/ }, (args) => {
+            if (args.importer.endsWith('draw-uml-global.ts')) return undefined;
+            if (!args.importer.startsWith(renderersDir)) return undefined;
+            return { path: drawUmlShimPath };
+          });
+        }
+      },
       {
         name: 'create-complete-extension',
         setup(build) {

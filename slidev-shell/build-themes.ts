@@ -238,7 +238,7 @@ async function main() {
     }
   }
   fs.writeFileSync(
-    path.join(outDir, 'manifest.json'),
+    path.join(outDir, 'themes.json'),
     JSON.stringify(manifest, null, 2),
   )
 

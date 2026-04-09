@@ -184,7 +184,7 @@
     "description": "Toast shown during export"
   },
   "extensionDescription": {
-    "message": "Markdown do perfekcyjnego Worda — Mermaid, PlantUML, Vega, drawio, canvas, infografika, Graphviz, LaTeX (edytowalny), podświetlanie kodu, lokalne przetwarzanie.",
+    "message": "Markdown do perfekcyjnego Worda — Mermaid, PlantUML, Vega, drawio, Graphviz, LaTeX, podświetlanie kodu, lokalne przetwarzanie.",
     "description": "Extension description shown in Chrome Web Store"
   },
   "extensionName": {

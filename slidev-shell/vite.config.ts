@@ -1,9 +1,42 @@
 import { fileURLToPath, URL } from 'node:url'
-import { defineConfig } from 'vite'
+import { defineConfig, type Plugin } from 'vite'
 import vue from '@vitejs/plugin-vue'
 import UnoCSS from 'unocss/vite'
 
 const resolve = (p: string) => fileURLToPath(new URL(p, import.meta.url))
+
+// Strip woff/ttf font references from CSS (keep only woff2), and rewrite
+// KaTeX font URLs to point to the extension root instead of assets/.
+// This avoids duplicating fonts — slidev-shell shares the root-level set.
+function deduplicateKaTeXFonts(): Plugin {
+  return {
+    name: 'deduplicate-katex-fonts',
+    enforce: 'pre',
+    transform(code, id) {
+      if (!id.endsWith('.css')) return
+      const result = code.replace(/,\s*url\([^)]*\.(?:woff|ttf)\)\s*format\("[^"]*"\)/g, '')
+      if (result !== code) return result
+    },
+    generateBundle(_, bundle) {
+      // Remove KaTeX font assets from the bundle
+      for (const name of Object.keys(bundle)) {
+        if (bundle[name].type === 'asset' && /KaTeX_.*\.woff2$/.test(name)) {
+          delete bundle[name]
+        }
+      }
+      // Rewrite font URLs in CSS: ./KaTeX_*.woff2 → ../../KaTeX_*.woff2
+      // From assets/index.css, ../../ resolves to the extension root
+      for (const asset of Object.values(bundle)) {
+        if (asset.type === 'asset' && asset.fileName.endsWith('.css') && typeof asset.source === 'string') {
+          asset.source = asset.source.replace(
+            /url\(\.\/KaTeX_/g,
+            'url(../../KaTeX_'
+          )
+        }
+      }
+    },
+  }
+}
 
 // Globals required by @slidev/client internals
 const slidevDefines = {
@@ -26,6 +59,7 @@ const slidevDefines = {
 
 export default defineConfig({
   plugins: [
+    deduplicateKaTeXFonts(),
     vue(),
     UnoCSS(),
   ],

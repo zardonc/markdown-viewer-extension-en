@@ -314,7 +314,7 @@ function copyResources() {
     // Write theme bundles as separate JSON for dynamic loading
     const themesDir = path.join(projectRoot, 'dist', 'themes');
     if (fs.existsSync(themesDir)) {
-      const manifest = JSON.parse(fs.readFileSync(path.join(themesDir, 'manifest.json'), 'utf8'));
+      const manifest = JSON.parse(fs.readFileSync(path.join(themesDir, 'themes.json'), 'utf8'));
       const bundles = {};
       for (const [name, entry] of Object.entries(manifest)) {
         const themeFile = path.join(themesDir, /** @type {string} */ (entry.file));

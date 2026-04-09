@@ -187,7 +187,7 @@ export async function initializeViewerMain(options: ViewerMainOptions): Promise<
         })),
       onThemeReady: async (name) => {
         try {
-          const resp = await fetch(webExtensionApi.runtime.getURL('slidev-shell/themes/manifest.json'));
+          const resp = await fetch(webExtensionApi.runtime.getURL('slidev-shell/themes/themes.json'));
           if (!resp.ok) return;
           const manifest = await resp.json();
           const entry = manifest[name];

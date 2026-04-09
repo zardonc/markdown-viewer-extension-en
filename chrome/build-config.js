@@ -56,6 +56,8 @@ export const createBuildConfig = () => {
       'core/content-detector': 'chrome/src/webview/content-detector.ts',
       'core/main': 'chrome/src/webview/main.ts',
       'core/background': 'chrome/src/host/background.ts',
+      'core/drawio2svg': 'src/renderers/entries/drawio2svg-global.ts',
+      'core/draw-uml': 'src/renderers/entries/draw-uml-global.ts',
       'core/offscreen-render-worker': 'chrome/src/webview/offscreen-render-worker.ts',
       'ui/popup/popup': 'chrome/src/popup/popup.ts',
       'ui/workspace/workspace': 'chrome/src/workspace/workspace.ts',
@@ -90,6 +92,29 @@ export const createBuildConfig = () => {
     minify: true,
     sourcemap: false,
     plugins: [
+      // Redirect @markdown-viewer/drawio2svg and draw-uml imports to shims
+      // ONLY for files under src/renderers/ — these run in the offscreen render
+      // worker where the real libraries are loaded via separate <script> tags.
+      // Other entry points (popup, background) that transitively import these
+      // via barrel files must still get the real library bundled.
+      {
+        name: 'drawio2svg-shim',
+        setup(build) {
+          const shimPath = path.resolve(projectRoot, 'src/renderers/entries/drawio2svg-shim.ts');
+          const drawUmlShimPath = path.resolve(projectRoot, 'src/renderers/entries/draw-uml-shim.ts');
+          const renderersDir = path.resolve(projectRoot, 'src/renderers');
+          build.onResolve({ filter: /^@markdown-viewer\/drawio2svg$/ }, (args) => {
+            if (args.importer.endsWith('drawio2svg-global.ts')) return undefined;
+            if (!args.importer.startsWith(renderersDir)) return undefined;
+            return { path: shimPath };
+          });
+          build.onResolve({ filter: /^@markdown-viewer\/draw-uml$/ }, (args) => {
+            if (args.importer.endsWith('draw-uml-global.ts')) return undefined;
+            if (!args.importer.startsWith(renderersDir)) return undefined;
+            return { path: drawUmlShimPath };
+          });
+        }
+      },
       // Plugin to copy static files and create complete extension
       {
         name: 'create-complete-extension',

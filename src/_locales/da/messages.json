@@ -184,7 +184,7 @@
     "description": "Toast shown during export"
   },
   "extensionDescription": {
-    "message": "Markdown til perfekt Word — Mermaid, PlantUML, Vega, drawio, canvas, infografik, Graphviz, LaTeX (redigerbar), kodefremhævning, lokal behandling.",
+    "message": "Markdown til perfekt Word — Mermaid, PlantUML, Vega, drawio, infografik, Graphviz, LaTeX, kodefremhævning, lokal behandling.",
     "description": "Extension description shown in Chrome Web Store"
   },
   "extensionName": {
