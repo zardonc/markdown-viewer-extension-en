@@ -775,9 +775,9 @@ function performSearch(query: string, options: SearchOptions): HighlightMatch[] 
     while ((node = walker.nextNode())) {
       if (!node.textContent) continue;
       
-      // Skip matches in code blocks or pre tags
+      // Skip matches in script/style tags
       const parent = node.parentElement;
-      if (parent?.closest('code, pre, script, style, [data-search-ignore]')) {
+      if (parent?.closest('script, style, [data-search-ignore]')) {
         continue;
       }
 
