@@ -229,6 +229,9 @@ async function openFile(fileHandle: FileSystemFileHandle) {
   const file = await fileHandle.getFile();
   const name = fileHandle.name;
 
+  // Save last opened file path
+  localStorage.setItem(`workspace-last-file:${rootDirHandle?.name}`, currentFileDir + name);
+
   if (isSupportedFile(name)) {
     const text = await file.text();
     sendToViewer(text, name);
@@ -266,6 +269,9 @@ async function openWorkspace(dirHandle: FileSystemDirectoryHandle) {
 
   // Save to recent workspaces
   saveRecentWorkspace(dirHandle);
+
+  // Mark this tab as having an active workspace (for refresh detection)
+  sessionStorage.setItem('workspace-active', dirHandle.name);
 }
 
 // ─── Recent workspaces (IndexedDB) ───
@@ -348,8 +354,66 @@ window.addEventListener('message', async (event: MessageEvent) => {
   }
 });
 
+// ─── Restore last file ───
+async function restoreLastFile(filePath: string): Promise<void> {
+  if (!rootDirHandle) return;
+  const segments = filePath.split('/').filter(Boolean);
+  if (segments.length === 0) return;
+  const fileName = segments[segments.length - 1];
+  const dirPath = segments.length > 1 ? segments.slice(0, -1).join('/') + '/' : '';
+
+  let dir = rootDirHandle;
+  for (let i = 0; i < segments.length - 1; i++) {
+    try { dir = await dir.getDirectoryHandle(segments[i]); }
+    catch { return; }
+  }
+  try {
+    const fh = await dir.getFileHandle(fileName);
+    currentFileDir = dirPath;
+    await openFile(fh);
+  } catch { /* file no longer exists */ }
+}
+
+// ─── Restore last workspace on refresh ───
+async function restoreLastWorkspace(): Promise<boolean> {
+  // Only restore if this is a refresh (sessionStorage survives refresh but not new tabs)
+  const activeWorkspace = sessionStorage.getItem('workspace-active');
+  if (!activeWorkspace) return false;
+
+  try {
+    const db = await openDB();
+    const tx = db.transaction('recent', 'readonly');
+    const store = tx.objectStore('recent');
+    const req = store.get(activeWorkspace);
+    return new Promise((resolve) => {
+      req.onsuccess = async () => {
+        const item = req.result;
+        if (!item) { resolve(false); return; }
+        try {
+          const perm = await item.handle.queryPermission({ mode: 'read' });
+          if (perm === 'granted') {
+            await openWorkspace(item.handle);
+            // Restore last opened file
+            const lastFile = localStorage.getItem(`workspace-last-file:${item.handle.name}`);
+            if (lastFile) {
+              await restoreLastFile(lastFile);
+            }
+            resolve(true);
+            return;
+          }
+        } catch { /* handle expired */ }
+        resolve(false);
+      };
+      req.onerror = () => resolve(false);
+    });
+  } catch { return false; }
+}
+
 // ─── Init ───
-Localization.init().then(() => {
+Localization.init().then(async () => {
   applyI18nText();
-  loadRecentWorkspaces();
+  const restored = await restoreLastWorkspace();
+  if (!restored) {
+    loadRecentWorkspaces();
+  }
 });
