@@ -635,30 +635,6 @@
     "message": "Open a markdown file to get started",
     "description": "Welcome message on empty state"
   },
-  "export_btn": {
-    "message": "Export",
-    "description": "Export button label"
-  },
-  "export_select_format": {
-    "message": "Export Document",
-    "description": "Label for export format selector"
-  },
-  "export_docx_title": {
-    "message": "Export to Word",
-    "description": "Title for DOCX export option"
-  },
-  "export_docx_desc": {
-    "message": ".docx file (Microsoft Word)",
-    "description": "Description for DOCX export option"
-  },
-  "export_html_title": {
-    "message": "Export to HTML",
-    "description": "Title for HTML export option"
-  },
-  "export_html_desc": {
-    "message": "Standalone HTML file",
-    "description": "Description for HTML export option"
-  },
   "workspace_choose_directory": {
     "message": "Choose Directory",
     "description": "Button to choose a directory"

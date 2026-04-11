@@ -705,6 +705,7 @@ html[data-code-view] #markdown-content pre code::before {
     page-break-inside: avoid;
     break-inside: avoid;
   }
+}
 
 /* GitHub-style Alert Styles */
 .markdown-alert {
