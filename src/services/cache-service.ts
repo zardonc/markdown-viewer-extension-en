@@ -37,6 +37,7 @@ export interface CacheSetResult {
  */
 export class CacheService {
   private channel: ServiceChannel;
+  private getQueue: Promise<unknown> = Promise.resolve();
 
   constructor(channel: ServiceChannel) {
     this.channel = channel;
@@ -89,9 +90,9 @@ export class CacheService {
   }
 
   /**
-   * Get cached item
+   * Send a single cache get request.
    */
-  async get(key: string): Promise<unknown> {
+  private async sendGet(key: string): Promise<unknown> {
     try {
       const result = await this.channel.send('CACHE_OPERATION', {
         operation: 'get',
@@ -101,6 +102,15 @@ export class CacheService {
     } catch {
       return null;
     }
+  }
+
+  /**
+   * Get cached item
+   */
+  async get(key: string): Promise<unknown> {
+    const operation = this.getQueue.then(() => this.sendGet(key));
+    this.getQueue = operation.then(() => undefined, () => undefined);
+    return operation;
   }
 
   /**

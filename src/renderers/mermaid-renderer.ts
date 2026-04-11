@@ -53,9 +53,13 @@ export class MermaidRenderer extends BaseRenderer {
     // Use hand-drawn style only if explicitly set
     const isHandDrawn = themeConfig?.diagramStyle === 'handDrawn';
 
+    // Use dark mermaid theme when the slidev theme declares colorSchema: 'dark'
+    const mermaidTheme = themeConfig?.colorSchema === 'dark' ? 'dark' : 'default';
+
     getMermaid().initialize({
       startOnLoad: false,
       securityLevel: 'loose',
+      theme: mermaidTheme,
       look: isHandDrawn ? 'handDrawn' : 'classic',
       themeVariables: {
         fontFamily: fontFamily,
@@ -221,7 +225,8 @@ export class MermaidRenderer extends BaseRenderer {
       base64: base64Data,
       width: canvas.width,
       height: canvas.height,
-      format: 'png'
+      format: 'png',
+      svg: processedSvg,
     };
   }
 }

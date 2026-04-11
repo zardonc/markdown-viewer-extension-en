@@ -30,6 +30,14 @@
   <!-- Mermaid loaded separately (2.6MB) to stay under 5MB per file limit -->
   <script src="../libs/mermaid.min.js"></script>
   
+  <!-- drawio2svg loaded separately (shared by PlantUML + DrawIO renderers) -->
+  <script src="../core/drawio2svg.js"></script>
+  
+  <!-- draw-uml loaded separately (PlantUML DSL parser) -->
+  <script src="../core/draw-uml.js"></script>
+  
+  <!-- Render worker loaded separately to keep each file under 5MB limit -->
+  <script src="../core/render-worker.js"></script>
   <script src="../core/background.js"></script>
 </body>
 </html>

@@ -147,18 +147,6 @@
     "message": "Remove all recent files from the list?",
     "description": "Confirmation message for clearing recent files"
   },
-  "clipboard_empty": {
-    "message": "Clipboard is empty",
-    "description": "Error when clipboard is empty"
-  },
-  "clipboard_open": {
-    "message": "Open from Clipboard",
-    "description": "Clipboard item title in history"
-  },
-  "clipboard_read_failed": {
-    "message": "Failed to read clipboard",
-    "description": "Error when clipboard read fails"
-  },
   "close": {
     "message": "Close",
     "description": "Close button text/tooltip"
@@ -196,7 +184,7 @@
     "description": "Fallback message when DOCX export fails"
   },
   "extensionDescription": {
-    "message": "Markdown to perfect Word — Mermaid, Vega, drawio, canvas, Infographic, Graphviz, LaTeX (editable), code highlight, local processing.",
+    "message": "Markdown to perfect Word — Mermaid, PlantUML, Vega, drawio, Infographic, Graphviz, LaTeX, code highlight, local processing.",
     "description": "Extension description shown in Chrome Web Store"
   },
   "extensionName": {
@@ -350,6 +338,22 @@
   "reset": {
     "message": "Reset",
     "description": "Reset button"
+  },
+  "save_as_drawio": {
+    "message": "Save as DrawIO",
+    "description": "Context menu item for saving a PlantUML diagram as DrawIO"
+  },
+  "save_as_png": {
+    "message": "Save as PNG",
+    "description": "Context menu item for saving a diagram as PNG"
+  },
+  "save_as_svg": {
+    "message": "Save as SVG",
+    "description": "Context menu item for saving a diagram as SVG"
+  },
+  "save_image_as": {
+    "message": "Save Image As…",
+    "description": "Context menu item for saving an image"
   },
   "search_case_sensitive": {
     "message": "Match Case",
@@ -519,6 +523,14 @@
     "message": "Mermaid diagrams (.mermaid)",
     "description": "Checkbox label for enabling Mermaid file support"
   },
+  "settings_support_plantuml": {
+    "message": "PlantUML diagrams (.plantuml, .puml)",
+    "description": "Checkbox label for enabling PlantUML file support"
+  },
+  "settings_support_slidev": {
+    "message": "Slidev slides (.slides.md)",
+    "description": "Checkbox label for enabling Slidev file support"
+  },
   "settings_support_vega": {
     "message": "Vega charts (.vega)",
     "description": "Checkbox label for enabling Vega file support"
@@ -619,36 +631,60 @@
     "message": "Zoom out",
     "description": "Toolbar zoom out tooltip"
   },
- "welcome_message": {
- "message": "Open a markdown file to get started",
- "description": "Welcome message on empty state"
- },
- "export_btn": {
- "message": "Export",
- "description": "Export button label"
- },
- "export_select_format": {
- "message": "Export Document",
- "description": "Label for export format selector"
- },
- "export_docx_title": {
- "message": "Export to Word",
- "description": "Title for DOCX export option"
- },
- "export_docx_desc": {
- "message": ".docx file (Microsoft Word)",
- "description": "Description for DOCX export option"
- },
- "export_html_title": {
- "message": "Export to HTML",
- "description": "Title for HTML export option"
- },
- "export_html_desc": {
- "message": "Standalone HTML file",
- "description": "Description for HTML export option"
- },
- "zoom": {
- "message": "Zoom",
- "description": "Menu item for zoom"
- }
+  "welcome_message": {
+    "message": "Open a markdown file to get started",
+    "description": "Welcome message on empty state"
+  },
+  "export_btn": {
+    "message": "Export",
+    "description": "Export button label"
+  },
+  "export_select_format": {
+    "message": "Export Document",
+    "description": "Label for export format selector"
+  },
+  "export_docx_title": {
+    "message": "Export to Word",
+    "description": "Title for DOCX export option"
+  },
+  "export_docx_desc": {
+    "message": ".docx file (Microsoft Word)",
+    "description": "Description for DOCX export option"
+  },
+  "export_html_title": {
+    "message": "Export to HTML",
+    "description": "Title for HTML export option"
+  },
+  "export_html_desc": {
+    "message": "Standalone HTML file",
+    "description": "Description for HTML export option"
+  },
+  "workspace_choose_directory": {
+    "message": "Choose Directory",
+    "description": "Button to choose a directory"
+  },
+  "workspace_desc": {
+    "message": "Open a local directory to browse and preview supported files.",
+    "description": "Description on the workspace landing page"
+  },
+  "workspace_open": {
+    "message": "Open Workspace",
+    "description": "Button in popup to open workspace page"
+  },
+  "workspace_recent": {
+    "message": "Recent Workspaces",
+    "description": "Title for the recent workspaces list"
+  },
+  "workspace_select_file": {
+    "message": "Select a file to preview",
+    "description": "Placeholder text in the preview pane"
+  },
+  "workspace_title": {
+    "message": "Workspace",
+    "description": "Title of the workspace landing page"
+  },
+  "zoom": {
+    "message": "Zoom",
+    "description": "Menu item for zoom"
+  }
 }

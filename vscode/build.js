@@ -39,6 +39,10 @@ async function checkMissingKeys() {
   }
 }
 
+// Sync supported formats
+const { default: syncFormats } = await import('../scripts/sync-formats.js');
+syncFormats();
+
 /**
  * Copy directory recursively
  */
@@ -81,7 +85,9 @@ async function buildExtensionHost() {
     sourcemap: false,
     minify: true,
     define: {
-      'process.env.NODE_ENV': '"production"'
+      'process.env.NODE_ENV': '"production"',
+      'MV_PLATFORM': '"vscode"',
+      'MV_RUNTIME': '"background"'
     }
   });
 
@@ -106,6 +112,8 @@ async function buildWebview() {
     minify: true,
     define: {
       'process.env.NODE_ENV': '"production"',
+      'MV_PLATFORM': '"vscode"',
+      'MV_RUNTIME': '"webview"',
       'global': 'globalThis'
     },
     inject: ['./scripts/buffer-shim.js'],
@@ -133,8 +141,9 @@ async function buildWebview() {
     minify: true,
     define: {
       'process.env.NODE_ENV': '"production"',
-      'global': 'globalThis',
-      'PLATFORM': '"vscode"'
+      'MV_PLATFORM': '"vscode"',
+      'MV_RUNTIME': '"worker"',
+      'global': 'globalThis'
     },
     inject: ['./scripts/buffer-shim.js'],
     loader: {
@@ -144,7 +153,7 @@ async function buildWebview() {
       '.ttf': 'dataurl'
     },
     // Mermaid is loaded separately to keep bundle size manageable
-    external: ['mermaid']
+    external: ['mermaid', 'web-worker']
   });
 
   // Build CSS bundle separately
@@ -234,7 +243,7 @@ function copyAssets() {
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta http-equiv="Content-Security-Policy" content="script-src 'unsafe-inline' 'unsafe-eval'; style-src 'unsafe-inline';">
+  <meta http-equiv="Content-Security-Policy" content="script-src 'unsafe-inline' 'unsafe-eval'; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src data: https://fonts.gstatic.com; connect-src https://fonts.googleapis.com https://fonts.gstatic.com;">
   <title>Render Frame</title>
   <style>
     * { margin: 0; padding: 0; }
@@ -256,6 +265,51 @@ function copyAssets() {
   // Copy icons
   copyDirectory('icons', path.join(outdir, 'icons'));
   console.log('  • icons');
+
+  // Create self-contained Slidev Shell HTML
+  // Single JS + single CSS from Vite build, inlined into one HTML file.
+  // Loaded by main webview as a blob URL iframe.
+  const slidevVscodeDir = path.join(projectRoot, 'dist', 'slidev-shell-vscode');
+  if (fs.existsSync(slidevVscodeDir)) {
+    const shellJs = fs.readFileSync(path.join(slidevVscodeDir, 'slidev-shell.js'), 'utf8');
+    const shellCss = fs.readFileSync(path.join(slidevVscodeDir, 'assets', 'style.css'), 'utf8');
+
+    // Read theme bundles and write as separate JSON file for webview to fetch
+    const themesDir = path.join(projectRoot, 'dist', 'themes');
+    if (fs.existsSync(themesDir)) {
+      const manifest = JSON.parse(fs.readFileSync(path.join(themesDir, 'themes.json'), 'utf8'));
+      const bundles = {};
+      for (const [name, entry] of Object.entries(manifest)) {
+        const themeFile = path.join(themesDir, /** @type {string} */ (entry.file));
+        if (fs.existsSync(themeFile)) {
+          bundles[name] = { code: fs.readFileSync(themeFile, 'utf8'), fonts: entry.fonts || {}, fontUrl: entry.fontUrl, colorSchema: entry.colorSchema };
+        }
+      }
+      fs.writeFileSync(path.join(outdir, 'webview', 'slidev-theme-bundles.json'), JSON.stringify(bundles));
+      console.log(`  • ${Object.keys(bundles).length} theme bundles (slidev-theme-bundles.json)`);
+    } else {
+      console.warn('  ⚠️  dist/themes not found — run "npx tsx slidev-shell/build-themes.ts" first');
+    }
+
+    const slidevInlineHtml = `<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Slidev Shell</title>
+  <style>${shellCss}</style>
+</head>
+<body>
+  <div id="app"></div>
+  <script type="module" nonce="__SLIDEV_NONCE__">${shellJs}<\/script>
+</body>
+</html>`;
+
+    fs.writeFileSync(path.join(outdir, 'webview', 'slidev-shell-inline.html'), slidevInlineHtml);
+    console.log('  • slidev-shell-inline.html');
+  } else {
+    console.warn('  ⚠️  dist/slidev-shell-vscode not found — run "cd slidev-shell && npx vite build --config vite.vscode.config.ts" first');
+  }
 
   // Copy settings panel styles
   if (fs.existsSync('vscode/src/webview/settings-panel.css')) {

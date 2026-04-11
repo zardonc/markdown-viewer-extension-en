@@ -176,6 +176,7 @@ export class MarkdownPreviewPanel {
     
     this._document = document;
     this._panel.title = `Preview: ${path.basename(document.fileName)}`;
+    
     this.updateContent(document.getText());
     
     // Send scroll position immediately - ScrollSyncController will handle
@@ -500,10 +501,6 @@ export class MarkdownPreviewPanel {
         case 'READ_LOCAL_FILE':
           // Read local file content (for SVG plugin, etc.)
           response = await this._handleReadLocalFile(payload as { filePath: string });
-          break;
-        case 'FETCH_REMOTE_IMAGE':
-          // Fetch remote image (for DOCX export, bypasses webview CSP)
-          response = await this._handleFetchRemoteImage(payload as { url: string });
           break;
         case 'OPEN_RELATIVE_FILE':
           // Open relative file in VS Code
@@ -942,25 +939,6 @@ export class MarkdownPreviewPanel {
     }
   }
 
-  /**
-   * Handle FETCH_REMOTE_IMAGE request - fetch image from URL (bypasses webview CSP)
-   */
-  private async _handleFetchRemoteImage(payload: { url: string }): Promise<{ content: string; contentType: string }> {
-    const { url } = payload;
-    
-    // Use Node.js https/http modules to fetch the image
-    const response = await fetch(url);
-    if (!response.ok) {
-      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-    }
-    
-    const arrayBuffer = await response.arrayBuffer();
-    const content = Buffer.from(arrayBuffer).toString('base64');
-    const contentType = response.headers.get('content-type') || 'image/png';
-    
-    return { content, contentType };
-  }
-
   private _getConfiguration(): Record<string, unknown> {
     const globalState = MarkdownPreviewPanel._globalState;
     const config = vscode.workspace.getConfiguration('markdownViewer');
@@ -1046,7 +1024,7 @@ export class MarkdownPreviewPanel {
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src ${webview.cspSource} 'unsafe-inline'; script-src 'nonce-${nonce}' 'unsafe-eval'; img-src ${webview.cspSource} data: https: blob:; font-src ${webview.cspSource} data:; frame-src ${webview.cspSource} blob:; connect-src ${webview.cspSource};">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src ${webview.cspSource} 'unsafe-inline' https://fonts.googleapis.com; script-src 'nonce-${nonce}' 'unsafe-eval'; img-src ${webview.cspSource} data: https: blob:; font-src ${webview.cspSource} data: https://fonts.gstatic.com; frame-src ${webview.cspSource} blob:; connect-src ${webview.cspSource} https:;">
   <link rel="stylesheet" href="${styleUri}">
   <link rel="stylesheet" href="${settingsStyleUri}">
   <link rel="stylesheet" href="${searchStyleUri}">

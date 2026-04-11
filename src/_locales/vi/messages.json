@@ -147,18 +147,6 @@
     "message": "Xóa tất cả tệp gần đây khỏi danh sách?",
     "description": "Confirmation message for clearing recent files"
   },
-  "clipboard_empty": {
-    "message": "Bộ nhớ tạm trống",
-    "description": "Error when clipboard is empty"
-  },
-  "clipboard_open": {
-    "message": "Mở từ bộ nhớ tạm",
-    "description": "Clipboard item title in history"
-  },
-  "clipboard_read_failed": {
-    "message": "Không thể đọc bộ nhớ tạm",
-    "description": "Error when clipboard read fails"
-  },
   "close": {
     "message": "Đóng",
     "description": "Close button text/tooltip"
@@ -196,7 +184,7 @@
     "description": "Toast shown during export"
   },
   "extensionDescription": {
-    "message": "Markdown sang Word hoàn hảo — Mermaid, Vega, drawio, canvas, infographic, Graphviz, LaTeX (có thể chỉnh sửa), tô sáng mã, xử lý cục bộ.",
+    "message": "Markdown sang Word hoàn hảo — Mermaid, PlantUML, Vega, drawio, infographic, Graphviz, LaTeX, tô sáng mã, xử lý cục bộ.",
     "description": "Extension description shown in Chrome Web Store"
   },
   "extensionName": {
@@ -350,6 +338,22 @@
   "reset": {
     "message": "Đặt lại",
     "description": "Reset button"
+  },
+  "save_as_drawio": {
+    "message": "Lưu dưới dạng DrawIO",
+    "description": "Context menu item for saving a PlantUML diagram as DrawIO"
+  },
+  "save_as_png": {
+    "message": "Lưu dưới dạng PNG",
+    "description": "Context menu item for saving a diagram as PNG"
+  },
+  "save_as_svg": {
+    "message": "Lưu dưới dạng SVG",
+    "description": "Context menu item for saving a diagram as SVG"
+  },
+  "save_image_as": {
+    "message": "Lưu hình ảnh dưới dạng…",
+    "description": "Context menu item for saving an image"
   },
   "search_case_sensitive": {
     "message": "Phân biệt chữ hoa/thường",
@@ -519,6 +523,14 @@
     "message": "Biểu đồ Mermaid (.mermaid)",
     "description": "Checkbox label for Mermaid format support"
   },
+  "settings_support_plantuml": {
+    "message": "Biểu đồ PlantUML (.plantuml, .puml)",
+    "description": "Checkbox label for enabling PlantUML file support"
+  },
+  "settings_support_slidev": {
+    "message": "Slidev slides (.slides.md)",
+    "description": "Checkbox label for enabling Slidev file support"
+  },
   "settings_support_vega": {
     "message": "Biểu đồ Vega (.vega)",
     "description": "Checkbox label for Vega format support"
@@ -622,6 +634,30 @@
   "welcome_message": {
     "message": "Mở tệp markdown để bắt đầu",
     "description": "Welcome message on empty state"
+  },
+  "workspace_choose_directory": {
+    "message": "Chọn thư mục",
+    "description": "Button to open directory picker"
+  },
+  "workspace_desc": {
+    "message": "Mở thư mục cục bộ để duyệt và xem trước các tệp được hỗ trợ.",
+    "description": "Workspace landing page description"
+  },
+  "workspace_open": {
+    "message": "Mở không gian làm việc",
+    "description": "Button in popup to open workspace page"
+  },
+  "workspace_recent": {
+    "message": "Không gian làm việc gần đây",
+    "description": "Title for recent workspaces list"
+  },
+  "workspace_select_file": {
+    "message": "Chọn tệp để xem trước",
+    "description": "Placeholder text when no file is selected"
+  },
+  "workspace_title": {
+    "message": "Không gian làm việc",
+    "description": "Workspace landing page title"
   },
   "zoom": {
     "message": "Thu phóng",

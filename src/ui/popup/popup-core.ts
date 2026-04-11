@@ -5,8 +5,8 @@
  */
 
 import Localization from '../../utils/localization';
+import { isPlatform } from '../../utils/platform-info';
 import { applyI18nText, translate } from './i18n-helpers';
-import { isFirefoxPopup } from './platform-detect';
 import { showConfirm, showMessage, showError, checkFileAccess } from './ui-helpers';
 import { createCacheTabManager, type CacheTabManager } from './cache-tab';
 import { createHistoryTabManager, type HistoryTabManager } from './history-tab';
@@ -73,7 +73,7 @@ class PopupManager {
     const extensionTitle = document.getElementById('extension-title');
     if (extensionTitle) {
       extensionTitle.addEventListener('click', () => {
-        window.open('https://xicilion.gitbook.io/markdown-viewer-extension/', '_blank');
+        window.open('https://docu.md', '_blank');
       });
     }
 
@@ -82,7 +82,7 @@ class PopupManager {
     if (reviewLink) {
       reviewLink.addEventListener('click', (e) => {
         e.preventDefault();
-        const reviewUrl = isFirefoxPopup()
+        const reviewUrl = isPlatform('firefox')
           ? 'https://addons.mozilla.org/firefox/addon/markdown-viewer-extension/reviews/'
           : 'https://chromewebstore.google.com/detail/markdown-viewer/jekhhoflgcfoikceikgeenibinpojaoi/reviews';
         window.open(reviewUrl, '_blank');

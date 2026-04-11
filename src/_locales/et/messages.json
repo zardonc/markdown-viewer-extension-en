@@ -147,18 +147,6 @@
     "message": "Eemaldada kõik hiljutised failid loendist?",
     "description": "Confirmation message for clearing recent files"
   },
-  "clipboard_empty": {
-    "message": "Lõikelaud on tühi",
-    "description": "Error when clipboard is empty"
-  },
-  "clipboard_open": {
-    "message": "Ava lõikelaualt",
-    "description": "Clipboard item title in history"
-  },
-  "clipboard_read_failed": {
-    "message": "Lõikelaua lugemine ebaõnnestus",
-    "description": "Error when clipboard read fails"
-  },
   "close": {
     "message": "Sulge",
     "description": "Close button text/tooltip"
@@ -196,7 +184,7 @@
     "description": "Fallback message when DOCX export fails"
   },
   "extensionDescription": {
-    "message": "Markdown täiuslikuks Wordiks — Mermaid, Vega, drawio, canvas, infograafika, Graphviz, LaTeX (redigeeritav), koodi esiletõstmine, kohalik töötlemine.",
+    "message": "Markdown täiuslikuks Wordiks — Mermaid, PlantUML, Vega, drawio, Graphviz, LaTeX, koodi esiletõstmine, kohalik töötlemine.",
     "description": "Extension description shown in Chrome Web Store"
   },
   "extensionName": {
@@ -350,6 +338,22 @@
   "reset": {
     "message": "Lähtesta",
     "description": "Reset button"
+  },
+  "save_as_drawio": {
+    "message": "Salvesta DrawIO-na",
+    "description": "Context menu item for saving a PlantUML diagram as DrawIO"
+  },
+  "save_as_png": {
+    "message": "Salvesta PNG-na",
+    "description": "Context menu item for saving a diagram as PNG"
+  },
+  "save_as_svg": {
+    "message": "Salvesta SVG-na",
+    "description": "Context menu item for saving a diagram as SVG"
+  },
+  "save_image_as": {
+    "message": "Salvesta pilt kui…",
+    "description": "Context menu item for saving an image"
   },
   "search_case_sensitive": {
     "message": "Tõstutundlik",
@@ -519,6 +523,14 @@
     "message": "Mermaid diagrammid (.mermaid)",
     "description": "Checkbox label for enabling Mermaid file support"
   },
+  "settings_support_plantuml": {
+    "message": "PlantUML diagrammid (.plantuml, .puml)",
+    "description": "Checkbox label for enabling PlantUML file support"
+  },
+  "settings_support_slidev": {
+    "message": "Slidev slides (.slides.md)",
+    "description": "Checkbox label for enabling Slidev file support"
+  },
   "settings_support_vega": {
     "message": "Vega diagrammid (.vega)",
     "description": "Checkbox label for enabling Vega file support"
@@ -622,6 +634,30 @@
   "welcome_message": {
     "message": "Alustamiseks avage markdown fail",
     "description": "Welcome message on empty state"
+  },
+  "workspace_choose_directory": {
+    "message": "Vali kataloog",
+    "description": "Button to open directory picker"
+  },
+  "workspace_desc": {
+    "message": "Avage kohalik kataloog toetatud failide sirvimiseks ja eelvaateks.",
+    "description": "Workspace landing page description"
+  },
+  "workspace_open": {
+    "message": "Ava tööala",
+    "description": "Button in popup to open workspace page"
+  },
+  "workspace_recent": {
+    "message": "Hiljutised tööalad",
+    "description": "Title for recent workspaces list"
+  },
+  "workspace_select_file": {
+    "message": "Valige eelvaadatav fail",
+    "description": "Placeholder text when no file is selected"
+  },
+  "workspace_title": {
+    "message": "Tööala",
+    "description": "Workspace landing page title"
   },
   "zoom": {
     "message": "Suum",

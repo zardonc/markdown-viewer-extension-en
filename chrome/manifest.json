@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "__MSG_extensionName__",
-  "version": "2.0.3",
+  "version": "3.0.0",
   "default_locale": "en",
   "description": "__MSG_extensionDescription__",
   "permissions": [
@@ -16,7 +16,7 @@
     "downloads"
   ],
   "content_security_policy": {
-    "extension_pages": "script-src 'self' 'wasm-unsafe-eval'; object-src 'self'"
+    "extension_pages": "script-src 'self' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; connect-src 'self' https://fonts.googleapis.com https://fonts.gstatic.com; object-src 'self'"
   },
   "host_permissions": [
     "file:///*",
@@ -31,21 +31,31 @@
       "matches": [
         "file://*/*.md",
         "file://*/*.markdown",
+        "file://*/*.slides.md",
         "file://*/*.mermaid",
+        "file://*/*.mmd",
+        "file://*/*.plantuml",
+        "file://*/*.puml",
         "file://*/*.vega",
         "file://*/*.vl",
         "file://*/*.vega-lite",
         "file://*/*.gv",
+        "file://*/*.dot",
         "file://*/*.infographic",
         "file://*/*.canvas",
         "file://*/*.drawio",
         "*://*/*.md",
         "*://*/*.markdown",
+        "*://*/*.slides.md",
         "*://*/*.mermaid",
+        "*://*/*.mmd",
+        "*://*/*.plantuml",
+        "*://*/*.puml",
         "*://*/*.vega",
         "*://*/*.vl",
         "*://*/*.vega-lite",
         "*://*/*.gv",
+        "*://*/*.dot",
         "*://*/*.infographic",
         "*://*/*.canvas",
         "*://*/*.drawio"
@@ -73,7 +83,11 @@
         "themes/table-styles/*.json",
         "themes/code-themes/*.json",
         "themes/layout-schemes/*.json",
-        "themes/color-schemes/*.json"
+        "themes/color-schemes/*.json",
+        "slidev-shell/*",
+        "slidev-shell/chunks/*",
+        "slidev-shell/assets/*",
+        "slidev-shell/themes/*"
       ],
       "matches": [
         "file://*",

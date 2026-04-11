@@ -147,18 +147,6 @@
     "message": "確定要清除所有最近開啟的檔案記錄嗎？",
     "description": "Confirmation message for clearing recent files"
   },
-  "clipboard_empty": {
-    "message": "剪貼簿為空",
-    "description": "Error when clipboard is empty"
-  },
-  "clipboard_open": {
-    "message": "從剪貼簿開啟",
-    "description": "Clipboard item title in history"
-  },
-  "clipboard_read_failed": {
-    "message": "讀取剪貼簿失敗",
-    "description": "Error when clipboard read fails"
-  },
   "close": {
     "message": "關閉",
     "description": "Close button text/tooltip"
@@ -196,7 +184,7 @@
     "description": "Toast shown during export"
   },
   "extensionDescription": {
-    "message": "Markdown 匯出完美 Word — Mermaid、Vega、drawio、canvas、資訊圖、Graphviz、LaTeX 公式可編輯，程式碼高亮，本地處理.",
+    "message": "Markdown 匯出完美 Word — Mermaid、PlantUML、Vega、drawio、canvas、資訊圖、Graphviz、LaTeX 公式可編輯，程式碼高亮，本地處理.",
     "description": "擴充功能簡介"
   },
   "extensionName": {
@@ -350,6 +338,22 @@
   "reset": {
     "message": "重置",
     "description": "Reset button"
+  },
+  "save_as_drawio": {
+    "message": "儲存為 DrawIO",
+    "description": "Context menu item for saving a PlantUML diagram as DrawIO"
+  },
+  "save_as_png": {
+    "message": "儲存為 PNG",
+    "description": "Context menu item for saving a diagram as PNG"
+  },
+  "save_as_svg": {
+    "message": "儲存為 SVG",
+    "description": "Context menu item for saving a diagram as SVG"
+  },
+  "save_image_as": {
+    "message": "圖片另存為…",
+    "description": "Context menu item for saving an image"
   },
   "search_case_sensitive": {
     "message": "區分大小寫",
@@ -519,6 +523,14 @@
     "message": "Mermaid 圖表 (.mermaid)",
     "description": "Checkbox label for Mermaid format support"
   },
+  "settings_support_plantuml": {
+    "message": "PlantUML 圖表 (.plantuml, .puml)",
+    "description": "Checkbox label for enabling PlantUML file support"
+  },
+  "settings_support_slidev": {
+    "message": "Slidev slides (.slides.md)",
+    "description": "Checkbox label for enabling Slidev file support"
+  },
   "settings_support_vega": {
     "message": "Vega 圖表 (.vega)",
     "description": "Checkbox label for Vega format support"
@@ -622,6 +634,30 @@
   "welcome_message": {
     "message": "開啟一個 Markdown 檔案開始",
     "description": "Welcome message on empty state"
+  },
+  "workspace_choose_directory": {
+    "message": "選擇目錄",
+    "description": "Button to open directory picker"
+  },
+  "workspace_desc": {
+    "message": "開啟本機目錄以瀏覽和預覽支援的檔案。",
+    "description": "Workspace landing page description"
+  },
+  "workspace_open": {
+    "message": "開啟工作區",
+    "description": "Button in popup to open workspace page"
+  },
+  "workspace_recent": {
+    "message": "最近的工作區",
+    "description": "Title for recent workspaces list"
+  },
+  "workspace_select_file": {
+    "message": "選擇檔案以預覽",
+    "description": "Placeholder text when no file is selected"
+  },
+  "workspace_title": {
+    "message": "工作區",
+    "description": "Workspace landing page title"
   },
   "zoom": {
     "message": "縮放",

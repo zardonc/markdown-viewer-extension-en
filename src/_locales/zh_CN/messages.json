@@ -147,18 +147,6 @@
     "message": "确定要清除所有最近打开的文件记录吗？",
     "description": "Confirmation message for clearing recent files"
   },
-  "clipboard_empty": {
-    "message": "剪贴板为空",
-    "description": "剪贴板为空错误"
-  },
-  "clipboard_open": {
-    "message": "从剪贴板打开",
-    "description": "剪贴板项标题"
-  },
-  "clipboard_read_failed": {
-    "message": "读取剪贴板失败",
-    "description": "读取剪贴板失败错误"
-  },
   "close": {
     "message": "关闭",
     "description": "Close button text/tooltip"
@@ -196,7 +184,7 @@
     "description": "导出中提示"
   },
   "extensionDescription": {
-    "message": "Markdown 导出完美 Word — Mermaid、Vega、drawio、canvas、信息图、Graphviz、LaTeX 公式可编辑，代码高亮，本地处理.",
+    "message": "Markdown 导出完美 Word — Mermaid、PlantUML、Vega、drawio、canvas、信息图、Graphviz、LaTeX 公式可编辑，代码高亮，本地处理.",
     "description": "扩展简介"
   },
   "extensionName": {
@@ -350,6 +338,22 @@
   "reset": {
     "message": "重置",
     "description": "Reset button"
+  },
+  "save_as_drawio": {
+    "message": "保存为 DrawIO",
+    "description": "Context menu item for saving a PlantUML diagram as DrawIO"
+  },
+  "save_as_png": {
+    "message": "保存为 PNG",
+    "description": "Context menu item for saving a diagram as PNG"
+  },
+  "save_as_svg": {
+    "message": "保存为 SVG",
+    "description": "Context menu item for saving a diagram as SVG"
+  },
+  "save_image_as": {
+    "message": "图片另存为…",
+    "description": "Context menu item for saving an image"
   },
   "search_case_sensitive": {
     "message": "区分大小写",
@@ -519,6 +523,14 @@
     "message": "Mermaid 图表 (.mermaid)",
     "description": "启用 Mermaid 文件支持的复选框标签"
   },
+  "settings_support_plantuml": {
+    "message": "PlantUML 图表 (.plantuml, .puml)",
+    "description": "Checkbox label for enabling PlantUML file support"
+  },
+  "settings_support_slidev": {
+    "message": "Slidev slides (.slides.md)",
+    "description": "Checkbox label for enabling Slidev file support"
+  },
   "settings_support_vega": {
     "message": "Vega 图表 (.vega)",
     "description": "启用 Vega 文件支持的复选框标签"
@@ -622,6 +634,30 @@
   "welcome_message": {
     "message": "打开一个 Markdown 文件开始",
     "description": "Welcome message on empty state"
+  },
+  "workspace_choose_directory": {
+    "message": "选择目录",
+    "description": "Button to open directory picker"
+  },
+  "workspace_desc": {
+    "message": "打开本地目录以浏览和预览支持的文件。",
+    "description": "Workspace landing page description"
+  },
+  "workspace_open": {
+    "message": "打开工作区",
+    "description": "Button in popup to open workspace page"
+  },
+  "workspace_recent": {
+    "message": "最近的工作区",
+    "description": "Title for recent workspaces list"
+  },
+  "workspace_select_file": {
+    "message": "选择文件以预览",
+    "description": "Placeholder text when no file is selected"
+  },
+  "workspace_title": {
+    "message": "工作区",
+    "description": "Workspace landing page title"
   },
   "zoom": {
     "message": "缩放",

@@ -147,18 +147,6 @@
     "message": "Alle zuletzt geöffneten Dateien aus der Liste entfernen?",
     "description": "Confirmation message for clearing recent files"
   },
-  "clipboard_empty": {
-    "message": "Zwischenablage ist leer",
-    "description": "Error when clipboard is empty"
-  },
-  "clipboard_open": {
-    "message": "Aus Zwischenablage öffnen",
-    "description": "Clipboard item title in history"
-  },
-  "clipboard_read_failed": {
-    "message": "Zwischenablage konnte nicht gelesen werden",
-    "description": "Error when clipboard read fails"
-  },
   "close": {
     "message": "Schließen",
     "description": "Close button text/tooltip"
@@ -196,7 +184,7 @@
     "description": "Toast shown during export"
   },
   "extensionDescription": {
-    "message": "Markdown in perfektes Word — Mermaid, Vega, drawio, canvas, Infografik, Graphviz, LaTeX (bearbeitbar), Code-Hervorhebung, lokale Verarbeitung.",
+    "message": "Markdown in perfektes Word — Mermaid, PlantUML, Vega, drawio, Infografik, Graphviz, LaTeX, Code-Hervorhebung, lokale Verarbeitung.",
     "description": "Beschreibung der Erweiterung im Chrome Web Store"
   },
   "extensionName": {
@@ -350,6 +338,22 @@
   "reset": {
     "message": "Zurücksetzen",
     "description": "Reset button"
+  },
+  "save_as_drawio": {
+    "message": "Als DrawIO speichern",
+    "description": "Context menu item for saving a PlantUML diagram as DrawIO"
+  },
+  "save_as_png": {
+    "message": "Als PNG speichern",
+    "description": "Context menu item for saving a diagram as PNG"
+  },
+  "save_as_svg": {
+    "message": "Als SVG speichern",
+    "description": "Context menu item for saving a diagram as SVG"
+  },
+  "save_image_as": {
+    "message": "Bild speichern unter…",
+    "description": "Context menu item for saving an image"
   },
   "search_case_sensitive": {
     "message": "Groß-/Kleinschreibung",
@@ -519,6 +523,14 @@
     "message": "Mermaid-Diagramme (.mermaid)",
     "description": "Checkbox label for Mermaid format support"
   },
+  "settings_support_plantuml": {
+    "message": "PlantUML-Diagramme (.plantuml, .puml)",
+    "description": "Checkbox label for enabling PlantUML file support"
+  },
+  "settings_support_slidev": {
+    "message": "Slidev slides (.slides.md)",
+    "description": "Checkbox label for enabling Slidev file support"
+  },
   "settings_support_vega": {
     "message": "Vega-Diagramme (.vega)",
     "description": "Checkbox label for Vega format support"
@@ -622,6 +634,30 @@
   "welcome_message": {
     "message": "Öffnen Sie eine Markdown-Datei, um zu beginnen",
     "description": "Welcome message on empty state"
+  },
+  "workspace_choose_directory": {
+    "message": "Verzeichnis wählen",
+    "description": "Button to open directory picker"
+  },
+  "workspace_desc": {
+    "message": "Öffnen Sie ein lokales Verzeichnis zum Durchsuchen und Vorschauen unterstützter Dateien.",
+    "description": "Workspace landing page description"
+  },
+  "workspace_open": {
+    "message": "Arbeitsbereich öffnen",
+    "description": "Button in popup to open workspace page"
+  },
+  "workspace_recent": {
+    "message": "Zuletzt verwendete Arbeitsbereiche",
+    "description": "Title for recent workspaces list"
+  },
+  "workspace_select_file": {
+    "message": "Datei zur Vorschau auswählen",
+    "description": "Placeholder text when no file is selected"
+  },
+  "workspace_title": {
+    "message": "Arbeitsbereich",
+    "description": "Workspace landing page title"
   },
   "zoom": {
     "message": "Zoom",

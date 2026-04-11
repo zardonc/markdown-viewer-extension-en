@@ -17,6 +17,10 @@ export interface RenderResult {
   format: string;
   success?: boolean;
   error?: string;
+  /** Intermediate SVG content (for renderers that produce SVG before PNG) */
+  svg?: string;
+  /** Intermediate DrawIO XML (for PlantUML renderer) */
+  drawioXml?: string;
 }
 
 // =============================================================================
@@ -72,4 +76,8 @@ export interface RendererThemeConfig {
   foreground?: string;
   /** Diagram rendering style: 'normal' or 'handDrawn' */
   diagramStyle?: 'normal' | 'handDrawn';
+  /** External font stylesheet URL (e.g. Google Fonts) to inject into render worker */
+  fontUrl?: string;
+  /** Theme color scheme — drives Mermaid dark/light theme selection */
+  colorSchema?: 'light' | 'dark' | 'both';
 }

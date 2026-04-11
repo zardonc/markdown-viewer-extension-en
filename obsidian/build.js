@@ -78,6 +78,8 @@ async function buildHost() {
     minify: !process.argv.includes('--dev'),
     define: {
       'process.env.NODE_ENV': process.argv.includes('--dev') ? '"development"' : '"production"',
+      'MV_PLATFORM': '"obsidian"',
+      'MV_RUNTIME': '"shared"',
       'global': 'globalThis',
     },
     inject: [path.join(projectRoot, 'scripts', 'buffer-shim.js')],
@@ -110,8 +112,9 @@ async function buildIframeRenderWorker() {
     minify: !process.argv.includes('--dev'),
     define: {
       'process.env.NODE_ENV': process.argv.includes('--dev') ? '"development"' : '"production"',
+      'MV_PLATFORM': '"obsidian"',
+      'MV_RUNTIME': '"worker"',
       'global': 'globalThis',
-      'PLATFORM': '"obsidian"',
     },
     inject: [path.join(projectRoot, 'scripts', 'buffer-shim.js')],
     loader: {
@@ -120,7 +123,7 @@ async function buildIframeRenderWorker() {
       '.woff2': 'dataurl',
       '.ttf': 'dataurl',
     },
-    external: ['mermaid'],
+    external: ['mermaid', 'web-worker'],
   });
   console.log('✅ iframe-render-worker built');
 }
@@ -193,6 +196,20 @@ function copyAssets() {
   if (fs.existsSync(stencilsSrc)) {
     copyDirectory(stencilsSrc, path.join(outdir, 'webview', 'stencils'));
     console.log('  • stencils');
+  }
+
+  // Slidev shell inline HTML
+  const slidevInlineSrc = path.join(projectRoot, 'dist', 'vscode', 'webview', 'slidev-shell-inline.html');
+  if (fs.existsSync(slidevInlineSrc)) {
+    fs.copyFileSync(slidevInlineSrc, path.join(outdir, 'webview', 'slidev-shell-inline.html'));
+    console.log('  • slidev-shell-inline.html');
+  }
+
+  // Slidev theme bundles JSON
+  const themeBundlesSrc = path.join(projectRoot, 'dist', 'vscode', 'webview', 'slidev-theme-bundles.json');
+  if (fs.existsSync(themeBundlesSrc)) {
+    fs.copyFileSync(themeBundlesSrc, path.join(outdir, 'webview', 'slidev-theme-bundles.json'));
+    console.log('  • slidev-theme-bundles.json');
   }
 
   // Settings panel CSS
@@ -350,6 +367,10 @@ async function main() {
   process.chdir(projectRoot);
 
   try {
+    // Sync supported formats
+    const { default: syncFormats } = await import('../scripts/sync-formats.js');
+    syncFormats();
+
     // Clean output
     if (fs.existsSync(outdir)) fs.rmSync(outdir, { recursive: true, force: true });
     fs.mkdirSync(path.join(outdir, 'webview'), { recursive: true });

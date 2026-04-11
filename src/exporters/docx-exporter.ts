@@ -22,6 +22,7 @@ import type {
   IParagraphStylePropertiesOptions,
 } from 'docx';
 import { mathJaxReady, convertLatex2Math } from './docx-math-converter';
+import { loadImageAsBuffer } from '../utils/image-loader';
 import { unified } from 'unified';
 import remarkParse from 'remark-parse';
 import remarkInlineHtml from '../plugins/remark-inline-html';
@@ -732,10 +733,13 @@ class DocxExporter {
     const depth = node.depth || 1;
     const headingStyle = this.themeStyles?.paragraphStyles?.[`heading${depth}` as keyof typeof this.themeStyles.paragraphStyles];
 
+    // Pass heading's run style (size, bold, font, color) so inline converter uses correct heading font size
+    const headingRunStyle = headingStyle?.run || {};
+
     // Convert inline nodes to support styles (bold, italic, code, etc.)
     const children = await this.inlineConverter!.convertInlineNodes(
       (node.children || []) as unknown as InlineNode[],
-      {}
+      headingRunStyle
     );
 
     const config: {
@@ -950,10 +954,12 @@ class DocxExporter {
 
     try {
       if (isNetworkUrl) {
-        // Use DocumentService.fetchRemote (handles CSP transparently)
-        const bytes = await doc.fetchRemote(url);
-        const contentType = this.guessContentType(url);
-        const result: ImageBufferResult = { buffer: bytes, contentType };
+        // Use <img> + canvas to load remote images (bypasses fetch/CSP restrictions)
+        const imgResult = await loadImageAsBuffer(url);
+        if (!imgResult) {
+          throw new Error(`Failed to load remote image: ${url}`);
+        }
+        const result: ImageBufferResult = { buffer: imgResult.buffer, contentType: 'image/png' };
         this.imageCache.set(url, result);
         return result;
       } else {

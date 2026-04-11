@@ -56,8 +56,12 @@ export const createBuildConfig = () => {
       'core/content-detector': 'chrome/src/webview/content-detector.ts',
       'core/main': 'chrome/src/webview/main.ts',
       'core/background': 'chrome/src/host/background.ts',
+      'core/drawio2svg': 'src/renderers/entries/drawio2svg-global.ts',
+      'core/draw-uml': 'src/renderers/entries/draw-uml-global.ts',
       'core/offscreen-render-worker': 'chrome/src/webview/offscreen-render-worker.ts',
       'ui/popup/popup': 'chrome/src/popup/popup.ts',
+      'ui/workspace/workspace': 'chrome/src/workspace/workspace.ts',
+      'ui/workspace/viewer-embed': 'chrome/src/workspace/viewer-embed.ts',
       'ui/styles': 'src/ui/styles.css'
     },
     bundle: true,
@@ -69,6 +73,8 @@ export const createBuildConfig = () => {
     // Define globals
     define: {
       'process.env.NODE_ENV': '"production"',
+      'MV_PLATFORM': '"chrome"',
+      'MV_RUNTIME': '"shared"',
       'global': 'globalThis', // Polyfill for global
     },
     // Inject Node.js polyfills for browser environment
@@ -82,10 +88,33 @@ export const createBuildConfig = () => {
     },
     assetNames: '[name]', // Use original filename without hash
     // Mermaid is loaded separately via script tag to keep bundle size manageable
-    external: ['mermaid'],
+    external: ['mermaid', 'web-worker'],
     minify: true,
     sourcemap: false,
     plugins: [
+      // Redirect @markdown-viewer/drawio2svg and draw-uml imports to shims
+      // ONLY for files under src/renderers/ — these run in the offscreen render
+      // worker where the real libraries are loaded via separate <script> tags.
+      // Other entry points (popup, background) that transitively import these
+      // via barrel files must still get the real library bundled.
+      {
+        name: 'drawio2svg-shim',
+        setup(build) {
+          const shimPath = path.resolve(projectRoot, 'src/renderers/entries/drawio2svg-shim.ts');
+          const drawUmlShimPath = path.resolve(projectRoot, 'src/renderers/entries/draw-uml-shim.ts');
+          const renderersDir = path.resolve(projectRoot, 'src/renderers');
+          build.onResolve({ filter: /^@markdown-viewer\/drawio2svg$/ }, (args) => {
+            if (args.importer.endsWith('drawio2svg-global.ts')) return undefined;
+            if (!args.importer.startsWith(renderersDir)) return undefined;
+            return { path: shimPath };
+          });
+          build.onResolve({ filter: /^@markdown-viewer\/draw-uml$/ }, (args) => {
+            if (args.importer.endsWith('draw-uml-global.ts')) return undefined;
+            if (!args.importer.startsWith(renderersDir)) return undefined;
+            return { path: drawUmlShimPath };
+          });
+        }
+      },
       // Plugin to copy static files and create complete extension
       {
         name: 'create-complete-extension',
@@ -96,6 +125,9 @@ export const createBuildConfig = () => {
                 { src: 'chrome/manifest.json', dest: 'dist/chrome/manifest.json', log: '📄 Copied manifest.json from chrome/' },
                 { src: 'chrome/src/popup/popup.html', dest: 'dist/chrome/ui/popup/popup.html' },
                 { src: 'chrome/src/popup/popup.css', dest: 'dist/chrome/ui/popup/popup.css' },
+                { src: 'chrome/src/workspace/workspace.html', dest: 'dist/chrome/ui/workspace/workspace.html' },
+                { src: 'chrome/src/workspace/workspace.css', dest: 'dist/chrome/ui/workspace/workspace.css' },
+                { src: 'chrome/src/workspace/viewer-embed.html', dest: 'dist/chrome/ui/workspace/viewer-embed.html' },
                 { src: 'chrome/src/webview/offscreen-render.html', dest: 'dist/chrome/ui/offscreen-render.html' }
               ];
 
@@ -110,6 +142,20 @@ export const createBuildConfig = () => {
                 dest: 'dist/chrome/libs/mermaid.min.js',
                 log: '📦 Copied libs/mermaid.min.js'
               });
+
+              // Copy pre-built Slidev Shell assets
+              if (fs.existsSync('dist/slidev-shell')) {
+                fileCopies.push(...copyDirectory('dist/slidev-shell', 'dist/chrome/slidev-shell'));
+                console.log('📦 Copied dist/slidev-shell → dist/chrome/slidev-shell');
+              } else {
+                console.warn('⚠️  dist/slidev-shell not found — run "cd slidev-shell && npm run build" first');
+              }
+
+              // Copy pre-built theme IIFE bundles for dynamic loading
+              if (fs.existsSync('dist/themes')) {
+                fileCopies.push(...copyDirectory('dist/themes', 'dist/chrome/slidev-shell/themes'));
+                console.log('📦 Copied dist/themes → dist/chrome/slidev-shell/themes');
+              }
 
               fileCopies.forEach(({ src, dest, log }) => copyFileIfExists(src, dest, log));
 

@@ -1,0 +1,17 @@
+{
+  "compilerOptions": {
+    "target": "ESNext",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "strict": true,
+    "jsx": "preserve",
+    "allowImportingTsExtensions": true,
+    "noEmit": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "paths": {
+      "#slidev/*": ["./shims/*"]
+    }
+  },
+  "include": ["main.ts", "shims/**/*.ts", "*.d.ts"]
+}

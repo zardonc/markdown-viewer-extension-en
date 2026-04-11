@@ -44,9 +44,38 @@ const rendererMap = new Map<string, BaseRenderer>(
 // Store current theme configuration
 let currentThemeConfig: RendererThemeConfig | null = null;
 
+// Track injected font stylesheet URLs to avoid duplicates
+const injectedFontUrls = new Set<string>();
+
 // ============================================================================
 // Functions
 // ============================================================================
+
+// Pending font load promise — resolved when the injected font stylesheet has loaded
+let fontLoadPromise: Promise<void> = Promise.resolve();
+
+/**
+ * Inject external font stylesheet <link> into the document.
+ * Deduplicates by URL.
+ */
+function injectFontUrl(url: string | undefined): void {
+  if (!url || typeof document === 'undefined') return;
+  if (injectedFontUrls.has(url)) return;
+  injectedFontUrls.add(url);
+  const link = document.createElement('link');
+  link.rel = 'stylesheet';
+  link.href = url;
+  // Wait for the stylesheet to load, then wait for fonts to finish loading
+  fontLoadPromise = new Promise<void>((resolve) => {
+    link.onload = () => {
+      (document.fonts?.ready ?? Promise.resolve()).then(() => resolve());
+    };
+    link.onerror = () => {
+      resolve();
+    };
+  });
+  document.head.appendChild(link);
+}
 
 /**
  * Set theme configuration
@@ -54,6 +83,7 @@ let currentThemeConfig: RendererThemeConfig | null = null;
  */
 export function setThemeConfig(config: RendererThemeConfig): void {
   currentThemeConfig = config;
+  injectFontUrl(config.fontUrl);
 }
 
 /**
@@ -73,7 +103,11 @@ export async function handleRender({ renderType, input, themeConfig }: RenderReq
   // Update theme config if provided
   if (themeConfig) {
     currentThemeConfig = themeConfig;
+    injectFontUrl(themeConfig.fontUrl);
   }
+
+  // Wait for any pending font loads before rendering
+  await fontLoadPromise;
 
   // Find renderer
   const renderer = rendererMap.get(renderType);

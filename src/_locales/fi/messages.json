@@ -147,18 +147,6 @@
     "message": "Poista kaikki viimeaikaiset tiedostot listalta?",
     "description": "Confirmation message for clearing recent files"
   },
-  "clipboard_empty": {
-    "message": "Leikepöytä on tyhjä",
-    "description": "Error when clipboard is empty"
-  },
-  "clipboard_open": {
-    "message": "Avaa leikepöydältä",
-    "description": "Clipboard item title in history"
-  },
-  "clipboard_read_failed": {
-    "message": "Leikepöydän lukeminen epäonnistui",
-    "description": "Error when clipboard read fails"
-  },
   "close": {
     "message": "Sulje",
     "description": "Close button text/tooltip"
@@ -196,7 +184,7 @@
     "description": "Toast shown during export"
   },
   "extensionDescription": {
-    "message": "Markdown täydelliseksi Wordiksi — Mermaid, Vega, drawio, canvas, infografiikka, Graphviz, LaTeX (muokattava), koodin korostus, paikallinen käsittely.",
+    "message": "Markdown täydelliseksi Wordiksi — Mermaid, PlantUML, Vega, drawio, Graphviz, LaTeX, koodin korostus, paikallinen käsittely.",
     "description": "Extension description shown in Chrome Web Store"
   },
   "extensionName": {
@@ -350,6 +338,22 @@
   "reset": {
     "message": "Palauta",
     "description": "Reset button"
+  },
+  "save_as_drawio": {
+    "message": "Tallenna DrawIO-muodossa",
+    "description": "Context menu item for saving a PlantUML diagram as DrawIO"
+  },
+  "save_as_png": {
+    "message": "Tallenna PNG-muodossa",
+    "description": "Context menu item for saving a diagram as PNG"
+  },
+  "save_as_svg": {
+    "message": "Tallenna SVG-muodossa",
+    "description": "Context menu item for saving a diagram as SVG"
+  },
+  "save_image_as": {
+    "message": "Tallenna kuva nimellä…",
+    "description": "Context menu item for saving an image"
   },
   "search_case_sensitive": {
     "message": "Kirjainkoko",
@@ -519,6 +523,14 @@
     "message": "Mermaid-kaaviot (.mermaid)",
     "description": "Checkbox label for Mermaid format support"
   },
+  "settings_support_plantuml": {
+    "message": "PlantUML kaaviot (.plantuml, .puml)",
+    "description": "Checkbox label for enabling PlantUML file support"
+  },
+  "settings_support_slidev": {
+    "message": "Slidev slides (.slides.md)",
+    "description": "Checkbox label for enabling Slidev file support"
+  },
   "settings_support_vega": {
     "message": "Vega-kaaviot (.vega)",
     "description": "Checkbox label for Vega format support"
@@ -622,6 +634,30 @@
   "welcome_message": {
     "message": "Avaa markdown-tiedosto aloittaaksesi",
     "description": "Welcome message on empty state"
+  },
+  "workspace_choose_directory": {
+    "message": "Valitse hakemisto",
+    "description": "Button to open directory picker"
+  },
+  "workspace_desc": {
+    "message": "Avaa paikallinen hakemisto tuettujen tiedostojen selaamiseen ja esikatseluun.",
+    "description": "Workspace landing page description"
+  },
+  "workspace_open": {
+    "message": "Avaa työtila",
+    "description": "Button in popup to open workspace page"
+  },
+  "workspace_recent": {
+    "message": "Viimeisimmät työtilat",
+    "description": "Title for recent workspaces list"
+  },
+  "workspace_select_file": {
+    "message": "Valitse tiedosto esikatseltavaksi",
+    "description": "Placeholder text when no file is selected"
+  },
+  "workspace_title": {
+    "message": "Työtila",
+    "description": "Workspace landing page title"
   },
   "zoom": {
     "message": "Zoomaus",

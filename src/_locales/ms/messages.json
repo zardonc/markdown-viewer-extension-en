@@ -147,18 +147,6 @@
     "message": "Buang semua fail terkini dari senarai?",
     "description": "Confirmation message for clearing recent files"
   },
-  "clipboard_empty": {
-    "message": "Papan klip kosong",
-    "description": "Error when clipboard is empty"
-  },
-  "clipboard_open": {
-    "message": "Buka dari Papan Klip",
-    "description": "Clipboard item title in history"
-  },
-  "clipboard_read_failed": {
-    "message": "Gagal membaca papan klip",
-    "description": "Error when clipboard read fails"
-  },
   "close": {
     "message": "Tutup",
     "description": "Close button text/tooltip"
@@ -196,7 +184,7 @@
     "description": "Fallback message when DOCX export fails"
   },
   "extensionDescription": {
-    "message": "Markdown ke Word sempurna — Mermaid, Vega, drawio, canvas, infografik, Graphviz, LaTeX (boleh diedit), penyerlahan kod, pemprosesan tempatan.",
+    "message": "Markdown ke Word sempurna — Mermaid, PlantUML, Vega, drawio, infografik, Graphviz, LaTeX, penyerlahan kod, pemprosesan tempatan.",
     "description": "Extension description shown in Chrome Web Store"
   },
   "extensionName": {
@@ -350,6 +338,22 @@
   "reset": {
     "message": "Tetapkan semula",
     "description": "Reset button"
+  },
+  "save_as_drawio": {
+    "message": "Simpan sebagai DrawIO",
+    "description": "Context menu item for saving a PlantUML diagram as DrawIO"
+  },
+  "save_as_png": {
+    "message": "Simpan sebagai PNG",
+    "description": "Context menu item for saving a diagram as PNG"
+  },
+  "save_as_svg": {
+    "message": "Simpan sebagai SVG",
+    "description": "Context menu item for saving a diagram as SVG"
+  },
+  "save_image_as": {
+    "message": "Simpan imej sebagai…",
+    "description": "Context menu item for saving an image"
   },
   "search_case_sensitive": {
     "message": "Padanan huruf",
@@ -519,6 +523,14 @@
     "message": "Gambarajah Mermaid (.mermaid)",
     "description": "Checkbox label for enabling Mermaid file support"
   },
+  "settings_support_plantuml": {
+    "message": "Rajah PlantUML (.plantuml, .puml)",
+    "description": "Checkbox label for enabling PlantUML file support"
+  },
+  "settings_support_slidev": {
+    "message": "Slidev slides (.slides.md)",
+    "description": "Checkbox label for enabling Slidev file support"
+  },
   "settings_support_vega": {
     "message": "Carta Vega (.vega)",
     "description": "Checkbox label for enabling Vega file support"
@@ -622,6 +634,30 @@
   "welcome_message": {
     "message": "Buka fail markdown untuk bermula",
     "description": "Welcome message on empty state"
+  },
+  "workspace_choose_directory": {
+    "message": "Pilih direktori",
+    "description": "Button to open directory picker"
+  },
+  "workspace_desc": {
+    "message": "Buka direktori tempatan untuk menyemak imbas dan pratonton fail yang disokong.",
+    "description": "Workspace landing page description"
+  },
+  "workspace_open": {
+    "message": "Buka ruang kerja",
+    "description": "Button in popup to open workspace page"
+  },
+  "workspace_recent": {
+    "message": "Ruang kerja terkini",
+    "description": "Title for recent workspaces list"
+  },
+  "workspace_select_file": {
+    "message": "Pilih fail untuk pratonton",
+    "description": "Placeholder text when no file is selected"
+  },
+  "workspace_title": {
+    "message": "Ruang Kerja",
+    "description": "Workspace landing page title"
   },
   "zoom": {
     "message": "Zum",

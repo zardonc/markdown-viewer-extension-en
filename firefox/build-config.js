@@ -61,6 +61,9 @@ export const createBuildConfig = () => {
     entryPoints: {
       'core/content-detector': 'chrome/src/webview/content-detector.ts',
       'core/main': 'firefox/src/webview/main.ts',
+      'core/drawio2svg': 'src/renderers/entries/drawio2svg-global.ts',
+      'core/draw-uml': 'src/renderers/entries/draw-uml-global.ts',
+      'core/render-worker': 'firefox/src/host/render-worker.ts',
       'core/background': 'firefox/src/host/background.ts',
       'ui/popup/popup': 'firefox/src/popup/popup.ts',  // Firefox popup with Firefox platform
       'ui/styles': 'src/ui/styles.css'
@@ -74,9 +77,12 @@ export const createBuildConfig = () => {
     // Only mermaid is external (2.6MB) - loaded via separate script tag
     external: [
       'mermaid',
+      'web-worker',
     ],
     define: {
       'process.env.NODE_ENV': '"production"',
+      'MV_PLATFORM': '"firefox"',
+      'MV_RUNTIME': '"shared"',
       'global': 'globalThis',
     },
     inject: ['./scripts/buffer-shim.js'],
@@ -91,6 +97,27 @@ export const createBuildConfig = () => {
     minify: true,
     sourcemap: false,
     plugins: [
+      // Redirect @markdown-viewer/drawio2svg and draw-uml imports to shims
+      // ONLY for files under src/renderers/ — these run in the render worker
+      // where the real libraries are loaded via separate <script> tags.
+      {
+        name: 'drawio2svg-shim',
+        setup(build) {
+          const shimPath = path.resolve(projectRoot, 'src/renderers/entries/drawio2svg-shim.ts');
+          const drawUmlShimPath = path.resolve(projectRoot, 'src/renderers/entries/draw-uml-shim.ts');
+          const renderersDir = path.resolve(projectRoot, 'src/renderers');
+          build.onResolve({ filter: /^@markdown-viewer\/drawio2svg$/ }, (args) => {
+            if (args.importer.endsWith('drawio2svg-global.ts')) return undefined;
+            if (!args.importer.startsWith(renderersDir)) return undefined;
+            return { path: shimPath };
+          });
+          build.onResolve({ filter: /^@markdown-viewer\/draw-uml$/ }, (args) => {
+            if (args.importer.endsWith('draw-uml-global.ts')) return undefined;
+            if (!args.importer.startsWith(renderersDir)) return undefined;
+            return { path: drawUmlShimPath };
+          });
+        }
+      },
       {
         name: 'create-complete-extension',
         setup(build) {
@@ -107,6 +134,20 @@ export const createBuildConfig = () => {
               fileCopies.push(...copyDirectory('src/_locales', 'dist/firefox/_locales'));
               fileCopies.push(...copyDirectory('src/themes', 'dist/firefox/themes'));
               fileCopies.push(...copyDirectory('node_modules/@markdown-viewer/drawio2svg/resources/stencils', 'dist/firefox/stencils'));
+
+              // Copy pre-built Slidev Shell assets
+              if (fs.existsSync('dist/slidev-shell')) {
+                fileCopies.push(...copyDirectory('dist/slidev-shell', 'dist/firefox/slidev-shell'));
+                console.log('📦 Copied dist/slidev-shell → dist/firefox/slidev-shell');
+              } else {
+                console.warn('⚠️  dist/slidev-shell not found — run "cd slidev-shell && npm run build" first');
+              }
+
+              // Copy pre-built theme IIFE bundles for dynamic loading
+              if (fs.existsSync('dist/themes')) {
+                fileCopies.push(...copyDirectory('dist/themes', 'dist/firefox/slidev-shell/themes'));
+                console.log('📦 Copied dist/themes → dist/firefox/slidev-shell/themes');
+              }
 
               // Copy pre-bundled library files
               for (const lib of PREBUNDLED_LIBS) {

@@ -147,18 +147,6 @@
     "message": "最近のファイルをすべて削除しますか？",
     "description": "Confirmation message for clearing recent files"
   },
-  "clipboard_empty": {
-    "message": "クリップボードは空です",
-    "description": "Error when clipboard is empty"
-  },
-  "clipboard_open": {
-    "message": "クリップボードから開く",
-    "description": "Clipboard item title in history"
-  },
-  "clipboard_read_failed": {
-    "message": "クリップボードの読み取りに失敗しました",
-    "description": "Error when clipboard read fails"
-  },
   "close": {
     "message": "閉じる",
     "description": "Close button text/tooltip"
@@ -196,7 +184,7 @@
     "description": "Toast shown during export"
   },
   "extensionDescription": {
-    "message": "Markdown を完璧な Word に — Mermaid、Vega、drawio、canvas、インフォグラフィック、Graphviz、LaTeX（編集可能）、コードハイライト、ローカル処理.",
+    "message": "Markdown を完璧な Word に — Mermaid、PlantUML、Vega、drawio、canvas、インフォグラフィック、Graphviz、LaTeX（編集可能）、コードハイライト、ローカル処理.",
     "description": "Chrome ウェブストアに表示される説明"
   },
   "extensionName": {
@@ -350,6 +338,22 @@
   "reset": {
     "message": "リセット",
     "description": "Reset button"
+  },
+  "save_as_drawio": {
+    "message": "DrawIOとして保存",
+    "description": "Context menu item for saving a PlantUML diagram as DrawIO"
+  },
+  "save_as_png": {
+    "message": "PNGとして保存",
+    "description": "Context menu item for saving a diagram as PNG"
+  },
+  "save_as_svg": {
+    "message": "SVGとして保存",
+    "description": "Context menu item for saving a diagram as SVG"
+  },
+  "save_image_as": {
+    "message": "名前を付けて画像を保存…",
+    "description": "Context menu item for saving an image"
   },
   "search_case_sensitive": {
     "message": "大文字と小文字を区別",
@@ -519,6 +523,14 @@
     "message": "Mermaid図 (.mermaid)",
     "description": "Checkbox label for Mermaid format support"
   },
+  "settings_support_plantuml": {
+    "message": "PlantUML図 (.plantuml, .puml)",
+    "description": "Checkbox label for enabling PlantUML file support"
+  },
+  "settings_support_slidev": {
+    "message": "Slidev slides (.slides.md)",
+    "description": "Checkbox label for enabling Slidev file support"
+  },
   "settings_support_vega": {
     "message": "Vegaチャート (.vega)",
     "description": "Checkbox label for Vega format support"
@@ -622,6 +634,30 @@
   "welcome_message": {
     "message": "マークダウンファイルを開いて始めましょう",
     "description": "Welcome message on empty state"
+  },
+  "workspace_choose_directory": {
+    "message": "ディレクトリを選択",
+    "description": "Button to open directory picker"
+  },
+  "workspace_desc": {
+    "message": "ローカルディレクトリを開いてサポートされているファイルを閲覧・プレビューします。",
+    "description": "Workspace landing page description"
+  },
+  "workspace_open": {
+    "message": "ワークスペースを開く",
+    "description": "Button in popup to open workspace page"
+  },
+  "workspace_recent": {
+    "message": "最近のワークスペース",
+    "description": "Title for recent workspaces list"
+  },
+  "workspace_select_file": {
+    "message": "プレビューするファイルを選択",
+    "description": "Placeholder text when no file is selected"
+  },
+  "workspace_title": {
+    "message": "ワークスペース",
+    "description": "Workspace landing page title"
   },
   "zoom": {
     "message": "ズーム",

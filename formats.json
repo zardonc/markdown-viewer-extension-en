@@ -1,0 +1,11 @@
+{
+  "formats": [    { "fileType": "slidev",      "extensions": ["slides.md"],  "languageId": "markdown" },    { "fileType": "mermaid", "extensions": ["mermaid", "mmd"] },
+    { "fileType": "plantuml", "extensions": ["plantuml", "puml"] },
+    { "fileType": "vega", "extensions": ["vega"] },
+    { "fileType": "vega-lite", "extensions": ["vl", "vega-lite"], "languageId": "vega" },
+    { "fileType": "dot", "extensions": ["gv", "dot"], "languageId": "graphviz" },
+    { "fileType": "infographic", "extensions": ["infographic"] },
+    { "fileType": "canvas", "extensions": ["canvas"] },
+    { "fileType": "drawio", "extensions": ["drawio"] }
+  ]
+}

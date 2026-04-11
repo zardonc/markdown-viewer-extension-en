@@ -115,6 +115,15 @@ export class BaseRenderer {
   async renderSvgToCanvas(svgContent: string, width: number, height: number, fontFamily: string | null = null): Promise<HTMLCanvasElement> {
 
     svgContent = svgContent.replace(/<style>/, `<style>foreignObject { overflow: visible; }`);
+
+    // Embed loaded web font @font-face rules into SVG so they work in data: URL context.
+    // When SVG is rendered as an Image (data: URL), it cannot access page-loaded fonts.
+    if (fontFamily && typeof document !== 'undefined' && document.fonts) {
+      const fontCss = await this.collectFontFaceCss(fontFamily);
+      if (fontCss) {
+        svgContent = svgContent.replace(/<style>/, `<style>${fontCss}`);
+      }
+    }
     
     return new Promise((resolve, reject) => {
       const img = new Image();
@@ -142,6 +151,66 @@ export class BaseRenderer {
       img.onerror = (e) => {
         reject(new Error('Failed to load SVG into image for rendering'));
       };
+    });
+  }
+
+  // Cache for inlined font CSS (fontUrl -> inlined CSS with data URIs)
+  private static fontCssCache = new Map<string, string>();
+
+  /**
+   * Collect @font-face CSS for the given fontFamily by fetching the font CSS URL
+   * from the injected <link> stylesheet, then inlining all woff2 references as data URIs.
+   * This is necessary because SVG rendered via data: URL cannot access external fonts.
+   */
+  private async collectFontFaceCss(fontFamily: string): Promise<string> {
+    // Find the Google Fonts <link> in document
+    const links = document.querySelectorAll('link[rel="stylesheet"]');
+    for (const link of links) {
+      const href = (link as HTMLLinkElement).href;
+      if (!href || !href.includes('fonts.googleapis.com')) continue;
+
+      if (BaseRenderer.fontCssCache.has(href)) {
+        return BaseRenderer.fontCssCache.get(href)!;
+      }
+
+      try {
+        // Fetch Google Fonts CSS — do NOT set custom User-Agent header
+        // as it triggers CORS preflight which may fail in mobile WebView.
+        // Modern WebViews send a UA that Google Fonts recognises for woff2.
+        const resp = await fetch(href);
+        if (!resp.ok) continue;
+        let css = await resp.text();
+
+        // Replace all url(...) references with inlined base64 data URIs
+        const urlPattern = /url\((https:\/\/fonts\.gstatic\.com\/[^)]+)\)/g;
+        const matches = [...css.matchAll(urlPattern)];
+        for (const match of matches) {
+          try {
+            const fontResp = await fetch(match[1]);
+            if (!fontResp.ok) continue;
+            const blob = await fontResp.blob();
+            const dataUri = await this.blobToBase64(blob);
+            css = css.replace(match[0], `url(${dataUri})`);
+          } catch {
+            // Keep original URL if fetch fails
+          }
+        }
+
+        BaseRenderer.fontCssCache.set(href, css);
+        return css;
+      } catch {
+        // Ignore fetch errors
+      }
+    }
+    return '';
+  }
+
+  private blobToBase64(blob: Blob): Promise<string> {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = reject;
+      reader.readAsDataURL(blob);
     });
   }
 }

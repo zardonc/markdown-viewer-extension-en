@@ -694,7 +694,8 @@ chrome.runtime.onMessage.addListener((message: BackgroundMessage, sender, sendRe
 
   // New service envelope: dynamic content script injection (preferred)
   if (isRequestEnvelope(message) && message.type === 'INJECT_CONTENT_SCRIPT') {
-    handleContentScriptInjection(sender.tab?.id || 0)
+    const injectionUrl = (message.payload as { url?: string })?.url;
+    handleContentScriptInjection(sender.tab?.id || 0, injectionUrl)
       .then(() => {
         sendResponseEnvelope(message.id, sendResponse, { ok: true, data: { success: true } });
       })
@@ -963,18 +964,17 @@ async function ensureOffscreenDocument(): Promise<void> {
 }
 
 // Handle dynamic content script injection
-async function handleContentScriptInjection(tabId: number): Promise<void> {
+async function handleContentScriptInjection(tabId: number, url?: string): Promise<void> {
   try {
     // Inject CSS first
     await chrome.scripting.insertCSS({
-      target: { tabId: tabId },
-      files: ['ui/styles.css']
+      target: { tabId },
+      files: ['ui/styles.css'],
     });
-
-    // Then inject JavaScript
+    // Then inject JavaScript (handles both normal markdown and .slides.md)
     await chrome.scripting.executeScript({
-      target: { tabId: tabId },
-      files: ['core/main.js']
+      target: { tabId },
+      files: ['core/main.js'],
     });
   } catch (error) {
     throw error;

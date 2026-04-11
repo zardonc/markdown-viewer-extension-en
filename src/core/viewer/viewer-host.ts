@@ -132,6 +132,8 @@ export function createPluginRenderer(platform: PlatformAPI): PluginRenderer {
         height: result.height,
         format: result.format,
         error: undefined,
+        svg: result.svg,
+        drawioXml: result.drawioXml,
       };
     },
   };

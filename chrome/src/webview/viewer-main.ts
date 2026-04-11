@@ -5,14 +5,13 @@
  * Both Chrome and Firefox extensions use this module with platform-specific renderers.
  */
 
-// Firefox WebExtension API declaration (undefined in Chrome)
-declare const browser: typeof chrome | undefined;
-
 import DocxExporter from '../../../src/exporters/docx-exporter';
 import Localization, { DEFAULT_SETTING_LOCALE } from '../../../src/utils/localization';
 import themeManager from '../../../src/utils/theme-manager';
 import { loadAndApplyTheme } from '../../../src/utils/theme-to-css';
 import { wrapFileContent } from '../../../src/utils/file-wrapper';
+import { initSlidevViewer } from '../../../src/slidev/slidev-viewer';
+import { getWebExtensionApi } from '../../../src/utils/platform-info';
 
 import type { PluginRenderer, RendererThemeConfig, PlatformAPI } from '../../../src/types/index';
 
@@ -32,6 +31,7 @@ import {
   renderMarkdownFlow,
   handleThemeSwitchFlow,
 } from '../../../src/core/viewer/viewer-host';
+import { setupImageContextMenu } from '../../../src/ui/image-context-menu';
 
 // Extend Window interface for global access
 declare global {
@@ -99,6 +99,7 @@ interface IncomingBroadcastMessage {
  */
 export async function initializeViewerMain(options: ViewerMainOptions): Promise<void> {
   const { platform, pluginRenderer, themeConfigRenderer } = options;
+  const webExtensionApi = getWebExtensionApi();
 
   const translate = (key: string, substitutions?: string | string[]): string =>
     Localization.translate(key, substitutions);
@@ -150,12 +151,10 @@ export async function initializeViewerMain(options: ViewerMainOptions): Promise<
     }
     
     // Create new favicon link
-    // Use browser API for Firefox, chrome API for Chrome
-    const runtime = typeof browser !== 'undefined' ? browser : chrome;
     const link = document.createElement('link');
     link.rel = 'icon';
     link.type = 'image/png';
-    link.href = runtime.runtime.getURL('icons/icon16.png');
+    link.href = webExtensionApi.runtime.getURL('icons/icon16.png');
     document.head.appendChild(link);
   }
   setFavicon();
@@ -166,7 +165,54 @@ export async function initializeViewerMain(options: ViewerMainOptions): Promise<
 
   // Get the raw markdown content
   const rawContent = document.body.textContent || '';
-  
+
+  // ── Slidev mode: .slides.md files render as presentations ────────────
+  if (/\.slides\.md$/i.test(currentUrl)) {
+    // Remove preload style that hides page content (opacity: 0 !important)
+    document.getElementById('markdown-viewer-preload')?.remove();
+
+    // Full-screen layout for presentations
+    document.body.innerHTML = '';
+    document.body.style.cssText = 'margin:0;padding:0;width:100%;height:100%;overflow:hidden;opacity:1';
+    document.documentElement.style.cssText = 'margin:0;padding:0;width:100%;height:100%;overflow:hidden';
+
+    await initSlidevViewer({
+      rawContent,
+      container: document.body,
+      renderDiagram: (type, code) =>
+        platform.renderer.render(type, code).then((r) => ({
+          base64: r.base64!,
+          width: r.width,
+          height: r.height,
+        })),
+      onThemeReady: async (name) => {
+        try {
+          const resp = await fetch(webExtensionApi.runtime.getURL('slidev-shell/themes/themes.json'));
+          if (!resp.ok) return;
+          const manifest = await resp.json();
+          const entry = manifest[name];
+          if (entry?.fonts) {
+            platform.renderer.setThemeConfig({
+              ...platform.renderer.getThemeConfig(),
+              fontFamily: entry.fonts.sans || entry.fonts.serif || undefined,
+              fontUrl: entry.fontUrl,
+              colorSchema: entry.colorSchema as 'light' | 'dark' | 'both' | undefined,
+            });
+          }
+        } catch { /* ignore */ }
+      },
+      getShellSource: async () =>
+        webExtensionApi.runtime.getURL('slidev-shell/index.html'),
+      getThemeUrl: async (name) =>
+        webExtensionApi.runtime.getURL(`slidev-shell/themes/theme-${name}.js`),
+      onParsed: ({ title }) => {
+        document.title = title;
+        saveToHistory(platform);
+      },
+    });
+    return;
+  }
+
   // Wrap non-markdown file content (e.g., mermaid, vega) in markdown format
   const rawMarkdown = wrapFileContent(rawContent, currentUrl);
 
@@ -516,6 +562,33 @@ export async function initializeViewerMain(options: ViewerMainOptions): Promise<
 
   // Setup message listener for theme/locale/file changes
   setupMessageListener();
+
+  // Setup image context menu (shared cross-platform)
+  const contentContainer = document.getElementById('markdown-content');
+  if (contentContainer) {
+    setupImageContextMenu({
+      container: contentContainer,
+      onDownload: ({ filename, data, mimeType }) => {
+        // Use <a download> for browser-based download
+        const blob = new Blob(
+          [Uint8Array.from(atob(data), c => c.charCodeAt(0))],
+          { type: mimeType }
+        );
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        a.style.display = 'none';
+        document.body.appendChild(a);
+        a.click();
+        setTimeout(() => {
+          document.body.removeChild(a);
+          URL.revokeObjectURL(url);
+        }, 100);
+      },
+      translate: (key) => Localization.translate(key),
+    });
+  }
 
   // Start file tracking for local files
   if (currentUrl.startsWith('file://')) {

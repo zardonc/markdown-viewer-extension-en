@@ -5,8 +5,10 @@
  * so we can render diagrams directly here (similar to Chrome's Offscreen API).
  */
 
+import { getWebExtensionApi } from '../../../src/utils/platform-info';
+
 // Firefox WebExtension API types
-declare const browser: typeof chrome & {
+type FirefoxBrowserApi = typeof chrome & {
   menus: {
     create: (createProperties: {
       id?: string;
@@ -22,26 +24,14 @@ declare const browser: typeof chrome & {
   };
 };
 
-import { DirectResourceService } from '../../../src/services';
-
-// ============================================================================
-// Platform API for Background Render Worker
-// ============================================================================
-
-// Set up minimal platform API for services that need resource.fetch
-// (e.g., StencilsService for DrawIO stencils)
-globalThis.platform = {
-  resource: new DirectResourceService((path) => browser.runtime.getURL(path))
-} as unknown as typeof globalThis.platform;
+const browser = getWebExtensionApi() as unknown as FirefoxBrowserApi;
 
 // ============================================================================
 
 import CacheStorage from '../../../src/utils/cache-storage';
 import { toSimpleCacheStats } from '../../../src/utils/cache-stats';
-import { bootstrapRenderWorker } from '../../../src/renderers/worker/worker-bootstrap';
-import { DirectFetchService } from '../../../src/renderers/worker/services';
-import { RenderChannel } from '../../../src/messaging/channels/render-channel';
-import { ManualDispatchTransport } from './manual-dispatch-transport';
+
+import type { ManualDispatchTransport } from './manual-dispatch-transport';
 import type {
   FileState,
   AllFileStates,
@@ -49,6 +39,9 @@ import type {
   BackgroundMessage,
   SimpleCacheStats
 } from '../../../src/types/index';
+
+// Render transport is set up by render-worker.ts (loaded before this script)
+const renderTransport = (globalThis as Record<string, unknown>).__renderTransport as ManualDispatchTransport;
 
 let globalCacheStorage: CacheStorage | null = null;
 
@@ -60,13 +53,13 @@ let globalCacheStorage: CacheStorage | null = null;
 const injectedTabs = new Set<number>();
 
 // Supported file extensions for CSP modification
-const SUPPORTED_EXTENSIONS = ['.md', '.markdown', '.mermaid', '.vega', '.vl', '.vega-lite', '.gv', '.dot', '.infographic'];
+import { ALL_SUPPORTED_EXTENSIONS } from '../../../src/types/formats';
 
 function shouldModifyCSP(url: string): boolean {
   try {
     const urlObj = new URL(url);
     const pathname = urlObj.pathname.toLowerCase();
-    return SUPPORTED_EXTENSIONS.some(ext => pathname.endsWith(ext));
+    return ALL_SUPPORTED_EXTENSIONS.some(ext => pathname.endsWith(ext));
   } catch {
     return false;
   }
@@ -101,44 +94,8 @@ browser.webRequest.onHeadersReceived.addListener(
 );
 
 // ============================================================================
-// Render Worker Setup (Background Page has DOM, like Chrome Offscreen)
+// Render Worker (bootstrapped by render-worker.ts via separate <script>)
 // ============================================================================
-
-// Use ManualDispatchTransport instead of BrowserRuntimeTransport to avoid
-// conflicts with the main message listener. Messages are manually dispatched
-// from the main listener when __target === 'background-render'.
-const renderTransport = new ManualDispatchTransport();
-const renderChannel = new RenderChannel(renderTransport, {
-  source: 'firefox-background',
-  timeoutMs: 300000,
-  acceptRequest: (msg) => {
-    if (!msg || typeof msg !== 'object') return false;
-    const target = (msg as { __target?: unknown }).__target;
-    return target === 'background-render';
-  },
-});
-
-// Firefox background page can fetch directly (has full DOM access)
-const directFetchService = new DirectFetchService();
-
-// Initialize render worker when DOM is ready
-const renderWorker = bootstrapRenderWorker(renderChannel, {
-  getCanvas: () => document.getElementById('png-canvas') as HTMLCanvasElement | null,
-  getReady: () => true,
-  // Inject services for renderers
-  services: {
-    fetch: directFetchService,
-  },
-});
-
-// Initialize when background page loads
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', () => {
-    renderWorker.init();
-  });
-} else {
-  renderWorker.init();
-}
 
 // Envelope helpers
 let requestCounter = 0;

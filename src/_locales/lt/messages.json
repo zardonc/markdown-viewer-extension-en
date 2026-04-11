@@ -147,18 +147,6 @@
     "message": "Pašalinti visus naujausius failus iš sąrašo?",
     "description": "Confirmation message for clearing recent files"
   },
-  "clipboard_empty": {
-    "message": "Iškarpinė tuščia",
-    "description": "Error when clipboard is empty"
-  },
-  "clipboard_open": {
-    "message": "Atidaryti iš iškarpinės",
-    "description": "Clipboard item title in history"
-  },
-  "clipboard_read_failed": {
-    "message": "Nepavyko perskaityti iškarpinės",
-    "description": "Error when clipboard read fails"
-  },
   "close": {
     "message": "Uždaryti",
     "description": "Close button text/tooltip"
@@ -196,7 +184,7 @@
     "description": "Fallback message when DOCX export fails"
   },
   "extensionDescription": {
-    "message": "Markdown į tobulą Word — Mermaid, Vega, drawio, canvas, infografika, Graphviz, LaTeX (redaguojamas), kodo paryškinimas, vietinis apdorojimas.",
+    "message": "Markdown į tobulą Word — Mermaid, PlantUML, Vega, drawio, infografika, Graphviz, LaTeX, kodo paryškinimas, vietinis apdorojimas.",
     "description": "Extension description shown in Chrome Web Store"
   },
   "extensionName": {
@@ -350,6 +338,22 @@
   "reset": {
     "message": "Atstatyti",
     "description": "Reset button"
+  },
+  "save_as_drawio": {
+    "message": "Išsaugoti kaip DrawIO",
+    "description": "Context menu item for saving a PlantUML diagram as DrawIO"
+  },
+  "save_as_png": {
+    "message": "Išsaugoti kaip PNG",
+    "description": "Context menu item for saving a diagram as PNG"
+  },
+  "save_as_svg": {
+    "message": "Išsaugoti kaip SVG",
+    "description": "Context menu item for saving a diagram as SVG"
+  },
+  "save_image_as": {
+    "message": "Išsaugoti vaizdą kaip…",
+    "description": "Context menu item for saving an image"
   },
   "search_case_sensitive": {
     "message": "Skirti didžiąsias/mažąsias",
@@ -519,6 +523,14 @@
     "message": "Mermaid diagramos (.mermaid)",
     "description": "Checkbox label for enabling Mermaid file support"
   },
+  "settings_support_plantuml": {
+    "message": "PlantUML diagramos (.plantuml, .puml)",
+    "description": "Checkbox label for enabling PlantUML file support"
+  },
+  "settings_support_slidev": {
+    "message": "Slidev slides (.slides.md)",
+    "description": "Checkbox label for enabling Slidev file support"
+  },
   "settings_support_vega": {
     "message": "Vega grafikai (.vega)",
     "description": "Checkbox label for enabling Vega file support"
@@ -622,6 +634,30 @@
   "welcome_message": {
     "message": "Norėdami pradėti, atidarykite markdown failą",
     "description": "Welcome message on empty state"
+  },
+  "workspace_choose_directory": {
+    "message": "Pasirinkti katalogą",
+    "description": "Button to open directory picker"
+  },
+  "workspace_desc": {
+    "message": "Atidarykite vietinį katalogą, kad galėtumėte naršyti ir peržiūrėti palaikomus failus.",
+    "description": "Workspace landing page description"
+  },
+  "workspace_open": {
+    "message": "Atidaryti darbo sritį",
+    "description": "Button in popup to open workspace page"
+  },
+  "workspace_recent": {
+    "message": "Naujausios darbo sritys",
+    "description": "Title for recent workspaces list"
+  },
+  "workspace_select_file": {
+    "message": "Pasirinkite failą peržiūrai",
+    "description": "Placeholder text when no file is selected"
+  },
+  "workspace_title": {
+    "message": "Darbo sritis",
+    "description": "Workspace landing page title"
   },
   "zoom": {
     "message": "Mastelis",

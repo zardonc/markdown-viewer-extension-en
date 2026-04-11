@@ -117,8 +117,9 @@ async function buildMainBundle() {
     treeShaking: true,
     define: {
       'process.env.NODE_ENV': '"production"',
-      'global': 'globalThis',
-      'PLATFORM': '"mobile"'
+      'MV_PLATFORM': '"mobile"',
+      'MV_RUNTIME': '"webview"',
+      'global': 'globalThis'
     },
     inject: ['./scripts/buffer-shim.js'],
     loader: {
@@ -153,8 +154,9 @@ async function buildIframeRenderWorkerBundle() {
     treeShaking: true,
     define: {
       'process.env.NODE_ENV': '"production"',
-      'global': 'globalThis',
-      'PLATFORM': '"mobile"'
+      'MV_PLATFORM': '"mobile"',
+      'MV_RUNTIME': '"worker"',
+      'global': 'globalThis'
     },
     inject: ['./scripts/buffer-shim.js'],
     loader: {
@@ -165,7 +167,7 @@ async function buildIframeRenderWorkerBundle() {
     },
     minify: true,
     sourcemap: false,
-    external: []
+    external: ['web-worker']
   });
 
   console.log('✅ Iframe-render-worker built');
@@ -286,6 +288,45 @@ function copyResources() {
       }
     }
     console.log('  • fonts (custom Chinese)');
+  }
+
+  // Create self-contained Slidev Shell HTML (same approach as VS Code build)
+  const slidevVscodeDir = path.join(projectRoot, 'dist', 'slidev-shell-vscode');
+  if (fs.existsSync(slidevVscodeDir)) {
+    const shellJs = fs.readFileSync(path.join(slidevVscodeDir, 'slidev-shell.js'), 'utf8');
+    const shellCss = fs.readFileSync(path.join(slidevVscodeDir, 'assets', 'style.css'), 'utf8');
+    const slidevInlineHtml = `<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Slidev Shell</title>
+  <style>${shellCss}</style>
+</head>
+<body>
+  <div id="app"></div>
+  <script type="module">${shellJs}<\/script>
+</body>
+</html>`;
+    fs.writeFileSync(`${DIST_DIR}/slidev-shell-inline.html`, slidevInlineHtml);
+    console.log('  • slidev-shell-inline.html');
+
+    // Write theme bundles as separate JSON for dynamic loading
+    const themesDir = path.join(projectRoot, 'dist', 'themes');
+    if (fs.existsSync(themesDir)) {
+      const manifest = JSON.parse(fs.readFileSync(path.join(themesDir, 'themes.json'), 'utf8'));
+      const bundles = {};
+      for (const [name, entry] of Object.entries(manifest)) {
+        const themeFile = path.join(themesDir, /** @type {string} */ (entry.file));
+        if (fs.existsSync(themeFile)) {
+          bundles[name] = { code: fs.readFileSync(themeFile, 'utf8'), fonts: entry.fonts || {}, fontUrl: entry.fontUrl, colorSchema: entry.colorSchema };
+        }
+      }
+      fs.writeFileSync(`${DIST_DIR}/slidev-theme-bundles.json`, JSON.stringify(bundles));
+      console.log(`  • ${Object.keys(bundles).length} theme bundles (slidev-theme-bundles.json)`);
+    }
+  } else {
+    console.warn('  ⚠️  dist/slidev-shell-vscode not found — Slidev presentations will not work');
   }
 
   console.log('✅ Resources copied');

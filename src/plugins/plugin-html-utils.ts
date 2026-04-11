@@ -4,6 +4,7 @@
  */
 
 import type { PluginRenderResult, UnifiedRenderResult } from '../types/index';
+import { registerDiagramExport } from '../ui/diagram-export-registry';
 
 /**
  * Convert unified plugin render result to HTML string
@@ -86,5 +87,14 @@ export function replacePlaceholderWithImage(id: string, result: PluginRenderResu
       }
     };
     placeholder.outerHTML = convertPluginResultToHTML(id, renderResult, pluginType, sourceHash);
+
+    // Register intermediate formats for diagram export (SVG, DrawIO)
+    if (sourceHash && (result.svg || result.drawioXml)) {
+      registerDiagramExport(sourceHash, {
+        pluginType,
+        svg: result.svg,
+        drawioXml: result.drawioXml,
+      });
+    }
   }
 }

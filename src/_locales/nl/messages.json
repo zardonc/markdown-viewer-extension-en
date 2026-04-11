@@ -147,18 +147,6 @@
     "message": "Alle recente bestanden uit de lijst verwijderen?",
     "description": "Confirmation message for clearing recent files"
   },
-  "clipboard_empty": {
-    "message": "Klembord is leeg",
-    "description": "Error when clipboard is empty"
-  },
-  "clipboard_open": {
-    "message": "Openen vanuit klembord",
-    "description": "Clipboard item title in history"
-  },
-  "clipboard_read_failed": {
-    "message": "Kan klembord niet lezen",
-    "description": "Error when clipboard read fails"
-  },
   "close": {
     "message": "Sluiten",
     "description": "Close button text/tooltip"
@@ -196,7 +184,7 @@
     "description": "Toast shown during export"
   },
   "extensionDescription": {
-    "message": "Markdown naar perfect Word — Mermaid, Vega, drawio, canvas, infographic, Graphviz, LaTeX (bewerkbaar), code-accentuering, lokale verwerking.",
+    "message": "Markdown naar perfect Word — Mermaid, PlantUML, Vega, drawio, infographic, Graphviz, LaTeX, code-accentuering, lokale verwerking.",
     "description": "Extension description shown in Chrome Web Store"
   },
   "extensionName": {
@@ -350,6 +338,22 @@
   "reset": {
     "message": "Resetten",
     "description": "Reset button"
+  },
+  "save_as_drawio": {
+    "message": "Opslaan als DrawIO",
+    "description": "Context menu item for saving a PlantUML diagram as DrawIO"
+  },
+  "save_as_png": {
+    "message": "Opslaan als PNG",
+    "description": "Context menu item for saving a diagram as PNG"
+  },
+  "save_as_svg": {
+    "message": "Opslaan als SVG",
+    "description": "Context menu item for saving a diagram as SVG"
+  },
+  "save_image_as": {
+    "message": "Afbeelding opslaan als…",
+    "description": "Context menu item for saving an image"
   },
   "search_case_sensitive": {
     "message": "Hoofdlettergevoelig",
@@ -519,6 +523,14 @@
     "message": "Mermaid-diagrammen (.mermaid)",
     "description": "Checkbox label for Mermaid format support"
   },
+  "settings_support_plantuml": {
+    "message": "PlantUML diagrammen (.plantuml, .puml)",
+    "description": "Checkbox label for enabling PlantUML file support"
+  },
+  "settings_support_slidev": {
+    "message": "Slidev slides (.slides.md)",
+    "description": "Checkbox label for enabling Slidev file support"
+  },
   "settings_support_vega": {
     "message": "Vega-grafieken (.vega)",
     "description": "Checkbox label for Vega format support"
@@ -622,6 +634,30 @@
   "welcome_message": {
     "message": "Open een markdown-bestand om te beginnen",
     "description": "Welcome message on empty state"
+  },
+  "workspace_choose_directory": {
+    "message": "Map kiezen",
+    "description": "Button to open directory picker"
+  },
+  "workspace_desc": {
+    "message": "Open een lokale map om ondersteunde bestanden te bekijken en een voorbeeld te zien.",
+    "description": "Workspace landing page description"
+  },
+  "workspace_open": {
+    "message": "Werkruimte openen",
+    "description": "Button in popup to open workspace page"
+  },
+  "workspace_recent": {
+    "message": "Recente werkruimtes",
+    "description": "Title for recent workspaces list"
+  },
+  "workspace_select_file": {
+    "message": "Selecteer een bestand om te bekijken",
+    "description": "Placeholder text when no file is selected"
+  },
+  "workspace_title": {
+    "message": "Werkruimte",
+    "description": "Workspace landing page title"
   },
   "zoom": {
     "message": "Zoomen",

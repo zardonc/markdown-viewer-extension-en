@@ -147,18 +147,6 @@
     "message": "सूची से सभी हाल की फ़ाइलें हटाएं?",
     "description": "Confirmation message for clearing recent files"
   },
-  "clipboard_empty": {
-    "message": "क्लिपबोर्ड खाली है",
-    "description": "Error when clipboard is empty"
-  },
-  "clipboard_open": {
-    "message": "क्लिपबोर्ड से खोलें",
-    "description": "Clipboard item title in history"
-  },
-  "clipboard_read_failed": {
-    "message": "क्लिपबोर्ड पढ़ने में विफल",
-    "description": "Error when clipboard read fails"
-  },
   "close": {
     "message": "बंद करें",
     "description": "Close button text/tooltip"
@@ -196,7 +184,7 @@
     "description": "Toast shown during export"
   },
   "extensionDescription": {
-    "message": "Markdown से परफेक्ट Word — Mermaid, Vega, drawio, canvas, इन्फोग्राफिक, Graphviz, LaTeX (संपादन योग्य), कोड हाइलाइटिंग, स्थानीय प्रोसेसिंग.",
+    "message": "Markdown से परफेक्ट Word — Mermaid, PlantUML, Vega, drawio, इन्फोग्राफिक, Graphviz, LaTeX, कोड हाइलाइटिंग, स्थानीय प्रोसेसिंग.",
     "description": "Extension description shown in Chrome Web Store"
   },
   "extensionName": {
@@ -350,6 +338,22 @@
   "reset": {
     "message": "रीसेट",
     "description": "Reset button"
+  },
+  "save_as_drawio": {
+    "message": "DrawIO के रूप में सहेजें",
+    "description": "Context menu item for saving a PlantUML diagram as DrawIO"
+  },
+  "save_as_png": {
+    "message": "PNG के रूप में सहेजें",
+    "description": "Context menu item for saving a diagram as PNG"
+  },
+  "save_as_svg": {
+    "message": "SVG के रूप में सहेजें",
+    "description": "Context menu item for saving a diagram as SVG"
+  },
+  "save_image_as": {
+    "message": "छवि इस रूप में सहेजें…",
+    "description": "Context menu item for saving an image"
   },
   "search_case_sensitive": {
     "message": "केस मिलाएं",
@@ -519,6 +523,14 @@
     "message": "Mermaid आरेख (.mermaid)",
     "description": "Checkbox label for Mermaid format support"
   },
+  "settings_support_plantuml": {
+    "message": "PlantUML आरेख (.plantuml, .puml)",
+    "description": "Checkbox label for enabling PlantUML file support"
+  },
+  "settings_support_slidev": {
+    "message": "Slidev slides (.slides.md)",
+    "description": "Checkbox label for enabling Slidev file support"
+  },
   "settings_support_vega": {
     "message": "Vega चार्ट (.vega)",
     "description": "Checkbox label for Vega format support"
@@ -622,6 +634,30 @@
   "welcome_message": {
     "message": "शुरू करने के लिए एक मार्कडाउन फ़ाइल खोलें",
     "description": "Welcome message on empty state"
+  },
+  "workspace_choose_directory": {
+    "message": "निर्देशिका चुनें",
+    "description": "Button to open directory picker"
+  },
+  "workspace_desc": {
+    "message": "समर्थित फ़ाइलों को ब्राउज़ और पूर्वावलोकन करने के लिए स्थानीय निर्देशिका खोलें।",
+    "description": "Workspace landing page description"
+  },
+  "workspace_open": {
+    "message": "कार्यक्षेत्र खोलें",
+    "description": "Button in popup to open workspace page"
+  },
+  "workspace_recent": {
+    "message": "हाल के कार्यक्षेत्र",
+    "description": "Title for recent workspaces list"
+  },
+  "workspace_select_file": {
+    "message": "पूर्वावलोकन के लिए फ़ाइल चुनें",
+    "description": "Placeholder text when no file is selected"
+  },
+  "workspace_title": {
+    "message": "कार्यक्षेत्र",
+    "description": "Workspace landing page title"
   },
   "zoom": {
     "message": "ज़ूम",

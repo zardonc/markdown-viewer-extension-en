@@ -11,6 +11,12 @@ import type {
  * @returns Current document URL without hash
  */
 export function getCurrentDocumentUrl(): string {
+  // In embedded viewer mode, use the filename from the parent
+  const viewerFilename = document.documentElement.dataset.viewerFilename;
+  if (viewerFilename) {
+    return `file:///${viewerFilename}`;
+  }
+
   const url = document.location.href;
   try {
     const urlObj = new URL(url);
@@ -96,6 +102,9 @@ export function extractFileName(url: string): string {
  */
 export async function saveToHistory(platform: PlatformAPI): Promise<void> {
   try {
+    // Skip history in embedded viewer mode (workspace) — URLs are not real
+    if (document.documentElement.dataset.viewerFilename) return;
+
     const url = getCurrentDocumentUrl();
     
     const title = document.title || extractFileName(url);

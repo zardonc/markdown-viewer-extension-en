@@ -2,36 +2,22 @@
 // This script runs on all pages to check if they are Markdown files
 // Supports both Chrome (chrome.*) and Firefox (browser.*) APIs
 
-// Use browser API if available (Firefox), otherwise use chrome API
-const runtime = typeof browser !== 'undefined' ? browser : chrome;
+import { getWebExtensionApi } from '../../../src/utils/platform-info';
+
+import {
+  DOT_EXTENSION_TO_FILE_TYPE,
+  ALL_SUPPORTED_EXTENSIONS,
+  getDefaultSupportedExtensions,
+  type SupportedExtensions,
+} from '../../../src/types/formats';
+
+const webExtensionApi = getWebExtensionApi();
 
 /**
- * Supported file extensions configuration
+ * Map file extension to fileType
  */
-interface SupportedExtensions {
-  mermaid: boolean;
-  vega: boolean;
-  vegaLite: boolean;
-  dot: boolean;
-  infographic: boolean;
-  canvas: boolean;
-  drawio: boolean;
-}
-
-/**
- * Map file extension to settings key
- */
-function getExtensionSettingsKey(ext: string): keyof SupportedExtensions | null {
-  const map: Record<string, keyof SupportedExtensions> = {
-    '.mermaid': 'mermaid',
-    '.vega': 'vega',
-    '.vl': 'vegaLite',
-    '.vega-lite': 'vegaLite',    '.gv': 'dot',    '.dot': 'dot',
-    '.infographic': 'infographic',
-    '.canvas': 'canvas',
-    '.drawio': 'drawio',
-  };
-  return map[ext] || null;
+function getExtensionFileType(ext: string): string | null {
+  return DOT_EXTENSION_TO_FILE_TYPE[ext] || null;
 }
 
 /**
@@ -39,22 +25,14 @@ function getExtensionSettingsKey(ext: string): keyof SupportedExtensions | null 
  */
 function getMatchedExtension(path: string): string | null {
   const lowerPath = path.toLowerCase();
-  const extensions = [
-    '.md', '.markdown',
-    '.mermaid',
-    '.vega',
-    '.vl', '.vega-lite',
-    '.gv', '.dot',
-    '.infographic',
-    '.canvas',
-    '.drawio',
-    '.html'
-  ];
-  
-  for (const ext of extensions) {
+  // Check format registry extensions + .html
+  for (const ext of ALL_SUPPORTED_EXTENSIONS) {
     if (lowerPath.endsWith(ext)) {
       return ext;
     }
+  }
+  if (lowerPath.endsWith('.html')) {
+    return '.html';
   }
   return null;
 }
@@ -143,7 +121,7 @@ function injectContentScript(): void {
   };
 
   // Use Promise-based API for Firefox, callback for Chrome
-  const sendPromise = runtime.runtime.sendMessage(request);
+  const sendPromise = webExtensionApi.runtime.sendMessage(request);
   if (sendPromise && typeof sendPromise.then === 'function') {
     sendPromise.catch(() => {
       // Ignore errors - fire and forget
@@ -168,8 +146,8 @@ async function detectAndInject(): Promise<void> {
     return;
   }
 
-  // Markdown files are always supported
-  if (matchedExt === '.md' || matchedExt === '.markdown') {
+  // Markdown files (including .slides.md) are always supported
+  if (matchedExt === '.md' || matchedExt === '.markdown' || matchedExt === '.slides.md') {
     injectContentScript();
     return;
   }
@@ -180,29 +158,19 @@ async function detectAndInject(): Promise<void> {
   }
 
   // For other extensions, check settings
-  const settingsKey = getExtensionSettingsKey(matchedExt);
-  if (!settingsKey) {
+  const fileType = getExtensionFileType(matchedExt);
+  if (!fileType) {
     return;
   }
 
   try {
-    const result = await runtime.storage.local.get(['markdownViewerSettings']);
+    const result = await webExtensionApi.storage.local.get(['markdownViewerSettings']);
     const settings = result.markdownViewerSettings as { supportedExtensions?: SupportedExtensions } | undefined;
     
     // Default settings if not configured
-    const defaultExtensions: SupportedExtensions = {
-      mermaid: true,
-      vega: true,
-      vegaLite: true,
-      dot: true,
-      infographic: true,
-      canvas: true,
-      drawio: true,
-    };
-
-    const extensions = settings?.supportedExtensions || defaultExtensions;
+    const extensions: SupportedExtensions = settings?.supportedExtensions || getDefaultSupportedExtensions();
     
-    if (extensions[settingsKey]) {
+    if (extensions[fileType]) {
       injectContentScript();
     }
   } catch (error) {

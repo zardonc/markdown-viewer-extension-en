@@ -147,18 +147,6 @@
     "message": "모든 최근 파일을 목록에서 제거하시겠습니까?",
     "description": "Confirmation message for clearing recent files"
   },
-  "clipboard_empty": {
-    "message": "클립보드가 비어 있습니다",
-    "description": "Error when clipboard is empty"
-  },
-  "clipboard_open": {
-    "message": "클립보드에서 열기",
-    "description": "Clipboard item title in history"
-  },
-  "clipboard_read_failed": {
-    "message": "클립보드 읽기 실패",
-    "description": "Error when clipboard read fails"
-  },
   "close": {
     "message": "닫기",
     "description": "Close button text/tooltip"
@@ -196,7 +184,7 @@
     "description": "Toast shown during export"
   },
   "extensionDescription": {
-    "message": "Markdown을 완벽한 Word로 — Mermaid, Vega, drawio, canvas, 인포그래픽, Graphviz, LaTeX(편집 가능), 코드 강조, 로컬 처리.",
+    "message": "Markdown을 완벽한 Word로 — Mermaid, PlantUML, Vega, drawio, canvas, 인포그래픽, Graphviz, LaTeX(편집 가능), 코드 강조, 로컬 처리.",
     "description": "Chrome 웹 스토어에 표시되는 설명"
   },
   "extensionName": {
@@ -350,6 +338,22 @@
   "reset": {
     "message": "재설정",
     "description": "Reset button"
+  },
+  "save_as_drawio": {
+    "message": "DrawIO로 저장",
+    "description": "Context menu item for saving a PlantUML diagram as DrawIO"
+  },
+  "save_as_png": {
+    "message": "PNG로 저장",
+    "description": "Context menu item for saving a diagram as PNG"
+  },
+  "save_as_svg": {
+    "message": "SVG로 저장",
+    "description": "Context menu item for saving a diagram as SVG"
+  },
+  "save_image_as": {
+    "message": "이미지를 다른 이름으로 저장…",
+    "description": "Context menu item for saving an image"
   },
   "search_case_sensitive": {
     "message": "대소문자 구분",
@@ -519,6 +523,14 @@
     "message": "Mermaid 다이어그램 (.mermaid)",
     "description": "Checkbox label for Mermaid format support"
   },
+  "settings_support_plantuml": {
+    "message": "PlantUML 다이어그램 (.plantuml, .puml)",
+    "description": "Checkbox label for enabling PlantUML file support"
+  },
+  "settings_support_slidev": {
+    "message": "Slidev slides (.slides.md)",
+    "description": "Checkbox label for enabling Slidev file support"
+  },
   "settings_support_vega": {
     "message": "Vega 차트 (.vega)",
     "description": "Checkbox label for Vega format support"
@@ -622,6 +634,30 @@
   "welcome_message": {
     "message": "마크다운 파일을 열어 시작하세요",
     "description": "Welcome message on empty state"
+  },
+  "workspace_choose_directory": {
+    "message": "디렉터리 선택",
+    "description": "Button to open directory picker"
+  },
+  "workspace_desc": {
+    "message": "로컬 디렉터리를 열어 지원되는 파일을 탐색하고 미리 봅니다.",
+    "description": "Workspace landing page description"
+  },
+  "workspace_open": {
+    "message": "워크스페이스 열기",
+    "description": "Button in popup to open workspace page"
+  },
+  "workspace_recent": {
+    "message": "최근 워크스페이스",
+    "description": "Title for recent workspaces list"
+  },
+  "workspace_select_file": {
+    "message": "미리 볼 파일을 선택하세요",
+    "description": "Placeholder text when no file is selected"
+  },
+  "workspace_title": {
+    "message": "워크스페이스",
+    "description": "Workspace landing page title"
   },
   "zoom": {
     "message": "확대/축소",

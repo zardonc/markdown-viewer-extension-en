@@ -17,6 +17,7 @@ import HtmlExporter from '../../../src/exporters/html-exporter';
 import Localization from '../../../src/utils/localization';
 import themeManager from '../../../src/utils/theme-manager';
 import { loadAndApplyTheme } from '../../../src/utils/theme-to-css';
+import { initSlidevViewer } from '../../../src/slidev/slidev-viewer';
 
 // Shared utilities from viewer-host
 import {
@@ -32,10 +33,12 @@ import {
 import { createSettingsPanel, type SettingsPanel, type ThemeOption, type LocaleOption } from './settings-panel';
 import { createSearchPanel, type SearchPanel, type HighlightMatch, type SearchOptions } from './search-panel';
 import { createTOCPanel, type TOCPanel, type TOCHeading } from './toc-panel';
+import { setupImageContextMenu } from '../../../src/ui/image-context-menu';
 
 // Declare global types for VSCode-specific variables
 declare global {
   var VSCODE_WEBVIEW_BASE_URI: string;
+  var VSCODE_NONCE: string;
   var VSCODE_CONFIG: Record<string, unknown>;
 }
 
@@ -52,6 +55,7 @@ let currentThemeId = 'default';
 let currentTaskManager: AsyncTaskManager | null = null;
 let currentZoomLevel = 1;
 let currentDocumentBaseUri = '';  // Base URI for resolving relative paths (images, links)
+let isSlidevMode = false;  // Whether currently showing a Slidev presentation
 
 // Render queue for serializing updates (prevents concurrent update bugs)
 let renderQueue: Promise<void> = Promise.resolve();
@@ -183,7 +187,7 @@ function handleExtensionMessage(message: ExtensionMessage): void {
       handleOpenSettings();
       break;
 
-case 'OPEN_SEARCH':
+    case 'OPEN_SEARCH':
       handleOpenSearch();
       break;
 
@@ -191,15 +195,15 @@ case 'OPEN_SEARCH':
       handleToggleTOC();
       break;
 
-   case 'SCROLL_TO_LINE':
- handleScrollToLine(payload as ScrollToLinePayload);
- break;
+    case 'SCROLL_TO_LINE':
+      handleScrollToLine(payload as ScrollToLinePayload);
+      break;
 
- case 'EXPORT_HTML':
- handleExportHtml(true); // Default to embed images
- break;
+    case 'EXPORT_HTML':
+      handleExportHtml(true); // Default to embed images
+      break;
 
- default:
+    default:
       // Ignore unknown messages or responses
       break;
   }
@@ -233,11 +237,100 @@ async function handleUpdateContent(payload: UpdateContentPayload): Promise<void>
   const newFilename = filename || 'document.md';
   const fileChanged = currentFilename !== newFilename;
 
+  currentMarkdown = content;
+  currentFilename = newFilename;
+
+  // ── Slidev mode: .slides.md files render as presentations ────────────
+  if (newFilename.endsWith('.slides.md')) {
+    isSlidevMode = true;
+
+    // Hide normal markdown wrapper, use vscode-root as container
+    const wrapper = document.getElementById('markdown-wrapper');
+    if (wrapper) wrapper.style.display = 'none';
+
+    const root = document.getElementById('vscode-root')!;
+    root.style.cssText = 'margin:0;padding:0;width:100%;height:100%;overflow:hidden';
+    document.documentElement.style.cssText = 'margin:0;padding:0;width:100%;height:100%;overflow:hidden';
+    document.body.style.cssText = 'margin:0;padding:0;width:100%;height:100%;overflow:hidden';
+
+    // Reuse or create a slidev container
+    let slidevContainer = document.getElementById('slidev-container');
+    if (!slidevContainer) {
+      slidevContainer = document.createElement('div');
+      slidevContainer.id = 'slidev-container';
+      slidevContainer.style.cssText = 'width:100%;height:100%';
+      root.appendChild(slidevContainer);
+    }
+
+    const baseUri = window.VSCODE_WEBVIEW_BASE_URI;
+    const nonce = window.VSCODE_NONCE;
+
+    // Cache theme bundles for reuse between getThemeCode and onThemeReady
+    let themeBundles: Record<string, { code: string; fonts: Record<string, string>; fontUrl?: string; colorSchema?: string }> | null = null;
+    async function fetchBundles() {
+      if (!themeBundles) {
+        const resp = await fetch(`${baseUri}/slidev-theme-bundles.json`);
+        if (resp.ok) themeBundles = await resp.json();
+      }
+      return themeBundles;
+    }
+
+    await initSlidevViewer({
+      rawContent: content,
+      container: slidevContainer,
+      mode: 'list',
+      renderDiagram: (type, code) =>
+        platform.renderer.render(type, code).then((r) => ({
+          base64: r.base64!,
+          width: r.width,
+          height: r.height,
+        })),
+      onThemeReady: async (name) => {
+        const bundles = await fetchBundles();
+        const entry = bundles?.[name];
+        if (entry?.fonts) {
+          platform.renderer.setThemeConfig({
+            ...platform.renderer.getThemeConfig(),
+            fontFamily: entry.fonts.sans || entry.fonts.serif || undefined,
+            fontUrl: entry.fontUrl,
+            colorSchema: entry.colorSchema as 'light' | 'dark' | 'both' | undefined,
+          });
+        }
+      },
+      getShellSource: async () => {
+        const resp = await fetch(`${baseUri}/slidev-shell-inline.html`);
+        if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+        let html = await resp.text();
+        html = html.replaceAll('__SLIDEV_NONCE__', nonce);
+        const blob = new Blob([html], { type: 'text/html' });
+        return URL.createObjectURL(blob);
+      },
+      getThemeCode: async (name) => {
+        const bundles = await fetchBundles();
+        return bundles?.[name]?.code;
+      },
+    });
+    return;
+  }
+
+  // ── Normal markdown mode ─────────────────────────────────────────────
+  // Restore normal layout if switching from slidev mode
+  if (isSlidevMode) {
+    isSlidevMode = false;
+    const slidevContainer = document.getElementById('slidev-container');
+    if (slidevContainer) slidevContainer.remove();
+    const wrapper = document.getElementById('markdown-wrapper');
+    if (wrapper) wrapper.style.display = '';
+    const root = document.getElementById('vscode-root');
+    if (root) root.style.cssText = '';
+    document.documentElement.style.cssText = '';
+    document.body.style.cssText = '';
+  }
+
   // Wrap non-markdown file content (mermaid, vega, graphviz, infographic)
   const wrappedContent = wrapFileContent(content, newFilename);
   
   currentMarkdown = wrappedContent;
-  currentFilename = newFilename;
 
   // Set file key for scroll position persistence (consistent with Chrome/Mobile)
   setCurrentFileKey(newFilename);
@@ -255,8 +348,7 @@ async function handleUpdateContent(payload: UpdateContentPayload): Promise<void>
     renderer: pluginRenderer,
     translate: (key: string, subs?: string | string[]) => Localization.translate(key, subs),
     platform,
-
-      currentTaskManagerRef: { current: currentTaskManager },
+    currentTaskManagerRef: { current: currentTaskManager },
     // When scrollLine is provided (e.g., theme switch), use it; otherwise undefined
     targetLine: scrollLine,
     onHeadings: (headings) => {
@@ -473,7 +565,7 @@ function initializeUI(): void {
       }
       // Anchor links
       else if (href.startsWith('#')) {
-        const targetId = href.slice(1);
+        const targetId = decodeURIComponent(href.slice(1));
         const targetEl = document.getElementById(targetId);
         if (targetEl) {
           targetEl.scrollIntoView({ behavior: 'smooth' });
@@ -547,16 +639,16 @@ function initializeUI(): void {
         await handleUpdateContent({ content: currentMarkdown, filename: currentFilename, forceRender: true, scrollLine });
       }
     },
- onClearCache: async () => {
- await platform.cache.clear();
- // Reload cache stats
- await loadCacheStats();
- },
- onShow: () => {
- // Refresh cache stats when panel is shown
- loadCacheStats();
- },
- });
+    onClearCache: async () => {
+      await platform.cache.clear();
+      // Reload cache stats
+      await loadCacheStats();
+    },
+    onShow: () => {
+      // Refresh cache stats when panel is shown
+      loadCacheStats();
+    },
+  });
   document.body.appendChild(settingsPanel.getElement());
 
   // Create search panel
@@ -575,6 +667,17 @@ function initializeUI(): void {
     }
   });
   document.body.appendChild(searchPanel.getElement());
+
+  // Setup image context menu for saving images (shared cross-platform implementation)
+  if (contentContainer) {
+    setupImageContextMenu({
+      container: contentContainer,
+      onDownload: ({ filename, data, mimeType }) => {
+        vscodeBridge.sendRequest('DOWNLOAD_FILE', { filename, data, mimeType });
+      },
+      translate: (key) => Localization.translate(key),
+    });
+  }
 }
 
 /**
@@ -770,9 +873,9 @@ function performSearch(query: string, options: SearchOptions): HighlightMatch[] 
     while ((node = walker.nextNode())) {
       if (!node.textContent) continue;
       
-      // Skip matches in code blocks or pre tags
+      // Skip matches in script/style tags
       const parent = node.parentElement;
-      if (parent?.closest('code, pre, script, style, [data-search-ignore]')) {
+      if (parent?.closest('script, style, [data-search-ignore]')) {
         continue;
       }
 

@@ -12,6 +12,7 @@
 import { platform, obsidianBridge } from './api-impl';
 import type { AsyncTaskManager, FrontmatterDisplay } from '../../../src/core/markdown-processor';
 import { wrapFileContent } from '../../../src/utils/file-wrapper';
+import { initSlidevViewer } from '../../../src/slidev/slidev-viewer';
 import type { ScrollSyncController } from '../../../src/core/line-based-scroll';
 import type { EmojiStyle } from '../../../src/types/docx.js';
 
@@ -49,6 +50,7 @@ let currentFilename = '';
 let currentThemeId = 'default';
 let currentTaskManager: AsyncTaskManager | null = null;
 let currentZoomLevel = 1;
+let isSlidevMode = false;
 
 // Saved settings (loaded from host on init)
 let savedSettings: {
@@ -303,9 +305,90 @@ async function handleUpdateContent(payload: UpdateContentPayload): Promise<void>
   const newFilename = filename || 'document.md';
   const fileChanged = currentFilename !== newFilename;
 
+  currentMarkdown = content;
+  currentFilename = newFilename;
+
+  // ── Slidev mode: .slides.md files render as presentations ────────────
+  if (newFilename.endsWith('.slides.md')) {
+    isSlidevMode = true;
+
+    // Hide normal markdown wrapper
+    const wrapper = rootContainer?.querySelector('#markdown-wrapper') as HTMLElement;
+    if (wrapper) wrapper.style.display = 'none';
+
+    const root = rootContainer?.querySelector('#vscode-root') as HTMLElement;
+    if (root) root.style.cssText = 'margin:0;padding:0;width:100%;height:100%;overflow:hidden';
+    if (rootContainer) rootContainer.style.cssText = 'margin:0;padding:0;width:100%;height:100%;overflow:hidden';
+
+    // Reuse or create a slidev container
+    let slidevContainer = rootContainer?.querySelector('#slidev-container') as HTMLElement;
+    if (!slidevContainer) {
+      slidevContainer = document.createElement('div');
+      slidevContainer.id = 'slidev-container';
+      slidevContainer.style.cssText = 'width:100%;height:100%';
+      (root || rootContainer)?.appendChild(slidevContainer);
+    }
+
+    // Cache theme bundles for reuse
+    let themeBundles: Record<string, { code: string; fonts: Record<string, string>; fontUrl?: string; colorSchema?: string }> | null = null;
+    async function fetchBundles() {
+      if (!themeBundles) {
+        const json = await platform.resource.fetch('slidev-theme-bundles.json');
+        themeBundles = JSON.parse(json);
+      }
+      return themeBundles;
+    }
+
+    await initSlidevViewer({
+      rawContent: content,
+      container: slidevContainer,
+      mode: 'list',
+      renderDiagram: (type, code) =>
+        platform.renderer.render(type, code).then((r) => ({
+          base64: r.base64!,
+          width: r.width,
+          height: r.height,
+        })),
+      onThemeReady: async (name) => {
+        const bundles = await fetchBundles();
+        const entry = bundles?.[name];
+        if (entry?.fonts) {
+          platform.renderer.setThemeConfig({
+            ...platform.renderer.getThemeConfig(),
+            fontFamily: entry.fonts.sans || entry.fonts.serif || undefined,
+            fontUrl: entry.fontUrl,
+            colorSchema: entry.colorSchema as 'light' | 'dark' | 'both' | undefined,
+          });
+        }
+      },
+      getShellSource: async () => {
+        const html = await platform.resource.fetch('slidev-shell-inline.html');
+        const blob = new Blob([html], { type: 'text/html' });
+        return URL.createObjectURL(blob);
+      },
+      getThemeCode: async (name) => {
+        const bundles = await fetchBundles();
+        return bundles?.[name]?.code;
+      },
+    });
+    return;
+  }
+
+  // ── Normal markdown mode ─────────────────────────────────────────────
+  // Restore normal layout if switching from slidev mode
+  if (isSlidevMode) {
+    isSlidevMode = false;
+    const slidevContainer = rootContainer?.querySelector('#slidev-container');
+    if (slidevContainer) slidevContainer.remove();
+    const wrapper = rootContainer?.querySelector('#markdown-wrapper') as HTMLElement;
+    if (wrapper) wrapper.style.display = '';
+    const root = rootContainer?.querySelector('#vscode-root') as HTMLElement;
+    if (root) root.style.cssText = '';
+    if (rootContainer) rootContainer.style.cssText = '';
+  }
+
   const wrappedContent = wrapFileContent(content, newFilename);
   currentMarkdown = wrappedContent;
-  currentFilename = newFilename;
 
   setCurrentFileKey(newFilename);
 
@@ -420,7 +503,7 @@ function initializeUI(): void {
       if (href.startsWith('http://') || href.startsWith('https://')) {
         obsidianBridge.postMessage('OPEN_URL', { url: href });
       } else if (href.startsWith('#')) {
-        const el = document.getElementById(href.slice(1));
+        const el = document.getElementById(decodeURIComponent(href.slice(1)));
         if (el) el.scrollIntoView({ behavior: 'smooth' });
       } else {
         obsidianBridge.postMessage('OPEN_RELATIVE_FILE', { path: href });
