@@ -32,6 +32,7 @@ import {
   handleThemeSwitchFlow,
 } from '../../../src/core/viewer/viewer-host';
 import { setupImageContextMenu } from '../../../src/ui/image-context-menu';
+import { findHeadingLine } from '../../../src/utils/heading-slug';
 
 // Extend Window interface for global access
 declare global {
@@ -101,6 +102,13 @@ export async function initializeViewerMain(options: ViewerMainOptions): Promise<
   const { platform, pluginRenderer, themeConfigRenderer } = options;
   const webExtensionApi = getWebExtensionApi();
 
+  // Prevent browser from auto-restoring scroll position before our content is ready.
+  // Without this, Chrome jumps to its remembered DOM position first (wrong),
+  // then our scroll sync corrects it (right) — causing a visible double-jump.
+  if ('scrollRestoration' in history) {
+    history.scrollRestoration = 'manual';
+  }
+
   const translate = (key: string, substitutions?: string | string[]): string =>
     Localization.translate(key, substitutions);
 
@@ -133,8 +141,7 @@ export async function initializeViewerMain(options: ViewerMainOptions): Promise<
       scrollSyncController = createViewerScrollSync({
         containerId: 'markdown-content',
         platform,
-        // Default onUserScroll saves to FileStateService using currentFileKey
-        // which was set via setCurrentFileKey() above
+        topOffset: 50, // Fixed toolbar height
       });
       scrollSyncController.start();
     } catch (error) {
@@ -313,7 +320,16 @@ export async function initializeViewerMain(options: ViewerMainOptions): Promise<
 
   // Wait a bit for DOM to be ready, then start processing
   setTimeout(async () => {
-    const savedScrollLine = initialState.scrollLine ?? 0;
+    let savedScrollLine = initialState.scrollLine ?? 0;
+
+    // Override scroll position with heading line if URL has a hash fragment
+    if (window.location.hash) {
+      const fragment = decodeURIComponent(window.location.hash.slice(1));
+      const headingLine = findHeadingLine(rawMarkdown, fragment);
+      if (typeof headingLine === 'number') {
+        savedScrollLine = headingLine;
+      }
+    }
 
     toolbarManager.initializeToolbar();
 

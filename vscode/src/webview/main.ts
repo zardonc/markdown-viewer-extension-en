@@ -341,6 +341,7 @@ async function handleUpdateContent(payload: UpdateContentPayload): Promise<void>
       vscodeBridge.postMessage('RENDER_PROGRESS', { completed, total });
     },
   });
+
 }
 
 // ============================================================================
@@ -500,7 +501,16 @@ function initializeUI(): void {
       }
       // Relative links (including .md files)
       else {
-        vscodeBridge.postMessage('OPEN_RELATIVE_FILE', { path: href });
+        // Split hash fragment from path (e.g., ./file.md#section → path + fragment)
+        const hashIndex = href.indexOf('#');
+        if (hashIndex >= 0) {
+          vscodeBridge.postMessage('OPEN_RELATIVE_FILE', {
+            path: href.slice(0, hashIndex),
+            fragment: decodeURIComponent(href.slice(hashIndex + 1)),
+          });
+        } else {
+          vscodeBridge.postMessage('OPEN_RELATIVE_FILE', { path: href });
+        }
       }
     });
   }

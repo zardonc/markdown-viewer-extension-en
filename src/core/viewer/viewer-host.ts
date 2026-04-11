@@ -57,6 +57,8 @@ export interface ViewerScrollSyncOptions {
    * If not provided, defaults to saving scroll position to FileStateService.
    */
   onUserScroll?: (line: number) => void;
+  /** Offset from viewport top (e.g., fixed toolbar height) */
+  topOffset?: number;
 }
 
 /**
@@ -85,6 +87,7 @@ export function createViewerScrollSync(options: ViewerScrollSyncOptions): Scroll
     containerId = 'markdown-content',
     platform,
     onUserScroll,
+    topOffset,
   } = options;
 
   const container = document.getElementById(containerId);
@@ -103,6 +106,7 @@ export function createViewerScrollSync(options: ViewerScrollSyncOptions): Scroll
     container,
     getLineMapper: getDocument,
     onUserScroll: onUserScroll ?? defaultOnUserScroll,
+    topOffset,
   });
 }
 
@@ -465,11 +469,14 @@ export async function renderMarkdownFlow(options: RenderMarkdownFlowOptions): Pr
     }
 
     // Set target line for scroll sync
-    // VSCode: targetLine is undefined, uses message-driven value
-    // Chrome/Mobile: targetLine is passed as parameter
-    if (targetLine !== undefined) {
-      scrollController?.setTargetLine(targetLine);
+    // VSCode: targetLine is undefined, uses message-driven value (setTargetLine called from events)
+    // Chrome/Mobile: targetLine is passed BUT we do NOT scroll yet — wait for processAll.
+    //   Scrolling before diagrams render gives wrong pixel position (block heights differ).
+    //   The single correct scroll happens after processAll below.
+    if (targetLine === undefined) {
+      // VSCode-driven: message handler already called setTargetLine; nothing to do here.
     }
+    // (Chrome/Mobile: intentionally skip pre-render setTargetLine)
 
     // Apply zoom level before rendering
     if (zoomLevel !== 1) {
@@ -501,6 +508,12 @@ export async function renderMarkdownFlow(options: RenderMarkdownFlowOptions): Pr
       tableMergeEmpty,
       tableLayout,
       onHeadings,
+      // onChunkComplete / onStreamingComplete: used for VSCode event-driven scroll retries
+      // (when setTargetLine is called from a SCROLL_TO_LINE event, onStreamingComplete
+      //  retries the scroll after each chunk until the target block enters the DOM).
+      onChunkComplete: () => {
+        scrollController?.onStreamingComplete();
+      },
       onStreamingComplete: () => {
         scrollController?.onStreamingComplete();
       },
@@ -516,16 +529,41 @@ export async function renderMarkdownFlow(options: RenderMarkdownFlowOptions): Pr
       setTimeout(afterRender, 100);
     }
 
-    // Process async tasks (diagrams, charts)
+    // Process async tasks (diagrams, charts).
+    // When targetLine is set, scroll as soon as all diagrams UP TO targetLine are done —
+    // no need to wait for diagrams further down the page.
+    let scrolledToTarget = false;
+    const tryScrollToTarget = (): void => {
+      if (scrolledToTarget || targetLine === undefined || !scrollController) return;
+      // Check if all blocks at or before targetLine still have pending placeholders.
+      // Tasks run in parallel, so some earlier blocks may finish before later ones.
+      const blocks = container.querySelectorAll<HTMLElement>('[data-block-id][data-line]');
+      for (const block of Array.from(blocks)) {
+        const blockLine = Number(block.getAttribute('data-line'));
+        if (blockLine > targetLine) break;
+        if (block.querySelector('.async-placeholder')) return; // still pending
+      }
+      // All blocks up to targetLine have rendered their diagrams
+      scrolledToTarget = true;
+      scrollController.setTargetLine(targetLine);
+    };
+
     beforeProcessAll?.();
     try {
       await renderResult.taskManager.processAll((completed, total) => {
         if (!taskManager.isAborted()) {
           onProgress?.(completed, total);
+          tryScrollToTarget();
         }
       });
     } finally {
       afterProcessAll?.();
+    }
+
+    // Final scroll: either targetLine wasn't reached above (no diagrams before it,
+    // or targetLine is undefined), or we need to land accurately after all content settles.
+    if (!taskManager.isAborted() && targetLine !== undefined && !scrolledToTarget) {
+      scrollController?.setTargetLine(targetLine);
     }
 
     // After async tasks (diagrams etc.) may have changed content height,

@@ -26,7 +26,7 @@ tags: [markdown, test, demo]
 4. **表格** - 基础表格、对齐表格
 5. **代码** - 行内代码、代码块、多语言语法高亮
 6. **数学公式** - KaTeX 行内和块级公式
-7. **Mermaid 图表** - [完整演示](./mermaid-demo.md)
+7. **Mermaid 图表** - [完整演示](./mermaid-demo.md)，[锚点](./mermaid-demo.md#业务流程图)
 8. **Vega-Lite 图表** - [完整演示](./vega-demo.md)
 9. **DOT 图表** - [完整演示](./dot-demo.md)
 10. **Infographic 图表** - [完整演示](./infographic-demo.md)

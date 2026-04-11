@@ -6,6 +6,7 @@
 
 import * as vscode from 'vscode';
 import * as path from 'path';
+import { findHeadingLine } from '../../../src/utils/heading-slug';
 import type { CacheStorage } from './cache-storage';
 import type { EmojiStyle } from '../../../src/types/docx.js';
 
@@ -169,8 +170,11 @@ export class MarkdownPreviewPanel {
   public setDocument(document: vscode.TextDocument, initialLine?: number): void {
     const isSameDocument = this._document?.uri.toString() === document.uri.toString();
     
-    // If same document, skip update to avoid unnecessary refresh
+    // If same document, just scroll to the requested line (e.g., anchor navigation)
     if (isSameDocument) {
+      if (typeof initialLine === 'number') {
+        this.scrollToLine(initialLine);
+      }
       return;
     }
     
@@ -463,6 +467,7 @@ export class MarkdownPreviewPanel {
           // Open relative file in VS Code
           if (payload && (payload as { path: string }).path && this._document) {
             const relativePath = (payload as { path: string }).path;
+            const fragment = (payload as { path: string; fragment?: string }).fragment;
             const documentDir = path.dirname(this._document.uri.fsPath);
             const targetPath = path.resolve(documentDir, relativePath);
             const targetUri = vscode.Uri.file(targetPath);
@@ -471,8 +476,18 @@ export class MarkdownPreviewPanel {
             if (relativePath.endsWith('.md') || relativePath.endsWith('.markdown')) {
               // Open markdown file and show preview
               const doc = await vscode.workspace.openTextDocument(targetUri);
-              await vscode.window.showTextDocument(doc, vscode.ViewColumn.One);
-              this.setDocument(doc);
+              // Find heading line number matching the fragment
+              const headingLine = fragment ? findHeadingLine(doc.getText(), fragment) : undefined;
+              const showOptions: vscode.TextDocumentShowOptions = {
+                viewColumn: vscode.ViewColumn.One,
+              };
+              // Reveal the heading line in editor so scroll sync naturally follows
+              if (typeof headingLine === 'number') {
+                const range = new vscode.Range(headingLine, 0, headingLine, 0);
+                showOptions.selection = range;
+              }
+              await vscode.window.showTextDocument(doc, showOptions);
+              this.setDocument(doc, headingLine);
             } else {
               // Open other files normally
               await vscode.commands.executeCommand('vscode.open', targetUri);
