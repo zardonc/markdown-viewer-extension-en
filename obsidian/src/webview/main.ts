@@ -33,6 +33,7 @@ import {
 
 // Settings panel (reused from VSCode)
 import { createSettingsPanel, type SettingsPanel, type ThemeOption, type LocaleOption } from '../../../vscode/src/webview/settings-panel';
+import { findHeadingLine } from '../../../src/utils/heading-slug';
 
 // Make platform globally available (required by loadAndApplyTheme)
 globalThis.platform = platform;
@@ -51,6 +52,9 @@ let currentThemeId = 'default';
 let currentTaskManager: AsyncTaskManager | null = null;
 let currentZoomLevel = 1;
 let isSlidevMode = false;
+
+// Pending anchor fragment to scroll to after next render (set when navigating via link with hash)
+let pendingFragment: string | null = null;
 
 // Saved settings (loaded from host on init)
 let savedSettings: {
@@ -399,6 +403,16 @@ async function handleUpdateContent(payload: UpdateContentPayload): Promise<void>
     } catch { /* container may not be ready */ }
   }
 
+  // Override scroll position with heading line if navigating via anchor link
+  let targetScrollLine = scrollLine;
+  if (pendingFragment) {
+    const headingLine = findHeadingLine(wrappedContent, pendingFragment);
+    if (typeof headingLine === 'number') {
+      targetScrollLine = headingLine;
+    }
+    pendingFragment = null;
+  }
+
   await renderMarkdownFlow({
     markdown: wrappedContent,
     container: container as HTMLElement,
@@ -410,7 +424,7 @@ async function handleUpdateContent(payload: UpdateContentPayload): Promise<void>
     translate: (key, subs) => Localization.translate(key, subs),
     platform,
     currentTaskManagerRef: { current: currentTaskManager },
-    targetLine: scrollLine,
+    targetLine: targetScrollLine,
     onProgress: (completed, total) => {
       obsidianBridge.postMessage('RENDER_PROGRESS', { completed, total });
     },
@@ -506,7 +520,14 @@ function initializeUI(): void {
         const el = document.getElementById(decodeURIComponent(href.slice(1)));
         if (el) el.scrollIntoView({ behavior: 'smooth' });
       } else {
-        obsidianBridge.postMessage('OPEN_RELATIVE_FILE', { path: href });
+        // Split hash fragment from path (e.g., ./file.md#section → path + fragment)
+        const hashIndex = href.indexOf('#');
+        if (hashIndex >= 0) {
+          pendingFragment = decodeURIComponent(href.slice(hashIndex + 1));
+          obsidianBridge.postMessage('OPEN_RELATIVE_FILE', { path: href.slice(0, hashIndex) });
+        } else {
+          obsidianBridge.postMessage('OPEN_RELATIVE_FILE', { path: href });
+        }
       }
     });
   }

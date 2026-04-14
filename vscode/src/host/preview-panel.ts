@@ -6,6 +6,7 @@
 
 import * as vscode from 'vscode';
 import * as path from 'path';
+import { findHeadingLine } from '../../../src/utils/heading-slug';
 import type { CacheStorage } from './cache-storage';
 import type { EmojiStyle } from '../../../src/types/docx.js';
 
@@ -45,8 +46,17 @@ export class MarkdownPreviewPanel {
   // Flag to open settings after webview is ready
   private _openSettingsOnReady = false;
 
-  // Flag to prevent scroll feedback loop (Preview → Editor → Preview)
-  private _isScrolling = false;
+  // Flag to prevent scroll feedback loop (Preview → Editor → Preview).
+  // When we scroll the editor from a preview event, editor fires
+  // onDidChangeTextEditorVisibleRanges and onDidChangeActiveTextEditor,
+  // which would bounce the (possibly offset) line back. Use a timestamp
+  // so ALL events within the window are suppressed, not just the first.
+  private _previewScrolledEditorUntil = 0;
+
+  // Suppress editor-driven scroll sync during anchor navigation.
+  // showTextDocument triggers onDidChangeTextEditorVisibleRanges, whose
+  // topLine differs from the heading line and would override it.
+  private _suppressEditorScrollUntil = 0;
 
   public static createOrShow(
     extensionUri: vscode.Uri,
@@ -169,20 +179,22 @@ export class MarkdownPreviewPanel {
   public setDocument(document: vscode.TextDocument, initialLine?: number): void {
     const isSameDocument = this._document?.uri.toString() === document.uri.toString();
     
-    // If same document, skip update to avoid unnecessary refresh
+    // If same document, just scroll to the requested line (e.g., anchor navigation)
     if (isSameDocument) {
+      if (typeof initialLine === 'number') {
+        this.scrollToLine(initialLine);
+      }
       return;
     }
     
     this._document = document;
     this._panel.title = `Preview: ${path.basename(document.fileName)}`;
     
-    this.updateContent(document.getText());
-    
-    // Send scroll position immediately - ScrollSyncController will handle
-    // waiting for content to render and repositioning automatically
+    // Include scrollLine so the render flow uses it as targetLine directly,
+    // instead of relying on a separate SCROLL_TO_LINE message that may race
+    // with editor-driven scroll events.
     const line = typeof initialLine === 'number' ? initialLine : 0;
-    this.scrollToLine(line);
+    this.updateContent(document.getText(), line);
   }
 
   public isDocumentMatch(document: vscode.TextDocument): boolean {
@@ -210,7 +222,7 @@ export class MarkdownPreviewPanel {
     });
   }
 
-  public updateContent(content: string): void {
+  public updateContent(content: string, scrollLine?: number): void {
     // Calculate document directory webview URI for resolving relative paths
     let documentBaseUri: string | undefined;
     if (this._document) {
@@ -221,7 +233,8 @@ export class MarkdownPreviewPanel {
     this._postToWebview('UPDATE_CONTENT', {
       content,
       filename: this._document ? path.basename(this._document.fileName) : 'untitled.md',
-      documentBaseUri
+      documentBaseUri,
+      scrollLine,
     });
   }
 
@@ -305,11 +318,37 @@ export class MarkdownPreviewPanel {
    */
   public scrollToLine(line: number): void {
     // Skip if this scroll was triggered by preview scrolling editor
-    if (this._isScrolling) {
-      this._isScrolling = false;
+    if (Date.now() < this._previewScrolledEditorUntil) {
       return;
     }
     this._postToWebview('SCROLL_TO_LINE', { line });
+  }
+
+  /**
+   * Called from onDidChangeActiveTextEditor. Subject to anchor and
+   * preview-scroll suppression to prevent feedback loops.
+   */
+  public setDocumentFromEditor(document: vscode.TextDocument, initialLine?: number): void {
+    if (Date.now() < this._suppressEditorScrollUntil || Date.now() < this._previewScrolledEditorUntil) {
+      return;
+    }
+    this.setDocument(document, initialLine);
+  }
+
+  public scrollToLineFromEditor(line: number): void {
+    if (Date.now() < this._previewScrolledEditorUntil) {
+      return;
+    }
+    if (Date.now() < this._suppressEditorScrollUntil) {
+      return;
+    }
+    // Compensate for Sticky Scroll: visibleRanges reports a line that is
+    // lower by the sticky header height. Compute the actual heading ancestor
+    // depth at this position and add it so the preview stays aligned with
+    // the actual editor content below the sticky header.
+    const stickyHeight = this._getEstimatedStickyHeight(Math.floor(line));
+    const adjustedLine = line + stickyHeight;
+    this._postToWebview('SCROLL_TO_LINE', { line: adjustedLine });
   }
 
   /**
@@ -331,11 +370,45 @@ export class MarkdownPreviewPanel {
   }
 
   /**
+   * Estimate the number of sticky scroll header lines at the given editor line.
+   * Counts the ancestor heading levels that VSCode's sticky scroll would display.
+   * Returns 0 if sticky scroll is disabled or no headings are found.
+   */
+  private _getEstimatedStickyHeight(line: number): number {
+    if (!this._document) return 0;
+
+    const config = vscode.workspace.getConfiguration('editor');
+    if (!config.get<boolean>('stickyScroll.enabled', true)) return 0;
+
+    const maxLines = config.get<number>('stickyScroll.maxLineCount', 5);
+    let stickyCount = 0;
+    let minLevel = 7; // higher than max heading level (6)
+
+    for (let i = line - 1; i >= 0 && stickyCount < maxLines; i--) {
+      const text = this._document.lineAt(i).text;
+      const match = text.match(/^(#{1,6})\s/);
+      if (match) {
+        const level = match[1].length;
+        if (level < minLevel) {
+          minLevel = level;
+          stickyCount++;
+          if (level === 1) break; // h1 is the top-level ancestor
+        }
+      }
+    }
+
+    return stickyCount;
+  }
+
+  /**
    * Scroll editor to specified line
    */
   private _scrollEditorToLine(line: number, editor: vscode.TextEditor): void {
-    // Set flag to prevent feedback loop
-    this._isScrolling = true;
+    // Suppress editor-to-preview scroll for a window after we programmatically
+    // scroll the editor. With Sticky Scroll, visibleRanges reports a line
+    // offset by the sticky header height; the timestamp window ensures all
+    // resulting events (visibleRanges, activeTextEditor) are suppressed.
+    this._previewScrolledEditorUntil = Date.now() + 500;
     
     const sourceLine = Math.max(0, Math.floor(line));
     const lineCount = editor.document.lineCount;
@@ -506,6 +579,7 @@ export class MarkdownPreviewPanel {
           // Open relative file in VS Code
           if (payload && (payload as { path: string }).path && this._document) {
             const relativePath = (payload as { path: string }).path;
+            const fragment = (payload as { path: string; fragment?: string }).fragment;
             const documentDir = path.dirname(this._document.uri.fsPath);
             const targetPath = path.resolve(documentDir, relativePath);
             const targetUri = vscode.Uri.file(targetPath);
@@ -514,8 +588,24 @@ export class MarkdownPreviewPanel {
             if (relativePath.endsWith('.md') || relativePath.endsWith('.markdown')) {
               // Open markdown file and show preview
               const doc = await vscode.workspace.openTextDocument(targetUri);
-              await vscode.window.showTextDocument(doc, vscode.ViewColumn.One);
-              this.setDocument(doc);
+              // Find heading line number matching the fragment
+              const headingLine = fragment ? findHeadingLine(doc.getText(), fragment) : undefined;
+              const showOptions: vscode.TextDocumentShowOptions = {
+                viewColumn: vscode.ViewColumn.One,
+              };
+              if (typeof headingLine === 'number') {
+                const range = new vscode.Range(headingLine, 0, headingLine, 0);
+                showOptions.selection = range;
+              }
+              // Suppress editor-driven events (onDidChangeActiveTextEditor,
+              // onDidChangeTextEditorVisibleRanges) that showTextDocument fires.
+              // Their topLine ≠ headingLine and would override the correct scroll.
+              this._suppressEditorScrollUntil = Date.now() + 1000;
+              // Set document BEFORE showTextDocument so updateContent carries
+              // the correct scrollLine. showTextDocument triggers editor events
+              // that would race with this and set wrong targetLine.
+              this.setDocument(doc, headingLine);
+              await vscode.window.showTextDocument(doc, showOptions);
             } else {
               // Open other files normally
               await vscode.commands.executeCommand('vscode.open', targetUri);

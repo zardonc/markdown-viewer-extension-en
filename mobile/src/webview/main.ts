@@ -22,6 +22,7 @@ import {
   exportDocxFlow,
 } from '../../../src/core/viewer/viewer-host';
 import { setupImageContextMenu } from '../../../src/ui/image-context-menu';
+import { findHeadingLine } from '../../../src/utils/heading-slug';
 
 declare global {
   var bridge: PlatformBridgeAPI | undefined;
@@ -42,6 +43,9 @@ const currentTaskManagerRef: { current: AsyncTaskManager | null } = { current: n
 let currentZoomLevel = 1; // Store current zoom level for applying after content render
 let scrollSyncController: ScrollSyncController | null = null; // Scroll sync controller
 let isSlidevMode = false; // Whether currently showing a Slidev presentation
+
+// Pending anchor fragment to scroll to after next render (set when navigating via link with hash)
+let pendingFragment: string | null = null;
 
 // Create plugin renderer using shared utility
 const pluginRenderer = createPluginRenderer(platform);
@@ -331,6 +335,15 @@ async function handleLoadMarkdown(payload: LoadMarkdownPayload): Promise<void> {
     document.body.style.cssText = '';
   }
 
+  // Override scroll position with heading line if navigating via anchor link
+  if (pendingFragment) {
+    const headingLine = findHeadingLine(content, pendingFragment);
+    if (typeof headingLine === 'number') {
+      savedScrollLine = headingLine;
+    }
+    pendingFragment = null;
+  }
+
   // Render using shared flow
   await renderMarkdownFlow({
     markdown: content,
@@ -378,15 +391,22 @@ function setupLinkHandling(): void {
     }
     // Relative links
     else {
+      // Split hash fragment from path (e.g., ./file.md#section → path + fragment)
+      const hashIndex = href.indexOf('#');
+      const pathPart = hashIndex >= 0 ? href.slice(0, hashIndex) : href;
+      if (hashIndex >= 0) {
+        pendingFragment = decodeURIComponent(href.slice(hashIndex + 1));
+      }
+
       // Check if it's a markdown file
-      const isMarkdown = href.endsWith('.md') || href.endsWith('.markdown');
+      const isMarkdown = pathPart.endsWith('.md') || pathPart.endsWith('.markdown');
 
       if (isMarkdown) {
         // Load markdown file internally
-        bridge.postMessage('LOAD_RELATIVE_MARKDOWN', { path: href });
+        bridge.postMessage('LOAD_RELATIVE_MARKDOWN', { path: pathPart });
       } else {
         // For other relative files (images, etc.), try to open with system handler
-        bridge.postMessage('OPEN_RELATIVE_FILE', { path: href });
+        bridge.postMessage('OPEN_RELATIVE_FILE', { path: pathPart });
       }
     }
   });
