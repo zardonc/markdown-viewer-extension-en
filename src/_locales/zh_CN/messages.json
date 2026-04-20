@@ -547,6 +547,14 @@
     "message": "支持的文件格式",
     "description": "支持的格式部分标题"
   },
+  "settings_swap_panel_side": {
+    "message": "切换 TOC / 文件树侧边位置",
+    "description": "Checkbox label for swapping TOC and workspace file tree panel side"
+  },
+  "settings_swap_panel_side_note": {
+    "message": "Chrome 会同时切换 TOC 和 workspace 文件树；Firefox 仅切换 TOC。",
+    "description": "Helper note for TOC and workspace panel side swap setting"
+  },
   "settings_table_layout": {
     "message": "表格布局",
     "description": "Label for table layout selector"

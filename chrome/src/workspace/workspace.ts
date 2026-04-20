@@ -39,6 +39,22 @@ const $recentList = document.getElementById('recent-list')!;
 let activeItem: HTMLElement | null = null;
 let rootDirHandle: FileSystemDirectoryHandle | null = null;
 let currentFileDir = '';
+let swapPanelSide = false;
+
+function applyWorkspacePanelSide(swapped: boolean): void {
+  swapPanelSide = swapped;
+  $workspace.classList.toggle('sidebar-left', swapped);
+}
+
+async function loadWorkspacePanelSide(): Promise<void> {
+  try {
+    const result = await webExtensionApi.storage.local.get(['markdownViewerSettings']);
+    const stored = result.markdownViewerSettings as { swapPanelSide?: boolean } | undefined;
+    applyWorkspacePanelSide(Boolean(stored?.swapPanelSide));
+  } catch {
+    applyWorkspacePanelSide(false);
+  }
+}
 
 // ─── Resize handle ───
 const SIDEBAR_WIDTH_KEY = 'workspace-sidebar-width';
@@ -59,7 +75,8 @@ $resizeHandle.addEventListener('mousedown', (e: MouseEvent) => {
   const startWidth = $sidebar.offsetWidth;
 
   const onMouseMove = (e: MouseEvent) => {
-    const newWidth = startWidth - (e.clientX - startX);
+    const deltaX = e.clientX - startX;
+    const newWidth = swapPanelSide ? startWidth + deltaX : startWidth - deltaX;
     if (newWidth >= 160 && newWidth <= window.innerWidth * 0.5) {
       $sidebar.style.width = newWidth + 'px';
     }
@@ -443,6 +460,19 @@ async function restoreLastWorkspace(): Promise<boolean> {
 
 // ─── Init ───
 Localization.init().then(async () => {
+  await loadWorkspacePanelSide();
+
+  if (webExtensionApi.storage?.onChanged) {
+    webExtensionApi.storage.onChanged.addListener((changes, areaName) => {
+      if (areaName !== 'local' || !changes.markdownViewerSettings) {
+        return;
+      }
+
+      const nextSettings = changes.markdownViewerSettings.newValue as { swapPanelSide?: boolean } | undefined;
+      applyWorkspacePanelSide(Boolean(nextSettings?.swapPanelSide));
+    });
+  }
+
   applyI18nText();
   const restored = await restoreLastWorkspace();
   if (!restored) {

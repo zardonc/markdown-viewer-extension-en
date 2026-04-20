@@ -101,6 +101,25 @@ interface IncomingBroadcastMessage {
 export async function initializeViewerMain(options: ViewerMainOptions): Promise<void> {
   const { platform, pluginRenderer, themeConfigRenderer } = options;
   const webExtensionApi = getWebExtensionApi();
+  const isMobile = platform.platform === 'mobile';
+
+  function applyTocPanelSide(swapped: boolean): void {
+    document.body.classList.toggle('toc-position-right', swapped);
+
+    const toggleTocBtn = document.getElementById('toggle-toc-btn');
+    const toolbarLeft = document.querySelector('.toolbar-left');
+    const toolbarRight = document.querySelector('.toolbar-right');
+
+    if (!toggleTocBtn || !toolbarLeft || !toolbarRight) {
+      return;
+    }
+
+    if (swapped) {
+      toolbarRight.prepend(toggleTocBtn);
+    } else {
+      toolbarLeft.prepend(toggleTocBtn);
+    }
+  }
 
   // Prevent browser from auto-restoring scroll position before our content is ready.
   // Without this, Chrome jumps to its remembered DOM position first (wrong),
@@ -140,8 +159,9 @@ export async function initializeViewerMain(options: ViewerMainOptions): Promise<
     try {
       scrollSyncController = createViewerScrollSync({
         containerId: 'markdown-content',
+        scrollContainerId: 'markdown-wrapper',
         platform,
-        topOffset: 50, // Fixed toolbar height
+        topOffset: 0,
       });
       scrollSyncController.start();
     } catch (error) {
@@ -167,7 +187,7 @@ export async function initializeViewerMain(options: ViewerMainOptions): Promise<
   setFavicon();
 
   // Initialize TOC manager
-  const tocManager = createTocManager(saveFileState, getFileState);
+  const tocManager = createTocManager(saveFileState, getFileState, isMobile);
   const { generateTOC, setupTocToggle, updateActiveTocItem, setupResponsiveToc } = tocManager;
 
   // Get the raw markdown content
@@ -246,13 +266,14 @@ export async function initializeViewerMain(options: ViewerMainOptions): Promise<
       : 'normal';
   const initialMaxWidth = layoutConfigs[initialLayout].maxWidth;
   const initialZoom = initialState.zoom || 100;
+  const initialSwapPanelSide = await platform.settings.get('swapPanelSide');
 
   // Default TOC visibility based on screen width if no saved state
   let initialTocVisible: boolean;
   if (initialState.tocVisible !== undefined) {
     initialTocVisible = initialState.tocVisible;
   } else {
-    initialTocVisible = window.innerWidth > 1024;
+    initialTocVisible = !isMobile;
   }
   const initialTocClass = initialTocVisible ? '' : ' hidden';
 
@@ -264,6 +285,7 @@ export async function initializeViewerMain(options: ViewerMainOptions): Promise<
     escapeHtml,
     saveFileState,
     getFileState,
+    isMobile,
     rawMarkdown,
     docxExporter,
     cancelScrollRestore: () => {
@@ -291,6 +313,7 @@ export async function initializeViewerMain(options: ViewerMainOptions): Promise<
   if (!initialTocVisible) {
     document.body.classList.add('toc-hidden');
   }
+  applyTocPanelSide(Boolean(initialSwapPanelSide));
 
   // Remove the preload style that hides the page content
   // This should be done after the toolbar is generated but before rendering
@@ -301,7 +324,7 @@ export async function initializeViewerMain(options: ViewerMainOptions): Promise<
 
   // Make body visible with a smooth fade-in
   document.body.style.opacity = '1';
-  document.body.style.overflow = '';
+  document.body.style.overflow = 'hidden';
   document.body.style.transition = 'opacity 0.15s ease-in';
 
   // Initialize scroll sync controller immediately after DOM is ready
@@ -344,7 +367,7 @@ export async function initializeViewerMain(options: ViewerMainOptions): Promise<
   // Listen for scroll events and save line number
   // Note: ScrollSyncController handles most scroll tracking, but we also listen for manual saves
   let scrollTimeout: ReturnType<typeof setTimeout>;
-  window.addEventListener('scroll', () => {
+  document.getElementById('markdown-wrapper')?.addEventListener('scroll', () => {
     updateActiveTocItem();
     clearTimeout(scrollTimeout);
     scrollTimeout = setTimeout(() => {
@@ -450,6 +473,8 @@ export async function initializeViewerMain(options: ViewerMainOptions): Promise<
         
         if (key === 'themeId' && typeof value === 'string') {
           void handleSetTheme(value);
+        } else if (key === 'swapPanelSide') {
+          applyTocPanelSide(Boolean(value));
         } else {
           // Other settings changed - just re-render with scroll preservation
           const scrollLine = scrollSyncController?.getCurrentLine() ?? 0;

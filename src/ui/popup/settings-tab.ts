@@ -130,6 +130,11 @@ export type FrontmatterDisplay = 'hide' | 'table' | 'raw';
 export type TableLayout = 'left' | 'center';
 
 /**
+ * Panel side swap setting
+ */
+export type PanelSideMode = boolean;
+
+/**
  * User settings structure
  */
 interface Settings {
@@ -141,6 +146,7 @@ interface Settings {
   frontmatterDisplay?: FrontmatterDisplay;
   tableMergeEmpty?: boolean;
   tableLayout?: TableLayout;
+  swapPanelSide?: PanelSideMode;
 }
 
 /**
@@ -184,6 +190,7 @@ export function createSettingsTabManager({
     frontmatterDisplay: 'hide',
     tableMergeEmpty: true,
     tableLayout: 'center',
+    swapPanelSide: false,
   };
   let currentTheme = 'default';
   let themes: ThemeDefinition[] = [];
@@ -319,6 +326,20 @@ export function createSettingsTabManager({
           await saveSettingsToStorage();
           // Notify all tabs to re-render
           notifySettingChanged('tableLayout', settings.tableLayout);
+        });
+      }
+    }
+
+    // Swap TOC / file tree side
+    const swapPanelSideEl = document.getElementById('swap-panel-side') as HTMLInputElement | null;
+    if (swapPanelSideEl) {
+      swapPanelSideEl.checked = settings.swapPanelSide ?? false;
+      if (!swapPanelSideEl.dataset.listenerAdded) {
+        swapPanelSideEl.dataset.listenerAdded = 'true';
+        swapPanelSideEl.addEventListener('change', async () => {
+          settings.swapPanelSide = swapPanelSideEl.checked;
+          await saveSettingsToStorage();
+          notifySettingChanged('swapPanelSide', settings.swapPanelSide);
         });
       }
     }
@@ -829,6 +850,7 @@ export function createSettingsTabManager({
         supportedExtensions: getDefaultSupportedExtensions(),
         tableMergeEmpty: true,
         tableLayout: 'center',
+        swapPanelSide: false,
       };
 
       await storageSet({

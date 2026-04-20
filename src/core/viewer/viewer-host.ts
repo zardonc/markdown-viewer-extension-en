@@ -50,6 +50,8 @@ export function getCurrentFileKey(): string {
 export interface ViewerScrollSyncOptions {
   /** Container element ID (default: 'markdown-content') */
   containerId?: string;
+  /** Optional scroll container element ID */
+  scrollContainerId?: string;
   /** Platform API instance */
   platform: PlatformAPI;
   /**
@@ -85,6 +87,7 @@ export interface ViewerScrollSyncOptions {
 export function createViewerScrollSync(options: ViewerScrollSyncOptions): ScrollSyncController {
   const {
     containerId = 'markdown-content',
+    scrollContainerId,
     platform,
     onUserScroll,
     topOffset,
@@ -93,6 +96,14 @@ export function createViewerScrollSync(options: ViewerScrollSyncOptions): Scroll
   const container = document.getElementById(containerId);
   if (!container) {
     throw new Error(`[ViewerHost] Container '${containerId}' not found`);
+  }
+
+  const scrollContainer = scrollContainerId
+    ? document.getElementById(scrollContainerId) as HTMLElement | null
+    : null;
+
+  if (scrollContainerId && !scrollContainer) {
+    throw new Error(`[ViewerHost] Scroll container '${scrollContainerId}' not found`);
   }
 
   // Default behavior: save to FileStateService
@@ -104,6 +115,7 @@ export function createViewerScrollSync(options: ViewerScrollSyncOptions): Scroll
 
   return createScrollSyncController({
     container,
+    scrollContainer: scrollContainer ?? undefined,
     getLineMapper: getDocument,
     onUserScroll: onUserScroll ?? defaultOnUserScroll,
     topOffset,
