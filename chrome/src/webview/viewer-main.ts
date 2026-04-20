@@ -315,6 +315,22 @@ export async function initializeViewerMain(options: ViewerMainOptions): Promise<
   }
   applyTocPanelSide(Boolean(initialSwapPanelSide));
 
+  // Initialize scroll sync controller immediately after DOM is ready
+  initScrollSyncController();
+
+  // Load theme BEFORE unveiling the body. Doing it the other way around
+  // causes a brief flash of the default light body background (~6ms) when
+  // the selected theme is dark, because the preload style is removed and
+  // opacity flipped to 1 while the theme CSS is still in flight.
+  try {
+    currentThemeId = await themeManager.loadSelectedTheme();
+    // loadAndApplyTheme handles all theme logic including renderer config
+    await loadAndApplyTheme(currentThemeId);
+  } catch (error) {
+    // eslint-disable-next-line no-console
+    console.error('Failed to load theme at init, using defaults:', error);
+  }
+
   // Remove the preload style that hides the page content
   // This should be done after the toolbar is generated but before rendering
   const preloadStyle = document.getElementById('markdown-viewer-preload');
@@ -327,19 +343,13 @@ export async function initializeViewerMain(options: ViewerMainOptions): Promise<
   document.body.style.overflow = 'hidden';
   document.body.style.transition = 'opacity 0.15s ease-in';
 
-  // Initialize scroll sync controller immediately after DOM is ready
-  initScrollSyncController();
-
-  // Load theme at initialization (consistent with VSCode/Mobile)
-  // This ensures theme is applied before first render
+  // Notify the parent (workspace page) that the viewer is themed and visible,
+  // so it can reveal the iframe. Harmless when this page is not embedded.
   try {
-    currentThemeId = await themeManager.loadSelectedTheme();
-    // loadAndApplyTheme handles all theme logic including renderer config
-    await loadAndApplyTheme(currentThemeId);
-  } catch (error) {
-    // eslint-disable-next-line no-console
-    console.error('Failed to load theme at init, using defaults:', error);
-  }
+    if (window.parent !== window) {
+      window.parent.postMessage({ type: 'VIEWER_RENDERED' }, '*');
+    }
+  } catch { /* cross-origin parent \u2014 ignore */ }
 
   // Wait a bit for DOM to be ready, then start processing
   setTimeout(async () => {

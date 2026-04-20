@@ -184,6 +184,13 @@ export function themeToDOCXStyles(
 ): DOCXThemeStyles {
   const blockSpacing = generateBlockSpacing(layoutScheme);
 
+  const pageBackground = colorScheme.background.page
+    ? colorScheme.background.page.replace('#', '')
+    : undefined;
+  const blockquoteBackground = colorScheme.background.blockquote
+    ? colorScheme.background.blockquote.replace('#', '')
+    : undefined;
+
   return {
     default: generateDefaultStyle(theme.fontScheme, layoutScheme),
     paragraphStyles: generateParagraphStyles(theme.fontScheme, layoutScheme, colorScheme, blockSpacing),
@@ -192,6 +199,8 @@ export function themeToDOCXStyles(
     codeColors: generateCodeColors(codeTheme, colorScheme),
     linkColor: colorScheme.accent.link.replace('#', ''),
     blockquoteColor: colorScheme.blockquote.border.replace('#', ''),
+    pageBackground,
+    blockquoteBackground,
     blockSpacing,
   };
 }

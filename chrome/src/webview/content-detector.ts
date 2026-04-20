@@ -85,10 +85,15 @@ function isProcessableContent(): boolean {
  */
 function hidePageContent(): void {
   // Add inline style to hide content immediately
-  // This prevents the flash of plain text before the extension renders
+  // This prevents the flash of plain text before the extension renders.
+  // Also declare `color-scheme` so when the OS/browser is in dark mode the
+  // default UA background is dark — otherwise the raw <pre> page paints a
+  // bright white rectangle before the theme CSS arrives.
   const style = document.createElement('style');
   style.id = 'markdown-viewer-preload';
   style.textContent = `
+    :root { color-scheme: light dark; }
+    html, body { background: Canvas; }
     body {
       opacity: 0 !important;
       overflow: hidden !important;

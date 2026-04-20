@@ -284,6 +284,17 @@ class ThemeManager {
   }
 
   /**
+   * Look up a theme's category from the loaded registry.
+   * Returns null if the registry is not loaded or the theme id is unknown.
+   * Used to derive colorSchema ('dark' for category === 'dark') for renderers.
+   */
+  getThemeCategory(themeId: string): string | null {
+    if (!this.registry) return null;
+    const entry = this.registry.themes.find(t => t.id === themeId);
+    return entry?.category ?? null;
+  }
+
+  /**
    * Convert point size to pixels (for CSS)
    * @param ptSize - Size in points (e.g., '12pt')
    * @returns Size in pixels (e.g., '16px')

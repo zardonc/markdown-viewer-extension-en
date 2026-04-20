@@ -221,9 +221,11 @@ export function createSettingsTabManager({
         settings.docxHrDisplay = 'hide';
       }
 
-      // Load selected theme
+      // Prefer the unified settings key, but keep fallback compatibility
+      // with the legacy selectedTheme storage key.
       const themeResult = await storageGet(['selectedTheme']);
-      currentTheme = (themeResult.selectedTheme as string) || 'default';
+      currentTheme = settings.themeId || (themeResult.selectedTheme as string) || 'default';
+      settings.themeId = currentTheme;
     } catch (error) {
       console.error('Failed to load settings:', error);
     }
@@ -759,8 +761,13 @@ export function createSettingsTabManager({
    */
   async function switchTheme(themeId: string): Promise<void> {
     try {
-      // Save theme selection
-      await storageSet({ selectedTheme: themeId });
+      // Save theme selection to the unified settings container used by
+      // viewers/workspace init, while keeping the legacy key for compatibility.
+      settings.themeId = themeId;
+      await storageSet({
+        markdownViewerSettings: settings,
+        selectedTheme: themeId,
+      });
       currentTheme = themeId;
 
       // Update description

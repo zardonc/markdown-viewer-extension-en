@@ -125,20 +125,30 @@ export function createBlockquoteConverter({ themeStyles, convertInlineNodes, con
       cellChildren.push(new Paragraph({ text: '' }));
     }
 
+    // Hidden-border color: prefer blockquote bg, then page bg, fallback white.
+    // Using the background color makes Word's in-editor dotted outline blend in
+    // with the surrounding fill in dark themes (instead of showing white lines).
+    const hiddenBorderColor = themeStyles.blockquoteBackground
+      || themeStyles.pageBackground
+      || 'FFFFFF';
+
     // Create the table cell with blockquote styling
     const cell = new TableCell({
       children: cellChildren,
       margins: cellPadding,
       borders: {
-        top: { style: BorderStyle.SINGLE, size: 0, color: 'FFFFFF' },
-        bottom: { style: BorderStyle.SINGLE, size: 0, color: 'FFFFFF' },
-        right: { style: BorderStyle.SINGLE, size: 0, color: 'FFFFFF' },
-        left: { 
-          style: BorderStyle.SINGLE, 
-          size: BLOCKQUOTE_STYLES.leftBorderSize, 
-          color: themeStyles.blockquoteColor 
+        top: { style: BorderStyle.SINGLE, size: 0, color: hiddenBorderColor },
+        bottom: { style: BorderStyle.SINGLE, size: 0, color: hiddenBorderColor },
+        right: { style: BorderStyle.SINGLE, size: 0, color: hiddenBorderColor },
+        left: {
+          style: BorderStyle.SINGLE,
+          size: BLOCKQUOTE_STYLES.leftBorderSize,
+          color: themeStyles.blockquoteColor
         },
       },
+      ...(themeStyles.blockquoteBackground
+        ? { shading: { fill: themeStyles.blockquoteBackground } }
+        : {}),
     });
 
     // Create single-row table

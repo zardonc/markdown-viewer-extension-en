@@ -5,6 +5,7 @@ import { getWebExtensionApi } from '../../../src/utils/platform-info';
 import Localization from '../../../src/utils/localization';
 import { applyI18nText } from '../../../src/ui/popup/i18n-helpers';
 import { chevronRight, chevronDown, folderClosed, folderOpen, folderPlus, searchIcon, fileSearchIcon, textSearchIcon, getFileIcon } from './file-icons';
+import themeManager from '../../../src/utils/theme-manager';
 
 const webExtensionApi = getWebExtensionApi();
 const VIEWER_URL = webExtensionApi.runtime.getURL('ui/workspace/viewer-embed.html');
@@ -539,13 +540,18 @@ async function resolveFileFromRoot(path: string): Promise<File | null> {
 
 // ─── File preview via embedded viewer ───
 function sendToViewer(content: string, filename: string, codeView = false) {
+  // Hide the iframe while it navigates + renders. The iframe element's blank
+  // frame during src reset would otherwise flash the default UA white (or
+  // the iframe body's unthemed background). The preview-pane behind it is
+  // already themed, so the user sees a stable surface until VIEWER_RENDERED.
   $previewEmpty.style.display = 'none';
+  $previewFrame.style.visibility = 'hidden';
   $previewFrame.style.display = 'block';
   $previewFrame.src = VIEWER_URL;
 
   const onMessage = (event: MessageEvent) => {
-    if (event.data?.type === 'VIEWER_READY' && event.source === $previewFrame.contentWindow) {
-      window.removeEventListener('message', onMessage);
+    if (event.source !== $previewFrame.contentWindow) return;
+    if (event.data?.type === 'VIEWER_READY') {
       $previewFrame.contentWindow!.postMessage({
         type: 'RENDER_FILE',
         content,
@@ -553,6 +559,12 @@ function sendToViewer(content: string, filename: string, codeView = false) {
         fileDir: currentFileDir,
         codeView,
       }, '*');
+      return;
+    }
+    if (event.data?.type === 'VIEWER_RENDERED') {
+      // Theme applied and body opacity=1 — safe to reveal the iframe.
+      window.removeEventListener('message', onMessage);
+      $previewFrame.style.visibility = '';
     }
   };
   window.addEventListener('message', onMessage);
@@ -802,7 +814,24 @@ async function restoreLastWorkspace(): Promise<boolean> {
 }
 
 // ─── Init ───
+// Dark-mode sync: read the currently selected theme's category from the
+// registry and toggle `.dark` on <html>. Doing this eagerly (not via the
+// iframe-written localStorage flag) guarantees the outer workspace surface
+// is already dark on first paint after refresh, and stays consistent while
+// switching files — otherwise .preview-pane flashes white behind the iframe
+// element during its navigation blank frame.
+async function syncDarkClassFromSelectedTheme(): Promise<void> {
+  try {
+    const themeId = await themeManager.loadSelectedTheme();
+    await themeManager.initialize();
+    const isDark = themeManager.getThemeCategory(themeId) === 'dark';
+    document.documentElement.classList.toggle('dark', isDark);
+    try { localStorage.setItem('mdv-dark', isDark ? '1' : '0'); } catch { /* storage disabled */ }
+  } catch { /* keep default light */ }
+}
+
 Localization.init().then(async () => {
+  await syncDarkClassFromSelectedTheme();
   await loadWorkspacePanelSide();
 
   if (webExtensionApi.storage?.onChanged) {
@@ -813,8 +842,20 @@ Localization.init().then(async () => {
 
       const nextSettings = changes.markdownViewerSettings.newValue as { swapPanelSide?: boolean } | undefined;
       applyWorkspacePanelSide(Boolean(nextSettings?.swapPanelSide));
+      // Theme may have changed in the popup; re-sync dark class so the outer
+      // surface follows without waiting for the next iframe render.
+      void syncDarkClassFromSelectedTheme();
     });
   }
+
+  // Cross-document sync of dark-mode flag. The embedded viewer writes
+  // `mdv-dark` to localStorage whenever it applies a theme; since iframe and
+  // workspace share the same extension origin, this `storage` event fires on
+  // the outer page and lets us update the surface color immediately.
+  window.addEventListener('storage', (e) => {
+    if (e.key !== 'mdv-dark') return;
+    document.documentElement.classList.toggle('dark', e.newValue === '1');
+  });
 
   applyI18nText();
   const restored = await restoreLastWorkspace();
