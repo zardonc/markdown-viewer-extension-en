@@ -647,6 +647,10 @@
     "message": "Ouvrez un fichier markdown pour commencer",
     "description": "Welcome message on empty state"
   },
+  "workspace_change_directory": {
+    "message": "Changer de dossier",
+    "description": "Tooltip for changing the current workspace directory"
+  },
   "workspace_choose_directory": {
     "message": "Choisir un répertoire",
     "description": "Button to open directory picker"
@@ -662,6 +666,42 @@
   "workspace_recent": {
     "message": "Espaces de travail récents",
     "description": "Title for recent workspaces list"
+  },
+  "workspace_search_content_hint": {
+    "message": "Appuyez sur Entrée pour rechercher dans le contenu des fichiers",
+    "description": "Hint shown before executing a workspace content search"
+  },
+  "workspace_search_content_no_results": {
+    "message": "Aucun contenu correspondant",
+    "description": "Empty state shown when workspace content search returns no matches"
+  },
+  "workspace_search_content_placeholder": {
+    "message": "Rechercher dans le contenu des fichiers",
+    "description": "Placeholder text for the workspace content search input"
+  },
+  "workspace_search_content_searching": {
+    "message": "Recherche dans le contenu des fichiers...",
+    "description": "Status shown while workspace content search is running"
+  },
+  "workspace_search_mode_content_title": {
+    "message": "Mode de recherche par contenu",
+    "description": "Tooltip for workspace content search mode toggle"
+  },
+  "workspace_search_mode_filename_title": {
+    "message": "Mode de recherche par nom de fichier",
+    "description": "Tooltip for workspace file name search mode toggle"
+  },
+  "workspace_search_no_results": {
+    "message": "Aucun fichier correspondant",
+    "description": "Empty state shown when workspace file search returns no matches"
+  },
+  "workspace_search_placeholder": {
+    "message": "Rechercher des noms de fichiers",
+    "description": "Placeholder text for the workspace file name search input"
+  },
+  "workspace_search_title": {
+    "message": "Rechercher des fichiers",
+    "description": "Tooltip for the workspace file search button"
   },
   "workspace_select_file": {
     "message": "Sélectionnez un fichier à prévisualiser",

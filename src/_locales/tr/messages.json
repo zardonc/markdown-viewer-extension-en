@@ -647,6 +647,10 @@
     "message": "Başlamak için bir markdown dosyası açın",
     "description": "Welcome message on empty state"
   },
+  "workspace_change_directory": {
+    "message": "Dizini değiştir",
+    "description": "Tooltip for changing the current workspace directory"
+  },
   "workspace_choose_directory": {
     "message": "Dizin seç",
     "description": "Button to open directory picker"
@@ -662,6 +666,42 @@
   "workspace_recent": {
     "message": "Son çalışma alanları",
     "description": "Title for recent workspaces list"
+  },
+  "workspace_search_content_hint": {
+    "message": "Dosya içeriğinde aramak için Enter'a basın",
+    "description": "Hint shown before executing a workspace content search"
+  },
+  "workspace_search_content_no_results": {
+    "message": "Eşleşen içerik yok",
+    "description": "Empty state shown when workspace content search returns no matches"
+  },
+  "workspace_search_content_placeholder": {
+    "message": "Dosya içeriğinde ara",
+    "description": "Placeholder text for the workspace content search input"
+  },
+  "workspace_search_content_searching": {
+    "message": "Dosya içeriğinde aranıyor...",
+    "description": "Status shown while workspace content search is running"
+  },
+  "workspace_search_mode_content_title": {
+    "message": "İçerik arama modu",
+    "description": "Tooltip for workspace content search mode toggle"
+  },
+  "workspace_search_mode_filename_title": {
+    "message": "Dosya adı arama modu",
+    "description": "Tooltip for workspace file name search mode toggle"
+  },
+  "workspace_search_no_results": {
+    "message": "Eşleşen dosya yok",
+    "description": "Empty state shown when workspace file search returns no matches"
+  },
+  "workspace_search_placeholder": {
+    "message": "Dosya adlarında ara",
+    "description": "Placeholder text for the workspace file name search input"
+  },
+  "workspace_search_title": {
+    "message": "Dosya ara",
+    "description": "Tooltip for the workspace file search button"
   },
   "workspace_select_file": {
     "message": "Önizlenecek dosyayı seçin",

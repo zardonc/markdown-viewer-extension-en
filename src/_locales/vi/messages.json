@@ -647,6 +647,10 @@
     "message": "Mở tệp markdown để bắt đầu",
     "description": "Welcome message on empty state"
   },
+  "workspace_change_directory": {
+    "message": "Thay đổi thư mục",
+    "description": "Tooltip for changing the current workspace directory"
+  },
   "workspace_choose_directory": {
     "message": "Chọn thư mục",
     "description": "Button to open directory picker"
@@ -662,6 +666,42 @@
   "workspace_recent": {
     "message": "Không gian làm việc gần đây",
     "description": "Title for recent workspaces list"
+  },
+  "workspace_search_content_hint": {
+    "message": "Nhấn Enter để tìm trong nội dung tệp",
+    "description": "Hint shown before executing a workspace content search"
+  },
+  "workspace_search_content_no_results": {
+    "message": "Không có nội dung phù hợp",
+    "description": "Empty state shown when workspace content search returns no matches"
+  },
+  "workspace_search_content_placeholder": {
+    "message": "Tìm trong nội dung tệp",
+    "description": "Placeholder text for the workspace content search input"
+  },
+  "workspace_search_content_searching": {
+    "message": "Đang tìm trong nội dung tệp...",
+    "description": "Status shown while workspace content search is running"
+  },
+  "workspace_search_mode_content_title": {
+    "message": "Chế độ tìm kiếm nội dung",
+    "description": "Tooltip for workspace content search mode toggle"
+  },
+  "workspace_search_mode_filename_title": {
+    "message": "Chế độ tìm kiếm tên tệp",
+    "description": "Tooltip for workspace file name search mode toggle"
+  },
+  "workspace_search_no_results": {
+    "message": "Không có tệp phù hợp",
+    "description": "Empty state shown when workspace file search returns no matches"
+  },
+  "workspace_search_placeholder": {
+    "message": "Tìm tên tệp",
+    "description": "Placeholder text for the workspace file name search input"
+  },
+  "workspace_search_title": {
+    "message": "Tìm tệp",
+    "description": "Tooltip for the workspace file search button"
   },
   "workspace_select_file": {
     "message": "Chọn tệp để xem trước",

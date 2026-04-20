@@ -647,6 +647,10 @@
     "message": "Öffnen Sie eine Markdown-Datei, um zu beginnen",
     "description": "Welcome message on empty state"
   },
+  "workspace_change_directory": {
+    "message": "Verzeichnis ändern",
+    "description": "Tooltip for changing the current workspace directory"
+  },
   "workspace_choose_directory": {
     "message": "Verzeichnis wählen",
     "description": "Button to open directory picker"
@@ -662,6 +666,42 @@
   "workspace_recent": {
     "message": "Zuletzt verwendete Arbeitsbereiche",
     "description": "Title for recent workspaces list"
+  },
+  "workspace_search_content_hint": {
+    "message": "Drücken Sie Enter, um Dateiinhalte zu durchsuchen",
+    "description": "Hint shown before executing a workspace content search"
+  },
+  "workspace_search_content_no_results": {
+    "message": "Keine passenden Inhalte",
+    "description": "Empty state shown when workspace content search returns no matches"
+  },
+  "workspace_search_content_placeholder": {
+    "message": "Dateiinhalte durchsuchen",
+    "description": "Placeholder text for the workspace content search input"
+  },
+  "workspace_search_content_searching": {
+    "message": "Dateiinhalte werden durchsucht...",
+    "description": "Status shown while workspace content search is running"
+  },
+  "workspace_search_mode_content_title": {
+    "message": "Modus für Inhaltssuche",
+    "description": "Tooltip for workspace content search mode toggle"
+  },
+  "workspace_search_mode_filename_title": {
+    "message": "Modus für Dateinamenssuche",
+    "description": "Tooltip for workspace file name search mode toggle"
+  },
+  "workspace_search_no_results": {
+    "message": "Keine passenden Dateien",
+    "description": "Empty state shown when workspace file search returns no matches"
+  },
+  "workspace_search_placeholder": {
+    "message": "Dateinamen durchsuchen",
+    "description": "Placeholder text for the workspace file name search input"
+  },
+  "workspace_search_title": {
+    "message": "Dateien durchsuchen",
+    "description": "Tooltip for the workspace file search button"
   },
   "workspace_select_file": {
     "message": "Datei zur Vorschau auswählen",

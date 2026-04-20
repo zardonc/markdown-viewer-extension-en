@@ -647,6 +647,10 @@
     "message": "शुरू करने के लिए एक मार्कडाउन फ़ाइल खोलें",
     "description": "Welcome message on empty state"
   },
+  "workspace_change_directory": {
+    "message": "डायरेक्टरी बदलें",
+    "description": "Tooltip for changing the current workspace directory"
+  },
   "workspace_choose_directory": {
     "message": "निर्देशिका चुनें",
     "description": "Button to open directory picker"
@@ -662,6 +666,42 @@
   "workspace_recent": {
     "message": "हाल के कार्यक्षेत्र",
     "description": "Title for recent workspaces list"
+  },
+  "workspace_search_content_hint": {
+    "message": "फ़ाइल सामग्री खोजने के लिए Enter दबाएँ",
+    "description": "Hint shown before executing a workspace content search"
+  },
+  "workspace_search_content_no_results": {
+    "message": "मिलती हुई सामग्री नहीं मिली",
+    "description": "Empty state shown when workspace content search returns no matches"
+  },
+  "workspace_search_content_placeholder": {
+    "message": "फ़ाइल सामग्री खोजें",
+    "description": "Placeholder text for the workspace content search input"
+  },
+  "workspace_search_content_searching": {
+    "message": "फ़ाइल सामग्री खोजी जा रही है...",
+    "description": "Status shown while workspace content search is running"
+  },
+  "workspace_search_mode_content_title": {
+    "message": "सामग्री खोज मोड",
+    "description": "Tooltip for workspace content search mode toggle"
+  },
+  "workspace_search_mode_filename_title": {
+    "message": "फ़ाइल नाम खोज मोड",
+    "description": "Tooltip for workspace file name search mode toggle"
+  },
+  "workspace_search_no_results": {
+    "message": "मिलती हुई फ़ाइलें नहीं मिलीं",
+    "description": "Empty state shown when workspace file search returns no matches"
+  },
+  "workspace_search_placeholder": {
+    "message": "फ़ाइल नाम खोजें",
+    "description": "Placeholder text for the workspace file name search input"
+  },
+  "workspace_search_title": {
+    "message": "फ़ाइलें खोजें",
+    "description": "Tooltip for the workspace file search button"
   },
   "workspace_select_file": {
     "message": "पूर्वावलोकन के लिए फ़ाइल चुनें",

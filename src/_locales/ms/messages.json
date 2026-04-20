@@ -647,6 +647,10 @@
     "message": "Buka fail markdown untuk bermula",
     "description": "Welcome message on empty state"
   },
+  "workspace_change_directory": {
+    "message": "Tukar direktori",
+    "description": "Tooltip for changing the current workspace directory"
+  },
   "workspace_choose_directory": {
     "message": "Pilih direktori",
     "description": "Button to open directory picker"
@@ -662,6 +666,42 @@
   "workspace_recent": {
     "message": "Ruang kerja terkini",
     "description": "Title for recent workspaces list"
+  },
+  "workspace_search_content_hint": {
+    "message": "Tekan Enter untuk mencari kandungan fail",
+    "description": "Hint shown before executing a workspace content search"
+  },
+  "workspace_search_content_no_results": {
+    "message": "Tiada kandungan yang sepadan",
+    "description": "Empty state shown when workspace content search returns no matches"
+  },
+  "workspace_search_content_placeholder": {
+    "message": "Cari kandungan fail",
+    "description": "Placeholder text for the workspace content search input"
+  },
+  "workspace_search_content_searching": {
+    "message": "Sedang mencari kandungan fail...",
+    "description": "Status shown while workspace content search is running"
+  },
+  "workspace_search_mode_content_title": {
+    "message": "Mod carian kandungan",
+    "description": "Tooltip for workspace content search mode toggle"
+  },
+  "workspace_search_mode_filename_title": {
+    "message": "Mod carian nama fail",
+    "description": "Tooltip for workspace file name search mode toggle"
+  },
+  "workspace_search_no_results": {
+    "message": "Tiada fail yang sepadan",
+    "description": "Empty state shown when workspace file search returns no matches"
+  },
+  "workspace_search_placeholder": {
+    "message": "Cari nama fail",
+    "description": "Placeholder text for the workspace file name search input"
+  },
+  "workspace_search_title": {
+    "message": "Cari fail",
+    "description": "Tooltip for the workspace file search button"
   },
   "workspace_select_file": {
     "message": "Pilih fail untuk pratonton",

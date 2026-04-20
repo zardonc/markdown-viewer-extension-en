@@ -40,7 +40,14 @@
     <div class="sidebar">
       <div class="sidebar-header">
         <span id="workspace-name" class="workspace-name"></span>
-        <button id="change-directory" class="sidebar-btn" title="Change directory"></button>
+        <div class="sidebar-actions">
+          <button id="toggle-search" class="sidebar-btn" data-i18n-attr="title:workspace_search_title,aria-label:workspace_search_title"></button>
+          <button id="change-directory" class="sidebar-btn" data-i18n-attr="title:workspace_change_directory,aria-label:workspace_change_directory"></button>
+        </div>
+      </div>
+      <div id="sidebar-search" class="sidebar-search hidden">
+        <button id="search-mode-toggle" class="sidebar-btn sidebar-search-mode"></button>
+        <input id="file-search-input" class="sidebar-search-input" type="search" data-i18n-attr="placeholder:workspace_search_placeholder,aria-label:workspace_search_placeholder">
       </div>
       <div id="file-tree" class="file-tree"></div>
     </div>

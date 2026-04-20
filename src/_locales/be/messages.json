@@ -647,6 +647,10 @@
     "message": "Адкрыйце файл markdown, каб пачаць",
     "description": "Welcome message on empty state"
   },
+  "workspace_change_directory": {
+    "message": "Змяніць каталог",
+    "description": "Tooltip for changing the current workspace directory"
+  },
   "workspace_choose_directory": {
     "message": "Выбраць каталог",
     "description": "Button to open directory picker"
@@ -662,6 +666,42 @@
   "workspace_recent": {
     "message": "Нядаўнія працоўныя прасторы",
     "description": "Title for recent workspaces list"
+  },
+  "workspace_search_content_hint": {
+    "message": "Націсніце Enter, каб шукаць па змесціве файлаў",
+    "description": "Hint shown before executing a workspace content search"
+  },
+  "workspace_search_content_no_results": {
+    "message": "Няма адпаведнага змесціва",
+    "description": "Empty state shown when workspace content search returns no matches"
+  },
+  "workspace_search_content_placeholder": {
+    "message": "Шукаць па змесціве файлаў",
+    "description": "Placeholder text for the workspace content search input"
+  },
+  "workspace_search_content_searching": {
+    "message": "Пошук па змесціве файлаў...",
+    "description": "Status shown while workspace content search is running"
+  },
+  "workspace_search_mode_content_title": {
+    "message": "Рэжым пошуку па змесціве",
+    "description": "Tooltip for workspace content search mode toggle"
+  },
+  "workspace_search_mode_filename_title": {
+    "message": "Рэжым пошуку па назве файла",
+    "description": "Tooltip for workspace file name search mode toggle"
+  },
+  "workspace_search_no_results": {
+    "message": "Няма адпаведных файлаў",
+    "description": "Empty state shown when workspace file search returns no matches"
+  },
+  "workspace_search_placeholder": {
+    "message": "Шукаць назвы файлаў",
+    "description": "Placeholder text for the workspace file name search input"
+  },
+  "workspace_search_title": {
+    "message": "Шукаць файлы",
+    "description": "Tooltip for the workspace file search button"
   },
   "workspace_select_file": {
     "message": "Абярыце файл для папярэдняга прагляду",

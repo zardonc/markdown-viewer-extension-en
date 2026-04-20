@@ -647,6 +647,10 @@
     "message": "Open a markdown file to get started",
     "description": "Welcome message on empty state"
   },
+  "workspace_change_directory": {
+    "message": "Change directory",
+    "description": "Tooltip for changing the current workspace directory"
+  },
   "workspace_choose_directory": {
     "message": "Choose Directory",
     "description": "Button to choose a directory"
@@ -662,6 +666,42 @@
   "workspace_recent": {
     "message": "Recent Workspaces",
     "description": "Title for the recent workspaces list"
+  },
+  "workspace_search_content_hint": {
+    "message": "Press Enter to search file contents",
+    "description": "Hint shown before executing a workspace content search"
+  },
+  "workspace_search_content_no_results": {
+    "message": "No matching content",
+    "description": "Empty state shown when workspace content search returns no matches"
+  },
+  "workspace_search_content_placeholder": {
+    "message": "Search file contents",
+    "description": "Placeholder text for the workspace content search input"
+  },
+  "workspace_search_content_searching": {
+    "message": "Searching file contents...",
+    "description": "Status shown while workspace content search is running"
+  },
+  "workspace_search_mode_content_title": {
+    "message": "Content search mode",
+    "description": "Tooltip for workspace content search mode toggle"
+  },
+  "workspace_search_mode_filename_title": {
+    "message": "File name search mode",
+    "description": "Tooltip for workspace file name search mode toggle"
+  },
+  "workspace_search_no_results": {
+    "message": "No matching files",
+    "description": "Empty state shown when workspace file search returns no matches"
+  },
+  "workspace_search_placeholder": {
+    "message": "Search file names",
+    "description": "Placeholder text for the workspace file name search input"
+  },
+  "workspace_search_title": {
+    "message": "Search files",
+    "description": "Tooltip for the workspace file search button"
   },
   "workspace_select_file": {
     "message": "Select a file to preview",
