@@ -155,6 +155,10 @@
     "message": "Markdown으로 보기",
     "description": "Context menu item to view any file as markdown"
   },
+  "copy_as_png": {
+    "message": "Copy as PNG",
+    "description": "Context menu item for copying a diagram as PNG"
+  },
   "delete": {
     "message": "삭제",
     "description": "Delete button text"
@@ -543,6 +547,14 @@
     "message": "지원 형식",
     "description": "Title for supported file formats section in settings"
   },
+  "settings_swap_panel_side": {
+    "message": "Swap TOC / file tree side",
+    "description": "Checkbox label for swapping TOC and workspace file tree panel side"
+  },
+  "settings_swap_panel_side_note": {
+    "message": "Chrome switches both the TOC and workspace file tree. Firefox switches the TOC only.",
+    "description": "Helper note for TOC and workspace panel side swap setting"
+  },
   "settings_table_layout": {
     "message": "테이블 레이아웃",
     "description": "Label for table layout selector"
@@ -635,6 +647,10 @@
     "message": "마크다운 파일을 열어 시작하세요",
     "description": "Welcome message on empty state"
   },
+  "workspace_change_directory": {
+    "message": "디렉터리 변경",
+    "description": "Tooltip for changing the current workspace directory"
+  },
   "workspace_choose_directory": {
     "message": "디렉터리 선택",
     "description": "Button to open directory picker"
@@ -650,6 +666,42 @@
   "workspace_recent": {
     "message": "최근 워크스페이스",
     "description": "Title for recent workspaces list"
+  },
+  "workspace_search_content_hint": {
+    "message": "파일 내용을 검색하려면 Enter를 누르세요",
+    "description": "Hint shown before executing a workspace content search"
+  },
+  "workspace_search_content_no_results": {
+    "message": "일치하는 내용이 없습니다",
+    "description": "Empty state shown when workspace content search returns no matches"
+  },
+  "workspace_search_content_placeholder": {
+    "message": "파일 내용 검색",
+    "description": "Placeholder text for the workspace content search input"
+  },
+  "workspace_search_content_searching": {
+    "message": "파일 내용을 검색하는 중...",
+    "description": "Status shown while workspace content search is running"
+  },
+  "workspace_search_mode_content_title": {
+    "message": "내용 검색 모드",
+    "description": "Tooltip for workspace content search mode toggle"
+  },
+  "workspace_search_mode_filename_title": {
+    "message": "파일 이름 검색 모드",
+    "description": "Tooltip for workspace file name search mode toggle"
+  },
+  "workspace_search_no_results": {
+    "message": "일치하는 파일이 없습니다",
+    "description": "Empty state shown when workspace file search returns no matches"
+  },
+  "workspace_search_placeholder": {
+    "message": "파일 이름 검색",
+    "description": "Placeholder text for the workspace file name search input"
+  },
+  "workspace_search_title": {
+    "message": "파일 검색",
+    "description": "Tooltip for the workspace file search button"
   },
   "workspace_select_file": {
     "message": "미리 볼 파일을 선택하세요",

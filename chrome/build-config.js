@@ -128,6 +128,7 @@ export const createBuildConfig = () => {
                 { src: 'chrome/src/workspace/workspace.html', dest: 'dist/chrome/ui/workspace/workspace.html' },
                 { src: 'chrome/src/workspace/workspace.css', dest: 'dist/chrome/ui/workspace/workspace.css' },
                 { src: 'chrome/src/workspace/viewer-embed.html', dest: 'dist/chrome/ui/workspace/viewer-embed.html' },
+                { src: 'chrome/src/workspace/dark-preload.js', dest: 'dist/chrome/ui/workspace/dark-preload.js' },
                 { src: 'chrome/src/webview/offscreen-render.html', dest: 'dist/chrome/ui/offscreen-render.html' }
               ];
 

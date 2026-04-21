@@ -57,6 +57,55 @@ function loadConfig(configPath) {
   return { keys, translations };
 }
 
+function validateTranslations(keys, translations) {
+  const englishMessages = Object.fromEntries(
+    Object.entries(keys).map(([key, value]) => [key, value.message])
+  );
+  const chineseReferenceLocales = ['zh_CN', 'zh_TW'];
+  const invalidTranslations = [];
+
+  for (const [locale, localeTranslations] of Object.entries(translations)) {
+    if (!localeTranslations || typeof localeTranslations !== 'object' || Array.isArray(localeTranslations)) {
+      continue;
+    }
+
+    const isEnglishLocale = locale === 'en';
+    const isChineseLocale = chineseReferenceLocales.includes(locale);
+
+    for (const key of Object.keys(keys)) {
+      const translatedMessage = localeTranslations[key]?.message;
+      if (typeof translatedMessage !== 'string' || translatedMessage.length === 0) {
+        continue;
+      }
+
+      if (!isEnglishLocale && translatedMessage === englishMessages[key]) {
+        invalidTranslations.push({
+          locale,
+          key,
+          reason: 'matches English message'
+        });
+        continue;
+      }
+
+      if (!isChineseLocale) {
+        for (const chineseLocale of chineseReferenceLocales) {
+          const chineseMessage = translations[chineseLocale]?.[key]?.message;
+          if (typeof chineseMessage === 'string' && chineseMessage.length > 0 && translatedMessage === chineseMessage) {
+            invalidTranslations.push({
+              locale,
+              key,
+              reason: `matches ${chineseLocale} message`
+            });
+            break;
+          }
+        }
+      }
+    }
+  }
+
+  return invalidTranslations;
+}
+
 /**
  * Keys to add/update.
  *
@@ -158,10 +207,23 @@ function main() {
   const args = parseArgs(process.argv);
   const { keys: KEYS, translations: TRANSLATIONS } = loadConfig(args.config);
   const keyCount = Object.keys(KEYS).length;
+  const invalidTranslations = validateTranslations(KEYS, TRANSLATIONS);
   
   if (keyCount === 0) {
     console.log('ℹ️  No keys defined in KEYS object. Add keys to process.');
     return;
+  }
+
+  if (invalidTranslations.length > 0) {
+    console.error('❌ Invalid localized translations found in config:');
+    for (const { locale, key, reason } of invalidTranslations.sort((a, b) => {
+      const localeCompare = a.locale.localeCompare(b.locale);
+      return localeCompare !== 0 ? localeCompare : a.key.localeCompare(b.key);
+    })) {
+      console.error(`  - ${locale}.${key}: ${reason}`);
+    }
+    console.error('\nProvide locale-specific messages in scripts/i18n/update-locale-keys.json and re-run this script.\n');
+    process.exit(1);
   }
   
   console.log('🔄 Processing locale keys...\n');

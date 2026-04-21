@@ -157,8 +157,12 @@ export function createTableConverter({ themeStyles, convertInlineNodes, mergeEmp
               paragraphOptions.alignment = paragraphAlignment;
             }
 
-            const whiteBorder: IBorderOptions = { style: BorderStyle.SINGLE, size: 0, color: 'FFFFFF' };
-            const noneBorder: IBorderOptions = { style: BorderStyle.NONE, size: 0, color: 'FFFFFF' };
+            // Hidden-border color: use page background when available so Word's
+            // in-editor dotted cell outline blends into the page on dark themes
+            // instead of showing white lines.
+            const hiddenBorderColor = themeStyles.pageBackground || 'FFFFFF';
+            const whiteBorder: IBorderOptions = { style: BorderStyle.SINGLE, size: 0, color: hiddenBorderColor };
+            const noneBorder: IBorderOptions = { style: BorderStyle.NONE, size: 0, color: hiddenBorderColor };
             const isFirstColumn = colIndex === 0;
 
             let borders: ITableCellOptions['borders'];

@@ -286,6 +286,9 @@ class DocxExporter {
       const doc = new Document({
         creator: 'Markdown Viewer Extension',
         lastModifiedBy: 'Markdown Viewer Extension',
+        ...(this.themeStyles?.pageBackground
+          ? { background: { color: this.themeStyles.pageBackground } }
+          : {}),
         numbering: {
           config: [
             {
@@ -768,7 +771,12 @@ class DocxExporter {
   private convertCodeBlock(node: DOCXASTNode, listLevel = 0, blockquoteNestLevel = 0): Paragraph {
     const runs = this.codeHighlighter!.getHighlightedRunsForCode(node.value ?? '', node.lang);
     const codeBackground = this.themeStyles?.characterStyles?.code?.background || 'F6F8FA';
-    
+    // Use the code fill itself as the border color so the border blends into the
+    // shading (Word still needs the border to create the "space" padding ring,
+    // but we don't want a visible line — especially on dark themes where a
+    // hardcoded light-gray line stood out).
+    const codeBorderColor = codeBackground;
+
     // Border space (10 points) extends outward, need to compensate with indent
     // 10 points = 200 twips (1 point = 20 twips)
     const borderSpace = 200;
@@ -787,10 +795,10 @@ class DocxExporter {
       shading: { fill: codeBackground },
       indent: { left: indentLeft, right: indentRight },
       border: {
-        top: { color: 'E1E4E8', space: 10, style: BorderStyle.SINGLE, size: 6 },
-        bottom: { color: 'E1E4E8', space: 10, style: BorderStyle.SINGLE, size: 6 },
-        left: { color: 'E1E4E8', space: 10, style: BorderStyle.SINGLE, size: 6 },
-        right: { color: 'E1E4E8', space: 10, style: BorderStyle.SINGLE, size: 6 },
+        top: { color: codeBorderColor, space: 10, style: BorderStyle.SINGLE, size: 6 },
+        bottom: { color: codeBorderColor, space: 10, style: BorderStyle.SINGLE, size: 6 },
+        left: { color: codeBorderColor, space: 10, style: BorderStyle.SINGLE, size: 6 },
+        right: { color: codeBorderColor, space: 10, style: BorderStyle.SINGLE, size: 6 },
       },
     });
   }

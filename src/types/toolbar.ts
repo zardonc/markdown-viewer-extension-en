@@ -31,6 +31,7 @@ export interface ToolbarManagerOptions {
   escapeHtml: EscapeHtmlFunction;
   saveFileState: (state: FileState) => void;
   getFileState: () => Promise<FileState>;
+  isMobile: boolean;
   rawMarkdown: string;
   docxExporter: DocxExporter;
   cancelScrollRestore: () => void;

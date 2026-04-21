@@ -174,7 +174,13 @@ export class VegaRenderer extends BaseRenderer {
     
     // Get font family from theme config
     const fontFamily = themeConfig?.fontFamily || "'SimSun', 'Times New Roman', Times, serif";
-    
+    const isDark = themeConfig?.colorSchema === 'dark';
+    // Dark palette: light text/axes on transparent bg so the chart blends into
+    // a dark page. Mirrors vega's built-in 'dark' theme minimally.
+    const darkStroke = '#c9d1d9';
+    const darkLabel = '#c9d1d9';
+    const darkGridline = '#30363d';
+
     // Create container for this render
     const container = this.createContainer();
     container.style.cssText = 'position: absolute; left: -9999px; top: -9999px; display: inline-block; background: transparent; padding: 0; margin: 0;';
@@ -189,16 +195,28 @@ export class VegaRenderer extends BaseRenderer {
       config: {
         background: null as string | null, // Transparent background
         font: fontFamily,
+        ...(isDark ? { title: { color: darkLabel, subtitleColor: darkLabel } } : {}),
         view: {
           stroke: null as string | null // Remove border
         },
         axis: {
           labelFontSize: 11,
-          titleFontSize: 12
+          titleFontSize: 12,
+          ...(isDark ? {
+            domainColor: darkStroke,
+            tickColor: darkStroke,
+            gridColor: darkGridline,
+            labelColor: darkLabel,
+            titleColor: darkLabel,
+          } : {}),
         },
         legend: {
           labelFontSize: 11,
-          titleFontSize: 12
+          titleFontSize: 12,
+          ...(isDark ? {
+            labelColor: darkLabel,
+            titleColor: darkLabel,
+          } : {}),
         },
         // Let Vega-Lite use its default step-based sizing for better automatic layout
         mark: {

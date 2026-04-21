@@ -1038,7 +1038,8 @@ function initScrollSyncController(): void {
   
   try {
     scrollSyncController = createViewerScrollSync({
-      containerId: 'vscode-content',
+      containerId: 'markdown-content',
+      scrollContainerId: 'markdown-wrapper',
       platform,
       // Default onUserScroll saves to FileStateService, which sends REVEAL_LINE
     });
@@ -1054,8 +1055,6 @@ function initScrollSyncController(): void {
  */
 function handleScrollToLine(payload: ScrollToLinePayload): void {
   const { line } = payload;
-  // eslint-disable-next-line no-console
-  console.log('[webview] handleScrollToLine', line);
   
   // Update FileStateService (for consistency with Chrome/Mobile)
   if (currentFilename) {

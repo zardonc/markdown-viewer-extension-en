@@ -43,8 +43,22 @@ export class DotRenderer extends BaseRenderer {
     // Validate input
     this.validateInput(code);
 
+    // Dark theme support: prepend default node/edge/graph attributes so nodes,
+    // edges, and labels become light-on-dark. User-specified attrs in the DOT
+    // code still win because they appear after these defaults.
+    const isDark = themeConfig?.colorSchema === 'dark';
+    let dotCode = code;
+    if (isDark) {
+      const prelude =
+        '  graph [fontcolor="#c9d1d9" bgcolor="transparent"];\n' +
+        '  node [color="#8b949e" fontcolor="#c9d1d9"];\n' +
+        '  edge [color="#8b949e" fontcolor="#c9d1d9"];\n';
+      // Insert prelude right after the first opening brace of the graph body.
+      dotCode = code.replace(/\{/, '{\n' + prelude);
+    }
+
     // Render DOT to SVG with transparent background
-    const svg = this.viz!.renderSVGElement(code, {
+    const svg = this.viz!.renderSVGElement(dotCode, {
       graphAttributes: {
         bgcolor: 'transparent'
       }

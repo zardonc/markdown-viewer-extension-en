@@ -155,6 +155,10 @@
     "message": "Bekijk als Markdown",
     "description": "Context menu item to view any file as markdown"
   },
+  "copy_as_png": {
+    "message": "Copy as PNG",
+    "description": "Context menu item for copying a diagram as PNG"
+  },
   "delete": {
     "message": "Delete",
     "description": "Delete button text"
@@ -543,6 +547,14 @@
     "message": "Ondersteunde formaten",
     "description": "Title for supported file formats section in settings"
   },
+  "settings_swap_panel_side": {
+    "message": "Swap TOC / file tree side",
+    "description": "Checkbox label for swapping TOC and workspace file tree panel side"
+  },
+  "settings_swap_panel_side_note": {
+    "message": "Chrome switches both the TOC and workspace file tree. Firefox switches the TOC only.",
+    "description": "Helper note for TOC and workspace panel side swap setting"
+  },
   "settings_table_layout": {
     "message": "Tabelindeling",
     "description": "Label for table layout selector"
@@ -635,6 +647,10 @@
     "message": "Open een markdown-bestand om te beginnen",
     "description": "Welcome message on empty state"
   },
+  "workspace_change_directory": {
+    "message": "Map wijzigen",
+    "description": "Tooltip for changing the current workspace directory"
+  },
   "workspace_choose_directory": {
     "message": "Map kiezen",
     "description": "Button to open directory picker"
@@ -650,6 +666,42 @@
   "workspace_recent": {
     "message": "Recente werkruimtes",
     "description": "Title for recent workspaces list"
+  },
+  "workspace_search_content_hint": {
+    "message": "Druk op Enter om in bestandsinhoud te zoeken",
+    "description": "Hint shown before executing a workspace content search"
+  },
+  "workspace_search_content_no_results": {
+    "message": "Geen overeenkomende inhoud",
+    "description": "Empty state shown when workspace content search returns no matches"
+  },
+  "workspace_search_content_placeholder": {
+    "message": "In bestandsinhoud zoeken",
+    "description": "Placeholder text for the workspace content search input"
+  },
+  "workspace_search_content_searching": {
+    "message": "Bezig met zoeken in bestandsinhoud...",
+    "description": "Status shown while workspace content search is running"
+  },
+  "workspace_search_mode_content_title": {
+    "message": "Zoekmodus voor inhoud",
+    "description": "Tooltip for workspace content search mode toggle"
+  },
+  "workspace_search_mode_filename_title": {
+    "message": "Zoekmodus voor bestandsnaam",
+    "description": "Tooltip for workspace file name search mode toggle"
+  },
+  "workspace_search_no_results": {
+    "message": "Geen overeenkomende bestanden",
+    "description": "Empty state shown when workspace file search returns no matches"
+  },
+  "workspace_search_placeholder": {
+    "message": "Bestandsnamen zoeken",
+    "description": "Placeholder text for the workspace file name search input"
+  },
+  "workspace_search_title": {
+    "message": "Bestanden zoeken",
+    "description": "Tooltip for the workspace file search button"
   },
   "workspace_select_file": {
     "message": "Selecteer een bestand om te bekijken",

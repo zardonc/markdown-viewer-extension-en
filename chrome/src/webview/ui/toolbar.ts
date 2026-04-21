@@ -43,6 +43,7 @@ export function createToolbarManager(options: ToolbarManagerOptions): ToolbarMan
     escapeHtml,
     saveFileState,
     getFileState,
+    isMobile,
     rawMarkdown,
     docxExporter,
     cancelScrollRestore,
@@ -66,6 +67,10 @@ export function createToolbarManager(options: ToolbarManagerOptions): ToolbarMan
 
   // Global zoom state
   let currentZoomLevel = 100;
+
+  function getScrollContainer(): HTMLElement | null {
+    return document.getElementById('markdown-wrapper') as HTMLElement | null;
+  }
 
   /**
    * Apply zoom level to content and update UI
@@ -91,10 +96,9 @@ export function createToolbarManager(options: ToolbarManagerOptions): ToolbarMan
     }
     
     // Update scroll-margin-top for all headings to account for zoom
-    // Formula: 50px (toolbar height) / zoom ratio
     const contentDiv = document.getElementById('markdown-content');
     if (contentDiv) {
-      const scrollMargin = 50 / (currentZoomLevel / 100);
+      const scrollMargin = 12 / (currentZoomLevel / 100);
       const headings = contentDiv.querySelectorAll('h1, h2, h3, h4, h5, h6');
       headings.forEach(heading => {
         (heading as HTMLElement).style.scrollMarginTop = scrollMargin + 'px';
@@ -139,7 +143,10 @@ export function createToolbarManager(options: ToolbarManagerOptions): ToolbarMan
       // Click file name to scroll to top
       fileNameSpan.addEventListener('click', () => {
         cancelScrollRestore();
-        window.scrollTo({ top: 0, behavior: 'smooth' });
+        const scrollContainer = getScrollContainer();
+        if (scrollContainer) {
+          scrollContainer.scrollTo({ top: 0, behavior: 'smooth' });
+        }
       });
     }
 
@@ -169,7 +176,11 @@ export function createToolbarManager(options: ToolbarManagerOptions): ToolbarMan
         const willBeHidden = !tocDiv.classList.contains('hidden');
         tocDiv.classList.toggle('hidden');
         document.body.classList.toggle('toc-hidden');
-        overlayDiv.classList.toggle('hidden');
+        if (isMobile) {
+          overlayDiv.classList.toggle('hidden');
+        } else {
+          overlayDiv.classList.add('hidden');
+        }
         
         // Save TOC visibility state
         saveFileState({
@@ -397,7 +408,11 @@ export function createToolbarManager(options: ToolbarManagerOptions): ToolbarMan
           const willBeHidden = !tocDiv.classList.contains('hidden');
           tocDiv.classList.toggle('hidden');
           document.body.classList.toggle('toc-hidden');
-          overlayDiv.classList.toggle('hidden');
+          if (isMobile) {
+            overlayDiv.classList.toggle('hidden');
+          } else {
+            overlayDiv.classList.add('hidden');
+          }
           
           // Save TOC visibility state
           saveFileState({

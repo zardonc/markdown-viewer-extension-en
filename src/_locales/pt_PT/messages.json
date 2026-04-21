@@ -155,6 +155,10 @@
     "message": "Visualizar como Markdown",
     "description": "Context menu item to view any file as markdown"
   },
+  "copy_as_png": {
+    "message": "Copy as PNG",
+    "description": "Context menu item for copying a diagram as PNG"
+  },
   "delete": {
     "message": "Eliminar",
     "description": "Delete button text"
@@ -543,6 +547,14 @@
     "message": "Formatos suportados",
     "description": "Title for supported file formats section in settings"
   },
+  "settings_swap_panel_side": {
+    "message": "Swap TOC / file tree side",
+    "description": "Checkbox label for swapping TOC and workspace file tree panel side"
+  },
+  "settings_swap_panel_side_note": {
+    "message": "Chrome switches both the TOC and workspace file tree. Firefox switches the TOC only.",
+    "description": "Helper note for TOC and workspace panel side swap setting"
+  },
   "settings_table_layout": {
     "message": "Disposição da tabela",
     "description": "Label for table layout selector"
@@ -635,6 +647,10 @@
     "message": "Abra um ficheiro markdown para começar",
     "description": "Welcome message on empty state"
   },
+  "workspace_change_directory": {
+    "message": "Mudar diretório",
+    "description": "Tooltip for changing the current workspace directory"
+  },
   "workspace_choose_directory": {
     "message": "Escolher diretório",
     "description": "Button to open directory picker"
@@ -650,6 +666,42 @@
   "workspace_recent": {
     "message": "Áreas de trabalho recentes",
     "description": "Title for recent workspaces list"
+  },
+  "workspace_search_content_hint": {
+    "message": "Prima Enter para pesquisar no conteúdo dos ficheiros",
+    "description": "Hint shown before executing a workspace content search"
+  },
+  "workspace_search_content_no_results": {
+    "message": "Nenhum conteúdo correspondente",
+    "description": "Empty state shown when workspace content search returns no matches"
+  },
+  "workspace_search_content_placeholder": {
+    "message": "Pesquisar no conteúdo dos ficheiros",
+    "description": "Placeholder text for the workspace content search input"
+  },
+  "workspace_search_content_searching": {
+    "message": "A pesquisar no conteúdo dos ficheiros...",
+    "description": "Status shown while workspace content search is running"
+  },
+  "workspace_search_mode_content_title": {
+    "message": "Modo de pesquisa por conteúdo",
+    "description": "Tooltip for workspace content search mode toggle"
+  },
+  "workspace_search_mode_filename_title": {
+    "message": "Modo de pesquisa por nome de ficheiro",
+    "description": "Tooltip for workspace file name search mode toggle"
+  },
+  "workspace_search_no_results": {
+    "message": "Nenhum ficheiro correspondente",
+    "description": "Empty state shown when workspace file search returns no matches"
+  },
+  "workspace_search_placeholder": {
+    "message": "Pesquisar nomes de ficheiros",
+    "description": "Placeholder text for the workspace file name search input"
+  },
+  "workspace_search_title": {
+    "message": "Pesquisar ficheiros",
+    "description": "Tooltip for the workspace file search button"
   },
   "workspace_select_file": {
     "message": "Selecione um ficheiro para pré-visualizar",
