@@ -758,12 +758,6 @@ html[data-code-view] #markdown-content pre code::before {
 }
 
 @media (max-width: 1024px) {
-  #gitbook-sidebar-body,
-  #gitbook-sidebar-header,
-  #gitbook-resize-handle {
-    display: none !important;
-  }
-
   #markdown-wrapper {
     margin-left: 0;
     margin-right: 0;
