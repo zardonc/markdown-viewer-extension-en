@@ -1,12 +1,12 @@
 /**
- * VSCode TOC Panel Component
+ * Shared TOC Panel Component
  *
- * Narrow-screen first Table of Contents drawer for VS Code webview.
+ * Narrow-screen first Table of Contents drawer.
  * Uses an overlay drawer and collapses immediately after heading selection.
  */
 
-import Localization from '../../../src/utils/localization';
-import type { HeadingInfo } from '../../../src/core/markdown-processor';
+import Localization from '../utils/localization';
+import type { HeadingInfo } from '../core/markdown-processor';
 
 export interface TocPanelOptions {
   onSelectHeading?: (headingId: string) => void;
@@ -58,13 +58,53 @@ export function createTocPanel(options: TocPanelOptions = {}): TocPanel {
   const list = root.querySelector('.vscode-toc-list') as HTMLUListElement;
   const emptyState = root.querySelector('.vscode-toc-empty') as HTMLDivElement;
   const title = root.querySelector('.vscode-toc-title') as HTMLSpanElement;
+  let pendingHideTransitionHandler: (() => void) | null = null;
+
+  function clearPendingHideTransitionHandler(): void {
+    if (!pendingHideTransitionHandler) {
+      return;
+    }
+
+    drawer.removeEventListener('transitionend', pendingHideTransitionHandler);
+    pendingHideTransitionHandler = null;
+  }
 
   function setVisible(nextVisible: boolean): void {
     visible = nextVisible;
-    drawer.classList.toggle('visible', visible);
-    drawer.setAttribute('aria-hidden', visible ? 'false' : 'true');
-    overlay.hidden = !visible;
-    fab.classList.toggle('active', visible);
+    clearPendingHideTransitionHandler();
+
+    if (nextVisible) {
+      // Show: make element visible before triggering slide-in transition
+      drawer.style.display = 'flex';
+      // Force reflow so the transition fires from the hidden transform state
+      void drawer.offsetWidth;
+      drawer.classList.add('visible');
+      drawer.setAttribute('aria-hidden', 'false');
+    } else {
+      // Hide: slide out first, then set display:none after transition
+      drawer.classList.remove('visible');
+      drawer.setAttribute('aria-hidden', 'true');
+      pendingHideTransitionHandler = (): void => {
+        clearPendingHideTransitionHandler();
+        // Only hide if still not visible (user may have re-opened during transition)
+        if (!visible) {
+          drawer.style.display = 'none';
+        }
+      };
+      drawer.addEventListener('transitionend', pendingHideTransitionHandler);
+    }
+    overlay.hidden = !nextVisible;
+    fab.classList.toggle('active', nextVisible);
+  }
+
+  function hideImmediately(): void {
+    visible = false;
+    clearPendingHideTransitionHandler();
+    drawer.classList.remove('visible');
+    drawer.setAttribute('aria-hidden', 'true');
+    drawer.style.display = 'none';
+    overlay.hidden = true;
+    fab.classList.remove('active');
   }
 
   function hide(): void {
@@ -107,8 +147,7 @@ export function createTocPanel(options: TocPanelOptions = {}): TocPanel {
       }
 
       btn.addEventListener('click', () => {
-        // Collapse immediately after user selection.
-        hide();
+        hideImmediately();
         onSelectHeading?.(heading.id);
       });
 

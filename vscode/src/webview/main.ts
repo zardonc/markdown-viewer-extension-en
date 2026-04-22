@@ -31,7 +31,7 @@ import {
 // VSCode-specific UI components
 import { createSettingsPanel, type SettingsPanel, type ThemeOption, type LocaleOption } from './settings-panel';
 import { createSearchPanel, type SearchPanel, type HighlightMatch, type SearchOptions } from './search-panel';
-import { createTocPanel, type TocPanel } from './toc-panel';
+import { createTocPanel, type TocPanel } from '../../../src/ui/toc-panel';
 import { setupImageContextMenu } from '../../../src/ui/image-context-menu';
 import { createExportMenu, type ExportMenu } from '../../../src/ui/export-menu';
 import { printElement } from '../../../src/ui/print-utils';

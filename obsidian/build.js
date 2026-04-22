@@ -274,10 +274,17 @@ function copyAssets() {
   min-height: auto;
 }
 
+.markdown-viewer-preview .vscode-toc-fab {
+  right: 30px;
+  bottom: 36px;
+}
+
 /* Map Obsidian CSS variables → --vscode-* for settings panel compatibility */
 .markdown-viewer-preview {
   --vscode-foreground: var(--text-normal);
   --vscode-font-family: var(--font-interface);
+  --vscode-editorWidget-background: var(--background-primary);
+  --vscode-editorWidget-border: var(--background-modifier-border);
   --vscode-dropdown-background: var(--background-secondary);
   --vscode-dropdown-foreground: var(--text-normal);
   --vscode-dropdown-border: var(--background-modifier-border);
@@ -295,6 +302,8 @@ function copyAssets() {
   --vscode-input-background: var(--background-primary);
   --vscode-input-border: var(--background-modifier-border);
   --vscode-input-foreground: var(--text-normal);
+  --vscode-inputOption-activeBackground: color-mix(in srgb, var(--interactive-accent) 24%, transparent);
+  --vscode-inputOption-activeForeground: var(--text-on-accent);
   --vscode-badge-background: var(--interactive-accent);
   --vscode-badge-foreground: var(--text-on-accent);
   --vscode-button-background: var(--interactive-accent);
@@ -348,6 +357,13 @@ function copyAssets() {
   if (fs.existsSync(settingsCssPath)) {
     combinedCss += '/* === Settings Panel Styles === */\n';
     combinedCss += fs.readFileSync(settingsCssPath, 'utf8') + '\n';
+  }
+
+  // Append shared TOC panel CSS from src (single source of truth)
+  const tocPanelCssPath = path.join(projectRoot, 'src', 'ui', 'toc-panel.css');
+  if (fs.existsSync(tocPanelCssPath)) {
+    combinedCss += '\n/* === Shared TOC Panel Styles === */\n';
+    combinedCss += fs.readFileSync(tocPanelCssPath, 'utf8') + '\n';
   }
 
   fs.writeFileSync(path.join(outdir, 'styles.css'), combinedCss);
