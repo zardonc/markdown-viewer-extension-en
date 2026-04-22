@@ -183,6 +183,18 @@
     "message": "Jaa Word-muodossa",
     "description": "Menu item for exporting to DOCX"
   },
+  "export_menu_export_docx": {
+    "message": "Vie DOCX-muotoon",
+    "description": "Export menu item for exporting to DOCX"
+  },
+  "export_menu_print_pdf": {
+    "message": "Tulosta PDF:ksi",
+    "description": "Export menu item for printing to PDF"
+  },
+  "export_menu_save_markdown": {
+    "message": "Tallenna Markdownina",
+    "description": "Export menu item for saving current file as Markdown"
+  },
   "exporting": {
     "message": "Valmistellaan Word-dokumenttia...",
     "description": "Toast shown during export"
@@ -646,6 +658,10 @@
   "welcome_message": {
     "message": "Avaa markdown-tiedosto aloittaaksesi",
     "description": "Welcome message on empty state"
+  },
+  "workspace_binary_file_cannot_preview": {
+    "message": "Binääritiedostoa ei voi esikatsella",
+    "description": "Message shown in workspace preview pane when selected file is binary"
   },
   "workspace_change_directory": {
     "message": "Vaihda kansiota",

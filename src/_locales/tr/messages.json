@@ -183,6 +183,18 @@
     "message": "Word olarak paylaş",
     "description": "Menu item for exporting to DOCX"
   },
+  "export_menu_export_docx": {
+    "message": "DOCX olarak dışa aktar",
+    "description": "Export menu item for exporting to DOCX"
+  },
+  "export_menu_print_pdf": {
+    "message": "PDF olarak yazdır",
+    "description": "Export menu item for printing to PDF"
+  },
+  "export_menu_save_markdown": {
+    "message": "Markdown olarak kaydet",
+    "description": "Export menu item for saving current file as Markdown"
+  },
   "exporting": {
     "message": "Word belgesi hazırlanıyor...",
     "description": "Toast shown during export"
@@ -646,6 +658,10 @@
   "welcome_message": {
     "message": "Başlamak için bir markdown dosyası açın",
     "description": "Welcome message on empty state"
+  },
+  "workspace_binary_file_cannot_preview": {
+    "message": "İkili dosya önizlenemiyor",
+    "description": "Message shown in workspace preview pane when selected file is binary"
   },
   "workspace_change_directory": {
     "message": "Dizini değiştir",

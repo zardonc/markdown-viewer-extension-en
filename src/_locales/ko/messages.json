@@ -183,6 +183,18 @@
     "message": "Word로 공유",
     "description": "Menu item for exporting to DOCX"
   },
+  "export_menu_export_docx": {
+    "message": "DOCX로 내보내기",
+    "description": "Export menu item for exporting to DOCX"
+  },
+  "export_menu_print_pdf": {
+    "message": "PDF로 인쇄",
+    "description": "Export menu item for printing to PDF"
+  },
+  "export_menu_save_markdown": {
+    "message": "Markdown으로 저장",
+    "description": "Export menu item for saving current file as Markdown"
+  },
   "exporting": {
     "message": "Word 문서 준비 중...",
     "description": "Toast shown during export"
@@ -646,6 +658,10 @@
   "welcome_message": {
     "message": "마크다운 파일을 열어 시작하세요",
     "description": "Welcome message on empty state"
+  },
+  "workspace_binary_file_cannot_preview": {
+    "message": "바이너리 파일은 미리 볼 수 없습니다",
+    "description": "Message shown in workspace preview pane when selected file is binary"
   },
   "workspace_change_directory": {
     "message": "디렉터리 변경",

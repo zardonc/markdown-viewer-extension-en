@@ -183,6 +183,18 @@
     "message": "Del som Word",
     "description": "Menu item for exporting to DOCX"
   },
+  "export_menu_export_docx": {
+    "message": "Eksporter til DOCX",
+    "description": "Export menu item for exporting to DOCX"
+  },
+  "export_menu_print_pdf": {
+    "message": "Skriv ut til PDF",
+    "description": "Export menu item for printing to PDF"
+  },
+  "export_menu_save_markdown": {
+    "message": "Lagre som Markdown",
+    "description": "Export menu item for saving current file as Markdown"
+  },
   "exporting": {
     "message": "Forbereder Word-dokument...",
     "description": "Toast shown during export"
@@ -646,6 +658,10 @@
   "welcome_message": {
     "message": "Åpne en markdown-fil for å komme i gang",
     "description": "Welcome message on empty state"
+  },
+  "workspace_binary_file_cannot_preview": {
+    "message": "Binærfil kan ikke forhåndsvises",
+    "description": "Message shown in workspace preview pane when selected file is binary"
   },
   "workspace_change_directory": {
     "message": "Bytt mappe",

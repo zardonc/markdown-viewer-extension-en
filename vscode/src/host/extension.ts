@@ -190,40 +190,81 @@ export function activate(context: vscode.ExtensionContext) {
         vscode.window.showWarningMessage('Please open the Markdown preview first');
       }
     })
- );
+  );
 
- // Register export to HTML command
- context.subscriptions.push(
- vscode.commands.registerCommand('markdownViewer.exportHtml', async () => {
- const panel = MarkdownPreviewPanel.currentPanel;
- if (panel) {
- await vscode.window.withProgress(
- {
- location: vscode.ProgressLocation.Notification,
- title: 'Exporting to HTML',
- cancellable: false,
- },
- async (progress) => {
- let lastProgress = 0;
- const success = await panel.exportToHtml((percent) => {
- const increment = percent - lastProgress;
- if (increment > 0) {
- progress.report({ increment, message: `${percent}%` });
- lastProgress = percent;
- }
- });
- if (!success) {
- vscode.window.showErrorMessage('HTML export failed');
- }
- }
- );
- } else {
- vscode.window.showWarningMessage('Please open the Markdown preview first');
- }
- })
- );
+  // Register export to HTML command
+  context.subscriptions.push(
+    vscode.commands.registerCommand('markdownViewer.exportHtml', async () => {
+      const panel = MarkdownPreviewPanel.currentPanel;
+      if (panel) {
+        await vscode.window.withProgress(
+          {
+            location: vscode.ProgressLocation.Notification,
+            title: 'Exporting to HTML',
+            cancellable: false,
+          },
+          async (progress) => {
+            let lastProgress = 0;
+            const success = await panel.exportToHtml((percent) => {
+              const increment = percent - lastProgress;
+              if (increment > 0) {
+                progress.report({ increment, message: `${percent}%` });
+                lastProgress = percent;
+              }
+            });
+            if (!success) {
+              vscode.window.showErrorMessage('HTML export failed');
+            }
+          }
+        );
+      } else {
+        vscode.window.showWarningMessage('Please open the Markdown preview first');
+      }
+    })
+  );
 
- // Register refresh command
+  context.subscriptions.push(
+    vscode.commands.registerCommand('markdownViewer.print', () => {
+      const panel = MarkdownPreviewPanel.currentPanel;
+      if (panel) {
+        panel.print();
+      } else {
+        vscode.window.showWarningMessage('Please open the Markdown preview first');
+      }
+    })
+  );
+
+  context.subscriptions.push(
+    vscode.commands.registerCommand('markdownViewer.openExportMenu', async () => {
+      const panel = MarkdownPreviewPanel.currentPanel;
+      if (panel) {
+        await vscode.window.withProgress(
+          {
+            location: vscode.ProgressLocation.Notification,
+            title: 'Exporting to DOCX',
+            cancellable: false,
+          },
+          async (progress) => {
+            let lastProgress = 0;
+            const success = await panel.exportToDocx((percent) => {
+              const increment = percent - lastProgress;
+              if (increment > 0) {
+                progress.report({ increment, message: `${percent}%` });
+                lastProgress = percent;
+              }
+            });
+            if (!success) {
+              vscode.window.showErrorMessage('DOCX export failed');
+            }
+          }
+        );
+      } else {
+        vscode.window.showWarningMessage('Please open the Markdown preview first');
+      }
+    })
+  );
+
+  // Register refresh command
   context.subscriptions.push(
     vscode.commands.registerCommand('markdownViewer.refresh', () => {
       const panel = MarkdownPreviewPanel.currentPanel;

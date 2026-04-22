@@ -183,6 +183,18 @@
     "message": "Word के रूप में साझा करें",
     "description": "Menu item for exporting to DOCX"
   },
+  "export_menu_export_docx": {
+    "message": "DOCX में निर्यात करें",
+    "description": "Export menu item for exporting to DOCX"
+  },
+  "export_menu_print_pdf": {
+    "message": "PDF के रूप में प्रिंट करें",
+    "description": "Export menu item for printing to PDF"
+  },
+  "export_menu_save_markdown": {
+    "message": "Markdown के रूप में सहेजें",
+    "description": "Export menu item for saving current file as Markdown"
+  },
   "exporting": {
     "message": "Word दस्तावेज़ तैयार हो रहा है...",
     "description": "Toast shown during export"
@@ -646,6 +658,10 @@
   "welcome_message": {
     "message": "शुरू करने के लिए एक मार्कडाउन फ़ाइल खोलें",
     "description": "Welcome message on empty state"
+  },
+  "workspace_binary_file_cannot_preview": {
+    "message": "बाइनरी फ़ाइल का पूर्वावलोकन नहीं किया जा सकता",
+    "description": "Message shown in workspace preview pane when selected file is binary"
   },
   "workspace_change_directory": {
     "message": "डायरेक्टरी बदलें",

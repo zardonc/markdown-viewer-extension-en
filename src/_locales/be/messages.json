@@ -183,6 +183,18 @@
     "message": "Падзяліцца як Word",
     "description": "Menu item for exporting to DOCX"
   },
+  "export_menu_export_docx": {
+    "message": "Экспартаваць у DOCX",
+    "description": "Export menu item for exporting to DOCX"
+  },
+  "export_menu_print_pdf": {
+    "message": "Друкаваць у PDF",
+    "description": "Export menu item for printing to PDF"
+  },
+  "export_menu_save_markdown": {
+    "message": "Захаваць як Markdown",
+    "description": "Export menu item for saving current file as Markdown"
+  },
   "exporting": {
     "message": "Падрыхтоўка дакумента Word...",
     "description": "Fallback message when DOCX export fails"
@@ -646,6 +658,10 @@
   "welcome_message": {
     "message": "Адкрыйце файл markdown, каб пачаць",
     "description": "Welcome message on empty state"
+  },
+  "workspace_binary_file_cannot_preview": {
+    "message": "Двайковы файл нельга праглядзець",
+    "description": "Message shown in workspace preview pane when selected file is binary"
   },
   "workspace_change_directory": {
     "message": "Змяніць каталог",

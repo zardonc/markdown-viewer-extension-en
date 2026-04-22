@@ -34,6 +34,8 @@ import { createSettingsPanel, type SettingsPanel, type ThemeOption, type LocaleO
 import { createSearchPanel, type SearchPanel, type HighlightMatch, type SearchOptions } from './search-panel';
 import { createTOCPanel, type TOCPanel, type TOCHeading } from './toc-panel';
 import { setupImageContextMenu } from '../../../src/ui/image-context-menu';
+import { createExportMenu, type ExportMenu } from '../../../src/ui/export-menu';
+import { printElement } from '../../../src/ui/print-utils';
 
 // Declare global types for VSCode-specific variables
 declare global {
@@ -64,6 +66,7 @@ let renderQueue: Promise<void> = Promise.resolve();
 let settingsPanel: SettingsPanel | null = null;
 let searchPanel: SearchPanel | null = null;
 let tocPanel: TOCPanel | null = null; // TOC sidebar panel
+let exportMenu: ExportMenu | null = null;
 let currentHighlights: Map<HTMLElement, HTMLElement> = new Map(); // Original element → wrapper
 
 // Create HTML exporter
@@ -175,6 +178,14 @@ function handleExtensionMessage(message: ExtensionMessage): void {
       handleExportDocx();
       break;
 
+    case 'OPEN_EXPORT_MENU':
+      handleOpenExportMenu();
+      break;
+
+    case 'PRINT':
+      handlePrint();
+      break;
+
     case 'SET_THEME':
       handleSetTheme(payload as SetThemePayload);
       break;
@@ -215,8 +226,6 @@ function handleExtensionMessage(message: ExtensionMessage): void {
 
 async function handleUpdateContent(payload: UpdateContentPayload): Promise<void> {
   const { content, filename, documentBaseUri, forceRender, scrollLine } = payload;
-  // eslint-disable-next-line no-console
-  console.log('[webview] handleUpdateContent', filename, 'scrollLine=', scrollLine, 'forceRender=', forceRender);
   const container = document.getElementById('markdown-content');
   
   if (!container) {
@@ -467,6 +476,14 @@ async function handleExportHtml(embedImages: boolean): Promise<void> {
   }
 }
 
+async function handlePrint(): Promise<void> {
+  const page = document.getElementById('markdown-page') as HTMLElement | null;
+  if (!page) {
+    return;
+  }
+  await printElement(page, currentFilename || document.title || 'Markdown Viewer');
+}
+
 // ============================================================================
 // Zoom Handling (same as Mobile)
 // ============================================================================
@@ -567,8 +584,6 @@ function initializeUI(): void {
       // Anchor links
       else if (href.startsWith('#')) {
         const targetId = decodeURIComponent(href.slice(1));
-        // eslint-disable-next-line no-console
-        console.log('[webview] anchor click #', targetId);
         const targetEl = document.getElementById(targetId);
         if (targetEl) {
           targetEl.scrollIntoView({ behavior: 'smooth' });
@@ -579,8 +594,6 @@ function initializeUI(): void {
         // Split hash fragment from path (e.g., ./file.md#section → path + fragment)
         const hashIndex = href.indexOf('#');
         if (hashIndex >= 0) {
-          // eslint-disable-next-line no-console
-          console.log('[webview] relative link click', href, '→ path=', href.slice(0, hashIndex), 'fragment=', href.slice(hashIndex + 1));
           vscodeBridge.postMessage('OPEN_RELATIVE_FILE', {
             path: href.slice(0, hashIndex),
             fragment: decodeURIComponent(href.slice(hashIndex + 1)),
@@ -661,9 +674,14 @@ function initializeUI(): void {
     onShow: () => {
       // Refresh cache stats when panel is shown
       loadCacheStats();
-    },
+    }
   });
   document.body.appendChild(settingsPanel.getElement());
+
+  exportMenu = createExportMenu({
+    translate: (key) => Localization.translate(key),
+    onExportDocx: () => handleExportDocx(),
+  });
 
   // Create search panel
   searchPanel = createSearchPanel({
@@ -706,6 +724,10 @@ function handleOpenSettings(): void {
       settingsPanel.showAtPosition(window.innerWidth - 300, 10);
     }
   }
+}
+
+function handleOpenExportMenu(): void {
+  exportMenu?.showAtPosition(window.innerWidth - 220, 10);
 }
 
 /**
@@ -794,7 +816,7 @@ async function loadThemesForSettings(): Promise<void> {
         }
         return a.themeOrder - b.themeOrder;
       });
-    
+
     settingsPanel.setThemes(themes);
   } catch (error) {
     console.warn('[VSCode Webview] Failed to load themes:', error);
@@ -844,7 +866,7 @@ async function loadCacheStats(): Promise<void> {
  */
 function performSearch(query: string, options: SearchOptions): HighlightMatch[] {
   clearHighlights();
-  
+
   if (!query) {
     return [];
   }
@@ -855,11 +877,11 @@ function performSearch(query: string, options: SearchOptions): HighlightMatch[] 
   }
 
   const matches: HighlightMatch[] = [];
-  
+
   try {
     // Build regex pattern
     let pattern = query;
-    
+
     if (options.useRegex) {
       // Use query as regex directly
       pattern = query;
@@ -867,15 +889,15 @@ function performSearch(query: string, options: SearchOptions): HighlightMatch[] 
       // Escape special regex characters
       pattern = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     }
-    
+
     // Add case sensitivity and word boundary flags
     let flags = options.caseSensitive ? 'g' : 'gi';
     if (options.wholeWord) {
       pattern = `\\b${pattern}\\b`;
     }
-    
+
     const regex = new RegExp(pattern, flags);
-    
+
     // Walk through text nodes and find matches
     const walker = document.createTreeWalker(
       container,
@@ -886,18 +908,19 @@ function performSearch(query: string, options: SearchOptions): HighlightMatch[] 
     let node: Node | null;
     while ((node = walker.nextNode())) {
       if (!node.textContent) continue;
-      
+
       // Skip matches in script/style tags
       const parent = node.parentElement;
       if (parent?.closest('script, style, [data-search-ignore]')) {
         continue;
       }
 
-      const text = node.textContent;      let match;
-      
+      const text = node.textContent;
+      let match;
+
       // Reset regex lastIndex for global matching
       regex.lastIndex = 0;
-      
+
       while ((match = regex.exec(text)) !== null) {
         matches.push({
           element: node as HTMLElement,
@@ -926,7 +949,7 @@ function highlightMatches(matches: HighlightMatch[]): void {
 
   // Group matches by node for efficient processing
   const matchesByNode = new Map<Node, HighlightMatch[]>();
-  
+
   matches.forEach(match => {
     if (!matchesByNode.has(match.element)) {
       matchesByNode.set(match.element, []);
@@ -938,7 +961,7 @@ function highlightMatches(matches: HighlightMatch[]): void {
   matchesByNode.forEach((nodeMatches, node) => {
     try {
       if (node.nodeType !== 3) return; // Skip non-text nodes
-      
+
       const text = node.textContent || '';
       const parent = node.parentElement;
       if (!parent) return;
@@ -1007,13 +1030,13 @@ function scrollToHighlight(index: number): void {
   const highlights = document.querySelectorAll('.vscode-search-highlight');
   if (index >= 0 && index < highlights.length) {
     const el = highlights[index] as HTMLElement;
-    
+
     // Remove current class from all highlights
     highlights.forEach(h => h.classList.remove('current'));
-    
+
     // Add current class to selected highlight
     el.classList.add('current');
-    
+
     // Scroll into view
     el.scrollIntoView({ behavior: 'smooth', block: 'center' });
   }
@@ -1035,7 +1058,7 @@ let scrollSyncController: ScrollSyncController | null = null;
 function initScrollSyncController(): void {
   // Dispose previous controller if exists
   scrollSyncController?.dispose();
-  
+
   try {
     scrollSyncController = createViewerScrollSync({
       containerId: 'markdown-content',
@@ -1055,12 +1078,12 @@ function initScrollSyncController(): void {
  */
 function handleScrollToLine(payload: ScrollToLinePayload): void {
   const { line } = payload;
-  
+
   // Update FileStateService (for consistency with Chrome/Mobile)
   if (currentFilename) {
     platform.fileState.setScrollLineFromHost(currentFilename, line);
   }
-  
+
   if (scrollSyncController) {
     scrollSyncController.setTargetLine(line);
   }

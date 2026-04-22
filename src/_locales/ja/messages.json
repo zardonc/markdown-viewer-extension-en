@@ -183,6 +183,18 @@
     "message": "Wordで共有",
     "description": "Menu item for exporting to DOCX"
   },
+  "export_menu_export_docx": {
+    "message": "DOCX にエクスポート",
+    "description": "Export menu item for exporting to DOCX"
+  },
+  "export_menu_print_pdf": {
+    "message": "PDF に印刷",
+    "description": "Export menu item for printing to PDF"
+  },
+  "export_menu_save_markdown": {
+    "message": "Markdownとして保存",
+    "description": "Export menu item for saving current file as Markdown"
+  },
   "exporting": {
     "message": "Word文書を準備中...",
     "description": "Toast shown during export"
@@ -646,6 +658,10 @@
   "welcome_message": {
     "message": "マークダウンファイルを開いて始めましょう",
     "description": "Welcome message on empty state"
+  },
+  "workspace_binary_file_cannot_preview": {
+    "message": "バイナリファイルはプレビューできません",
+    "description": "Message shown in workspace preview pane when selected file is binary"
   },
   "workspace_change_directory": {
     "message": "ディレクトリを変更",

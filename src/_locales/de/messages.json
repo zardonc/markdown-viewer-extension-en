@@ -183,6 +183,18 @@
     "message": "Als Word teilen",
     "description": "Menu item for exporting to DOCX"
   },
+  "export_menu_export_docx": {
+    "message": "Als DOCX exportieren",
+    "description": "Export menu item for exporting to DOCX"
+  },
+  "export_menu_print_pdf": {
+    "message": "Als PDF drucken",
+    "description": "Export menu item for printing to PDF"
+  },
+  "export_menu_save_markdown": {
+    "message": "Als Markdown speichern",
+    "description": "Export menu item for saving current file as Markdown"
+  },
   "exporting": {
     "message": "Word-Dokument wird vorbereitet...",
     "description": "Toast shown during export"
@@ -646,6 +658,10 @@
   "welcome_message": {
     "message": "Öffnen Sie eine Markdown-Datei, um zu beginnen",
     "description": "Welcome message on empty state"
+  },
+  "workspace_binary_file_cannot_preview": {
+    "message": "Binärdatei kann nicht in der Vorschau angezeigt werden",
+    "description": "Message shown in workspace preview pane when selected file is binary"
   },
   "workspace_change_directory": {
     "message": "Verzeichnis ändern",
