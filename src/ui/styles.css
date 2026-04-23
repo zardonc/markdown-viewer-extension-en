@@ -939,6 +939,9 @@ html[data-code-view] #markdown-content pre code::before {
   body,
   #vscode-root,
   #vscode-content,
+  #page-shell,
+  #page-content,
+  #viewer-main-column,
   #markdown-wrapper,
   #markdown-page {
     height: auto !important;
@@ -949,7 +952,14 @@ html[data-code-view] #markdown-content pre code::before {
     print-color-adjust: exact;
   }
 
-  /* Hide toolbar, TOC and overlay completely when printing */
+  /* Un-fix the page shell so all content pages flow naturally */
+  #page-shell {
+    position: static !important;
+    display: block !important;
+  }
+
+  /* Hide toolbar header, TOC and overlay completely when printing */
+  #page-header,
   #toolbar,
   #table-of-contents,
   #toc-overlay {
