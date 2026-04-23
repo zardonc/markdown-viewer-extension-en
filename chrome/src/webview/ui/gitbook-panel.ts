@@ -119,7 +119,8 @@ async function readSummaryByRelativePath(
   readRelativeFile?: (relativePath: string) => Promise<string>
 ): Promise<{ summaryUrl: string; content: string } | null> {
   try {
-    const summaryUrl = new URL(relativePath, currentUrl).href;
+    const summaryParsedUrl = new URL(relativePath, currentUrl);
+    const summaryUrl = summaryParsedUrl.href;
     logDebug('Trying summary candidate', { relativePath, summaryUrl });
 
     if (readRelativeFile) {
@@ -133,6 +134,12 @@ async function readSummaryByRelativePath(
           error: (error as Error).message,
         });
       }
+    }
+
+    // Avoid fetch on local file URLs to prevent browser CORS errors in file origin.
+    if (summaryParsedUrl.protocol === 'file:') {
+      logDebug('Skip fetch for file URL summary candidate', { summaryUrl });
+      return null;
     }
 
     const response = await fetch(summaryUrl);
