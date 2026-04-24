@@ -28,6 +28,8 @@ export function createTocManager(
   getFileState: GetFileStateFunction,
   isMobile: boolean
 ): TocManager {
+  let tocGenerationToken = 0;
+
   function getScrollContainer(): HTMLElement | null {
     return document.getElementById('markdown-wrapper') as HTMLElement | null;
   }
@@ -53,6 +55,7 @@ export function createTocManager(
    * Generate table of contents from headings
    */
   async function generateTOC(): Promise<void> {
+    const token = ++tocGenerationToken;
     const contentDiv = document.getElementById('markdown-content');
     const tocDiv = document.getElementById('table-of-contents');
 
@@ -62,9 +65,13 @@ export function createTocManager(
 
     if (headings.length === 0) {
       tocDiv.style.display = 'none';
+      tocDiv.classList.add('hidden');
       document.body.classList.add('toc-hidden');
       return;
     }
+
+    // Clear stale inline display state from the no-headings path.
+    tocDiv.style.display = '';
 
     // Generate TOC list only
     let tocHTML = '<ul class="toc-list">';
@@ -83,6 +90,12 @@ export function createTocManager(
     });
 
     tocHTML += '</ul>';
+
+    // A newer generateTOC call started while we were building; abandon stale result.
+    if (token !== tocGenerationToken) {
+      return;
+    }
+
     tocDiv.innerHTML = tocHTML;
 
     tocDiv.querySelectorAll('a').forEach((link) => {
@@ -103,8 +116,16 @@ export function createTocManager(
       });
     });
     
+    // In embed mode the parent controls TOC visibility via postMessage; skip saved-state restoration.
+    if (document.body.dataset.mvEmbed === '1') {
+      return;
+    }
+
     // Apply saved TOC visibility state after generating TOC
     const savedState = await getFileState();
+    if (token !== tocGenerationToken) {
+      return;
+    }
     const overlayDiv = document.getElementById('toc-overlay');
     
     if (overlayDiv) {
@@ -137,6 +158,9 @@ export function createTocManager(
           }
         }
       }
+
+      // Keep body/toc state consistent even when visibility does not change in this cycle.
+      document.body.classList.toggle('toc-hidden', tocDiv.classList.contains('hidden'));
     }
   }
 
@@ -273,30 +297,9 @@ export function createTocManager(
    * Setup responsive TOC behavior
    */
   async function setupResponsiveToc(): Promise<void> {
-    if (!isMobile) {
-      return;
-    }
-
-    const tocDiv = document.getElementById('table-of-contents');
-
-    if (!tocDiv) return;
-
-    const handleResize = async (): Promise<void> => {
-      const savedState = await getFileState();
-
-      if (savedState.tocVisible === undefined || savedState.tocVisible === false) {
-        tocDiv.classList.add('hidden');
-        document.body.classList.add('toc-hidden');
-        const overlayDiv = document.getElementById('toc-overlay');
-        if (overlayDiv) {
-          overlayDiv.classList.add('hidden');
-        }
-      }
-    };
-
-    // Don't set initial state here - it's already set by generateTOC()
-    // Only listen for window resize
-    window.addEventListener('resize', handleResize);
+    // Keep this method for compatibility with existing call sites.
+    // TOC visibility is controlled by explicit user action/state only.
+    return;
   }
 
   return {

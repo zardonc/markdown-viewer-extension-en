@@ -26,10 +26,9 @@ interface GitbookPanel {
   setupResponsivePanel(): Promise<void>;
 }
 
-const gitbookDebugPrefix = '[GitBookNav]';
-
 function logDebug(message: string, ...args: unknown[]): void {
-  console.debug(gitbookDebugPrefix, message, ...args);
+  void message;
+  void args;
 }
 
 function isMarkdownDocumentUrl(url: string): boolean {

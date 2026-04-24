@@ -3,7 +3,7 @@
 
 import { platform } from '../webview/index';
 import { startViewer } from '../webview/viewer-main';
-import { createPluginRenderer } from '../../../src/core/viewer/viewer-host';
+import { initializeViewerBase } from '../../../src/core/viewer/viewer-bootstrap';
 
 // Wait for content from parent (workspace page)
 function onMessage(event: MessageEvent) {
@@ -33,12 +33,14 @@ function onMessage(event: MessageEvent) {
   // so the viewer can determine file type from filename
   document.documentElement.dataset.viewerFilename = filename;
 
-  // Run the standard viewer pipeline (identical to main.ts)
-  const pluginRenderer = createPluginRenderer(platform);
-  startViewer({
-    platform,
-    pluginRenderer,
-    themeConfigRenderer: platform.renderer,
+  void initializeViewerBase(platform).then((pluginRenderer) => {
+    startViewer({
+      platform,
+      pluginRenderer,
+      themeConfigRenderer: platform.renderer,
+    });
+  }).catch((error) => {
+    console.error('[viewer-embed] viewer base init failed', error);
   });
 }
 window.addEventListener('message', onMessage);

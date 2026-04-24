@@ -1,0 +1,369 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Markdown Viewer Element Demo</title>
+  <style>
+    :root {
+      --bg: #f5f7fb;
+      --panel: #ffffff;
+      --text: #1f2937;
+      --muted: #6b7280;
+      --ok: #0f766e;
+      --warn: #b45309;
+      --err: #b91c1c;
+      --border: #dbe3ef;
+      --accent: #0ea5e9;
+    }
+
+    * { box-sizing: border-box; }
+
+    html,
+    body {
+      height: auto !important;
+      min-height: 100%;
+      overflow-y: auto !important;
+      overflow-x: auto;
+    }
+
+    body {
+      margin: 0;
+      padding: 24px;
+      background: radial-gradient(circle at top left, #d9f2ff 0%, var(--bg) 45%);
+      color: var(--text);
+      font-family: "SF Mono", Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      line-height: 1.5;
+    }
+
+    .container {
+      max-width: 980px;
+      margin: 0 auto;
+      display: grid;
+      gap: 16px;
+    }
+
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px;
+      box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
+    }
+
+    h1 {
+      margin: 0 0 8px;
+      font-size: 20px;
+    }
+
+    p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    button {
+      border: 1px solid var(--border);
+      background: #fff;
+      color: var(--text);
+      padding: 8px 12px;
+      border-radius: 8px;
+      cursor: pointer;
+      font: inherit;
+      font-size: 12px;
+    }
+
+    button.primary {
+      background: var(--accent);
+      color: #fff;
+      border-color: var(--accent);
+    }
+
+    pre {
+      margin: 0;
+      overflow: auto;
+      background: #0b1020;
+      color: #d8e1ff;
+      border-radius: 10px;
+      padding: 12px;
+      min-height: 180px;
+      font-size: 12px;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    textarea {
+      width: 100%;
+      min-height: 180px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      padding: 12px;
+      font: inherit;
+      font-size: 12px;
+      resize: vertical;
+      background: #f9fbff;
+      color: var(--text);
+    }
+
+    input[type="text"],
+    input[type="number"] {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px 10px;
+      font: inherit;
+      font-size: 12px;
+      min-width: 120px;
+      background: #fff;
+      color: var(--text);
+    }
+
+    .viewer-wrap {
+      min-height: 360px;
+      border: 1px dashed var(--border);
+      border-radius: 10px;
+      padding: 10px;
+      background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
+    }
+
+    markdown-viewer {
+      display: block;
+      min-height: 320px;
+    }
+
+    .status {
+      font-size: 12px;
+      margin-top: 10px;
+    }
+
+    .ok { color: var(--ok); }
+    .warn { color: var(--warn); }
+    .err { color: var(--err); }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <section class="panel">
+      <h1>Markdown Viewer Element Demo</h1>
+      <p>
+        This page tests only the markdown-viewer element contract: attribute updates, method calls, and
+        scrolllinechange events.
+      </p>
+      <div class="actions">
+        <button id="checkElement" class="primary">Check Element</button>
+        <button id="renderByValue">Set value Attribute</button>
+        <button id="renderByMethod">Call render()</button>
+        <button id="scrollToLine">Set scroll-line</button>
+        <button id="jumpAnchor">scrollToAnchor()</button>
+        <button id="clearLog">Clear Log</button>
+      </div>
+      <div class="actions" style="margin-top:10px;">
+        <input id="scrollLineInput" type="number" value="18" min="0" step="1" />
+        <input id="anchorInput" type="text" value="section-b" />
+      </div>
+      <div id="status" class="status warn">Status: idle</div>
+    </section>
+
+    <section class="panel">
+      <textarea id="markdownInput"># Demo Title
+
+This page only interacts with the markdown-viewer custom element.
+
+## Section A
+
+- item 1
+- item 2
+
+## Section B {#section-b}
+
+Try theme switching and anchor jumping.
+
+### Deep Note
+
+Scroll to trigger scrolllinechange.
+
+```mermaid
+graph TD
+  A[Input] --> B[Render]
+  B --> C[Output]
+```
+</textarea>
+    </section>
+
+    <section class="panel">
+      <div class="viewer-wrap">
+        <markdown-viewer id="viewer"></markdown-viewer>
+      </div>
+    </section>
+
+    <section class="panel">
+      <pre id="log"></pre>
+    </section>
+  </div>
+
+  <script>
+    (function () {
+      const statusEl = document.getElementById('status');
+      const logEl = document.getElementById('log');
+      const markdownInputEl = document.getElementById('markdownInput');
+      const viewerEl = document.getElementById('viewer');
+      const scrollLineInputEl = document.getElementById('scrollLineInput');
+      const anchorInputEl = document.getElementById('anchorInput');
+
+      function setStatus(level, text) {
+        statusEl.className = 'status ' + level;
+        statusEl.textContent = 'Status: ' + text;
+      }
+
+      function writeLog(title, data) {
+        const time = new Date().toISOString();
+        const header = '[' + time + '] ' + title;
+        const body = data === undefined ? '' : '\n' + JSON.stringify(data, null, 2);
+        logEl.textContent += header + body + '\n\n';
+        logEl.scrollTop = logEl.scrollHeight;
+      }
+
+      function getMarkdownText() {
+        return String(markdownInputEl.value || '');
+      }
+
+      function isFileProtocol() {
+        return window.location.protocol === 'file:';
+      }
+
+      function checkElementState() {
+        const isDefined = Boolean(customElements.get('markdown-viewer'));
+        const hasRender = typeof viewerEl.render === 'function';
+        const hasAnchor = typeof viewerEl.scrollToAnchor === 'function';
+        writeLog('Element state', {
+          tagName: viewerEl.tagName,
+          isDefined: isDefined,
+          hasRender: hasRender,
+          hasAnchor: hasAnchor,
+          isFileProtocol: isFileProtocol(),
+        });
+        if (isDefined) {
+          setStatus('ok', 'element available');
+        } else {
+          setStatus('err', 'element not registered');
+        }
+
+        return isDefined;
+      }
+
+      function waitForElementRegistration() {
+        let retry = 0;
+        const maxRetry = 20;
+
+        function tick() {
+          const ready = checkElementState();
+          if (ready) {
+            return;
+          }
+
+          retry += 1;
+          if (retry >= maxRetry) {
+            writeLog('Element registration timeout', {
+              waitedMs: maxRetry * 120,
+              hint: 'If this page is file://, confirm extension file URL access is enabled and the extension is reloaded.'
+            });
+            return;
+          }
+
+          setTimeout(tick, 120);
+        }
+
+        setStatus('warn', 'waiting for element registration');
+        tick();
+      }
+
+      async function renderByMethod() {
+        const markdown = getMarkdownText();
+        if (typeof viewerEl.render !== 'function') {
+          writeLog('render() unavailable', { reason: 'element method missing' });
+          setStatus('err', 'render() unavailable');
+          return;
+        }
+        setStatus('warn', 'rendering via method');
+        try {
+          await viewerEl.render(markdown);
+          writeLog('render() ok', { length: markdown.length });
+          setStatus('ok', 'render() done');
+        } catch (error) {
+          writeLog('render() failed', { error: String(error && error.message || error) });
+          setStatus('err', 'render() failed');
+        }
+      }
+
+      function renderByValue() {
+        const markdown = getMarkdownText();
+        viewerEl.setAttribute('value', markdown);
+        writeLog('value attribute set', { length: markdown.length });
+        setStatus('ok', 'value updated');
+      }
+
+      function setScrollLine() {
+        const line = Number.parseInt(String(scrollLineInputEl.value || ''), 10);
+        if (!Number.isFinite(line)) {
+          writeLog('invalid line', { value: scrollLineInputEl.value });
+          setStatus('err', 'invalid line');
+          return;
+        }
+        viewerEl.setAttribute('scroll-line', String(line));
+        writeLog('scroll-line updated', { line: line });
+        setStatus('ok', 'scroll-line set');
+      }
+
+      function jumpAnchor() {
+        const anchor = String(anchorInputEl.value || '').trim();
+        if (!anchor) {
+          writeLog('anchor empty');
+          setStatus('err', 'anchor empty');
+          return;
+        }
+        if (typeof viewerEl.scrollToAnchor !== 'function') {
+          writeLog('scrollToAnchor unavailable', { reason: 'element method missing' });
+          setStatus('err', 'scrollToAnchor unavailable');
+          return;
+        }
+        viewerEl.scrollToAnchor(anchor);
+        writeLog('scrollToAnchor called', { anchor: anchor });
+        setStatus('ok', 'anchor requested');
+      }
+
+      viewerEl.addEventListener('scrolllinechange', function (event) {
+        const detail = event && event.detail ? event.detail : {};
+        writeLog('scrolllinechange', detail);
+      });
+
+      document.getElementById('checkElement').addEventListener('click', checkElementState);
+      document.getElementById('renderByValue').addEventListener('click', renderByValue);
+      document.getElementById('renderByMethod').addEventListener('click', renderByMethod);
+      document.getElementById('scrollToLine').addEventListener('click', setScrollLine);
+      document.getElementById('jumpAnchor').addEventListener('click', jumpAnchor);
+      document.getElementById('clearLog').addEventListener('click', function () {
+        logEl.textContent = '';
+        setStatus('warn', 'idle');
+      });
+
+      writeLog('Demo initialized', {
+        note: 'No runtime bridge protocol is used on this page. Only markdown-viewer element API is tested.'
+      });
+
+      if (isFileProtocol()) {
+        writeLog('Environment warning', {
+          message: 'Current URL uses file://; tests can still run, but browser security may block some frame/resource paths.'
+        });
+      }
+
+      waitForElementRegistration();
+    })();
+  </script>
+</body>
+</html>

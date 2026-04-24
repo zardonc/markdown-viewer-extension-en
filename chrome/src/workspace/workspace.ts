@@ -661,12 +661,10 @@ async function showImagePreview(_file: File, name: string, _ext: string): Promis
 
 // ─── File preview via embedded viewer ───
 function sendToViewer(content: string, filename: string, codeView = false) {
-  // Hide the iframe while it navigates + renders. The iframe element's blank
-  // frame during src reset would otherwise flash the default UA white (or
-  // the iframe body's unthemed background). The preview-pane behind it is
-  // already themed, so the user sees a stable surface until VIEWER_RENDERED.
+  // Keep iframe visible so rendering updates (including TOC generation) are
+  // visible during loading instead of appearing only after full completion.
   $previewEmpty.style.display = 'none';
-  $previewFrame.style.visibility = 'hidden';
+  $previewFrame.style.visibility = '';
   $previewFrame.style.display = 'block';
   $previewFrame.src = VIEWER_URL;
 
@@ -683,9 +681,7 @@ function sendToViewer(content: string, filename: string, codeView = false) {
       return;
     }
     if (event.data?.type === 'VIEWER_RENDERED') {
-      // Theme applied and body opacity=1 — safe to reveal the iframe.
       window.removeEventListener('message', onMessage);
-      $previewFrame.style.visibility = '';
     }
   };
   window.addEventListener('message', onMessage);

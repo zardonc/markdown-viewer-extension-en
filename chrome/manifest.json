@@ -29,36 +29,8 @@
   "content_scripts": [
     {
       "matches": [
-        "file://*/*.md",
-        "file://*/*.markdown",
-        "file://*/*.slides.md",
-        "file://*/*.mermaid",
-        "file://*/*.mmd",
-        "file://*/*.plantuml",
-        "file://*/*.puml",
-        "file://*/*.vega",
-        "file://*/*.vl",
-        "file://*/*.vega-lite",
-        "file://*/*.gv",
-        "file://*/*.dot",
-        "file://*/*.infographic",
-        "file://*/*.canvas",
-        "file://*/*.drawio",
-        "*://*/*.md",
-        "*://*/*.markdown",
-        "*://*/*.slides.md",
-        "*://*/*.mermaid",
-        "*://*/*.mmd",
-        "*://*/*.plantuml",
-        "*://*/*.puml",
-        "*://*/*.vega",
-        "*://*/*.vl",
-        "*://*/*.vega-lite",
-        "*://*/*.gv",
-        "*://*/*.dot",
-        "*://*/*.infographic",
-        "*://*/*.canvas",
-        "*://*/*.drawio"
+        "file:///*",
+        "*://*/*"
       ],
       "js": [
         "core/content-detector.js"
@@ -72,6 +44,10 @@
         "ui/styles.css",
         "ui/offscreen-render.html",
         "icons/icon16.png",
+        "core/main.js",
+        "core/drawio2svg.js",
+        "core/draw-uml.js",
+        "libs/mermaid.min.js",
         "*.woff2",
         "*.woff",
         "*.ttf",
@@ -87,7 +63,10 @@
         "slidev-shell/*",
         "slidev-shell/chunks/*",
         "slidev-shell/assets/*",
-        "slidev-shell/themes/*"
+        "slidev-shell/themes/*",
+        "ui/workspace/viewer-embed.html",
+        "ui/workspace/viewer-embed.js",
+        "ui/workspace/dark-preload.js"
       ],
       "matches": [
         "file://*",

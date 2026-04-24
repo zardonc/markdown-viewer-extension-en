@@ -19,11 +19,16 @@ function syncVersion() {
   const manifestPath = path.join(__dirname, 'manifest.json');
   
   const packageJson = JSON.parse(fs.readFileSync(packagePath, 'utf8'));
-  const manifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8'));
+  const manifestText = fs.readFileSync(manifestPath, 'utf8');
+  const manifest = JSON.parse(manifestText);
   
   if (manifest.version !== packageJson.version) {
-    manifest.version = packageJson.version;
-    fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 2) + '\n', 'utf8');
+    // Only replace the version line to preserve structure
+    const newManifestText = manifestText.replace(
+      /"version":\s*"[^"]*"/,
+      `"version": "${packageJson.version}"`
+    );
+    fs.writeFileSync(manifestPath, newManifestText, 'utf8');
     console.log(`  • Updated manifest.json version`);
   }
   return packageJson.version;
@@ -41,6 +46,12 @@ async function checkMissingKeys() {
   }
 }
 
+function ensureSlidevAssets() {
+  console.log('📦 Building Slidev shell assets...');
+  execSync('npm --prefix slidev-shell run build', { stdio: 'inherit' });
+  execSync('npx tsx slidev-shell/build-themes.ts', { stdio: 'inherit' });
+}
+
 // Production build
 const version = syncVersion();
 console.log(`🔨 Building Chrome Extension... v${version}\n`);
@@ -52,6 +63,9 @@ try {
 
   // Check translations
   await checkMissingKeys();
+
+  // Build Slidev shell + theme bundles required by Chrome runtime
+  ensureSlidevAssets();
 
   // Clean dist/chrome to avoid stale artifacts.
   const outdir = path.join(projectRoot, 'dist/chrome');
