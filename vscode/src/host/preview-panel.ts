@@ -1217,7 +1217,7 @@ export class MarkdownPreviewPanel {
     <div id="vscode-content">
       <div id="markdown-wrapper">
         <div id="markdown-page">
-          <div id="markdown-content"></div>
+          <div id="markdown-content" style="visibility: hidden;"></div>
         </div>
       </div>
     </div>

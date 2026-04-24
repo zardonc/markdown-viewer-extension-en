@@ -111,17 +111,6 @@ export async function initializeViewerMain(options: ViewerMainOptions): Promise<
   const MAX_SIDEBAR_WIDTH = 560;
   let syncResizeHandlePosition: (() => void) | null = null;
 
-  function hasRenderableContent(markdown: string): boolean {
-    return markdown.trim().length > 0;
-  }
-
-  function setMainReaderVisible(visible: boolean): void {
-    const viewerMainColumn = document.getElementById('viewer-main-column') as HTMLElement | null;
-    if (viewerMainColumn) {
-      viewerMainColumn.style.display = visible ? '' : 'none';
-    }
-  }
-
   function constrainSidebarWidth(width: number): number {
     const maxWidth = Math.min(window.innerWidth * 0.5, MAX_SIDEBAR_WIDTH);
     return Math.max(MIN_SIDEBAR_WIDTH, Math.min(maxWidth, width));
@@ -698,7 +687,6 @@ export async function initializeViewerMain(options: ViewerMainOptions): Promise<
     initialMaxWidth,
     initialZoom,
   });
-  setMainReaderVisible(false);
   if (!initialTocVisible) {
     document.body.classList.add('toc-hidden');
   }
@@ -818,15 +806,6 @@ export async function initializeViewerMain(options: ViewerMainOptions): Promise<
   };
 
   async function renderMarkdown(markdown: string, savedScrollLine = 0): Promise<void> {
-    const shouldShow = hasRenderableContent(markdown);
-    let revealObserver: MutationObserver | null = null;
-    const disconnectRevealObserver = (): void => {
-      if (revealObserver) {
-        revealObserver.disconnect();
-        revealObserver = null;
-      }
-    };
-
     let viewer: MarkdownViewerElement;
     try {
       viewer = await getOrCreateMarkdownViewerElement();
@@ -836,30 +815,6 @@ export async function initializeViewerMain(options: ViewerMainOptions): Promise<
         markdownLength: markdown.length,
       });
       throw error;
-    }
-
-    if (!shouldShow) {
-      setMainReaderVisible(false);
-    } else {
-      setMainReaderVisible(false);
-      const contentHost = document.getElementById('markdown-content') as HTMLElement | null;
-      const revealIfHasBlocks = (): void => {
-        if (!contentHost) {
-          return;
-        }
-        if (contentHost.querySelector('.md-block')) {
-          setMainReaderVisible(true);
-          disconnectRevealObserver();
-        }
-      };
-      revealIfHasBlocks();
-      if (contentHost && !contentHost.querySelector('.md-block')) {
-        revealObserver = new MutationObserver(() => revealIfHasBlocks());
-        revealObserver.observe(contentHost, {
-          childList: true,
-          subtree: true,
-        });
-      }
     }
 
     lastScrollLine = savedScrollLine;
@@ -896,10 +851,6 @@ export async function initializeViewerMain(options: ViewerMainOptions): Promise<
       });
       throw error;
     } finally {
-      disconnectRevealObserver();
-      if (shouldShow) {
-        setMainReaderVisible(true);
-      }
       hideProcessingIndicator();
     }
   }

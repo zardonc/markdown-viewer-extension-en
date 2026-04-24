@@ -583,7 +583,6 @@ body.toc-position-right.toc-hidden #markdown-wrapper {
 #markdown-page {
   max-width: 1060px;
   margin: 0 auto;
-  min-height: 100%;
 }
 
 #markdown-content {
@@ -592,7 +591,6 @@ body.toc-position-right.toc-hidden #markdown-wrapper {
   margin: 0 auto;
   padding: 40px;
   box-sizing: border-box;
-  min-height: 100%;
 }
 
 #markdown-content h1,

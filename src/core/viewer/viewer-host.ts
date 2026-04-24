@@ -640,6 +640,18 @@ export async function renderMarkdownFlow(options: RenderMarkdownFlowOptions): Pr
     afterRender,
   } = options;
 
+  const hasRenderableContent = markdown.trim().length > 0;
+
+  const setContainerVisible = (visible: boolean): void => {
+    container.style.visibility = visible ? '' : 'hidden';
+    // Also reveal the outer #markdown-content wrapper (e.g. Chrome, where the render
+    // container is a child element inside #markdown-content).
+    const outerContent = container.closest('#markdown-content') as HTMLElement | null;
+    if (outerContent && outerContent !== container) {
+      outerContent.style.visibility = visible ? '' : 'hidden';
+    }
+  };
+
   // Abort any previous rendering task
   if (currentTaskManagerRef.current) {
     currentTaskManagerRef.current.abort();
@@ -665,6 +677,13 @@ export async function renderMarkdownFlow(options: RenderMarkdownFlowOptions): Pr
       if (isRealFileSwitch && fileChanged) {
         scrollController?.reset();
       }
+    }
+
+    if (!hasRenderableContent) {
+      setContainerVisible(false);
+    } else {
+      // Reveal immediately before rendering starts — never wait for render completion.
+      setContainerVisible(true);
     }
 
     // Set target line for scroll sync
@@ -791,7 +810,10 @@ export async function renderMarkdownFlow(options: RenderMarkdownFlowOptions): Pr
       currentTaskManagerRef.current = null;
     }
 
+    setContainerVisible(hasRenderableContent);
+
   } catch (error) {
+    setContainerVisible(hasRenderableContent);
     // eslint-disable-next-line no-console
     console.error('[ViewerHost] Render failed:', error);
   }
