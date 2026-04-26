@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "__MSG_extensionName__",
-  "version": "3.2.0",
+  "version": "3.2.1",
   "default_locale": "en",
   "description": "__MSG_extensionDescription__",
   "browser_specific_settings": {
@@ -42,36 +42,8 @@
   "content_scripts": [
     {
       "matches": [
-        "file://*/*.md",
-        "file://*/*.markdown",
-        "file://*/*.slides.md",
-        "file://*/*.mermaid",
-        "file://*/*.mmd",
-        "file://*/*.plantuml",
-        "file://*/*.puml",
-        "file://*/*.vega",
-        "file://*/*.vl",
-        "file://*/*.vega-lite",
-        "file://*/*.gv",
-        "file://*/*.dot",
-        "file://*/*.infographic",
-        "file://*/*.canvas",
-        "file://*/*.drawio",
-        "*://*/*.md",
-        "*://*/*.markdown",
-        "*://*/*.slides.md",
-        "*://*/*.mermaid",
-        "*://*/*.mmd",
-        "*://*/*.plantuml",
-        "*://*/*.puml",
-        "*://*/*.vega",
-        "*://*/*.vl",
-        "*://*/*.vega-lite",
-        "*://*/*.gv",
-        "*://*/*.dot",
-        "*://*/*.infographic",
-        "*://*/*.canvas",
-        "*://*/*.drawio"
+        "file:///*",
+        "*://*/*"
       ],
       "js": [
         "core/content-detector.js"
@@ -85,6 +57,9 @@
         "ui/styles.css",
         "ui/background.html",
         "core/main.js",
+        "core/drawio2svg.js",
+        "core/draw-uml.js",
+        "libs/mermaid.min.js",
         "icons/icon16.png",
         "*.woff2",
         "*.woff",
@@ -100,7 +75,10 @@
         "themes/color-schemes/*.json",
         "slidev-shell/*",
         "slidev-shell/chunks/*",
-        "slidev-shell/assets/*"
+        "slidev-shell/assets/*",
+        "ui/workspace/viewer-embed.html",
+        "ui/workspace/viewer-embed.js",
+        "ui/workspace/dark-preload.js"
       ],
       "matches": [
         "file:///*",

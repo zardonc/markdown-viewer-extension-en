@@ -16,6 +16,7 @@ import {
   parseFrontmatter,
   renderFrontmatterAsTable,
   renderFrontmatterAsRaw,
+  normalizeMathBlocks,
   type HeadingInfo,
 } from '../markdown-processor';
 
@@ -27,6 +28,7 @@ import {
 } from '../markdown-document';
 
 import GithubSlugger from 'github-slugger';
+import { rewriteObsidianLinks } from '../../utils/obsidian-link-rewrite';
 import type { PluginRenderer, TranslateFunction } from '../../types/index';
 import type { Processor } from 'unified';
 
@@ -171,6 +173,7 @@ export async function renderMarkdownDocument(options: RenderMarkdownOptions): Pr
   } = options;
 
   const taskManager = providedTaskManager ?? new AsyncTaskManager(translate);
+  const normalizedMarkdown = rewriteObsidianLinks(markdown);
 
   // Check if this is a fresh render
   const isFirstRender = container.childNodes.length === 0 || clearContainer;
@@ -185,7 +188,7 @@ export async function renderMarkdownDocument(options: RenderMarkdownOptions): Pr
   const doc = getDocument();
   
   // Update document and get DOM commands
-  const updateResult = doc.update(markdown);
+  const updateResult = doc.update(normalizedMarkdown);
   
   // Create shared slugger for unique heading IDs across blocks
   const slugger = new GithubSlugger();
@@ -221,7 +224,7 @@ export async function renderMarkdownDocument(options: RenderMarkdownOptions): Pr
   // This allows the caller to set scroll position before async tasks modify DOM.
 
   return {
-    title: extractTitle(markdown),
+    title: extractTitle(normalizedMarkdown),
     headings,
     taskManager,
   };
@@ -406,7 +409,8 @@ function normalizeHeadingIds(container: HTMLElement): void {
  * Render a single block's content to HTML
  */
 async function renderBlockContent(content: string, processor: Processor, tableLayout: 'left' | 'center' = 'center'): Promise<string> {
-  const file = await processor.process(content);
+  const normalizedContent = normalizeMathBlocks(content);
+  const file = await processor.process(normalizedContent);
   let html = String(file);
   html = processTablesForWordCompatibility(html, tableLayout);
   html = sanitizeRenderedHtml(html);

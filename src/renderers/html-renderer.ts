@@ -12,6 +12,7 @@ import { BaseRenderer } from './base-renderer';
 import { sanitizeHtml, hasHtmlContent } from '../utils/html-sanitizer';
 import { loadImageAsDataUrl } from '../utils/image-loader';
 import type { RendererThemeConfig, RenderResult } from '../types/index';
+import { isNetworkUrl } from '../utils/document-url';
 
 export class HtmlRenderer extends BaseRenderer {
   constructor() {
@@ -46,8 +47,8 @@ export class HtmlRenderer extends BaseRenderer {
         return;
       }
       
-      // Only process http/https URLs
-      if (!src.startsWith('http://') && !src.startsWith('https://')) {
+      // Only process network URLs
+      if (!isNetworkUrl(src)) {
         return;
       }
       
@@ -85,9 +86,9 @@ export class HtmlRenderer extends BaseRenderer {
     const scale = this.calculateCanvasScale(themeConfig);
     
     const svgNS = 'http://www.w3.org/2000/svg';
-  // Use a larger canvas so big HTML layouts are less likely to be clipped before detection.
-  const bigWidth = 4000 * scale;
-  const bigHeight = 4000 * scale;
+    // Use a larger canvas so big HTML layouts are less likely to be clipped before detection.
+    const bigWidth = 3500 * scale;
+    const bigHeight = 3500 * scale;
     
     const svg = document.createElementNS(svgNS, 'svg');
     svg.setAttribute('xmlns', svgNS);

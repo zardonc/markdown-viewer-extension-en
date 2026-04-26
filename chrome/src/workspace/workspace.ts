@@ -17,7 +17,8 @@ const SUPPORTED_EXTENSIONS = new Set([
   'plantuml', 'puml',
   'vega', 'vl', 'vega-lite',
   'gv', 'dot',
-  'infographic', 'canvas', 'drawio'
+  'infographic', 'canvas', 'drawio',
+  'svg'
 ]);
 
 interface TreeNode {
@@ -65,9 +66,23 @@ let lastExecutedContentQuery = '';
 let contentSearchInProgress = false;
 let contentSearchRunId = 0;
 
+function updateResizeHandlePosition(): void {
+  const workspaceWidth = $workspace.clientWidth;
+  const sidebarWidth = $sidebar.offsetWidth;
+  const handleWidth = $resizeHandle.offsetWidth || 4;
+  if (workspaceWidth <= 0 || sidebarWidth <= 0) {
+    return;
+  }
+
+  const seamX = swapPanelSide ? sidebarWidth : workspaceWidth - sidebarWidth;
+  const handleLeft = Math.max(0, Math.min(workspaceWidth - handleWidth, seamX - handleWidth / 2));
+  $resizeHandle.style.left = `${handleLeft}px`;
+}
+
 function applyWorkspacePanelSide(swapped: boolean): void {
   swapPanelSide = swapped;
   $workspace.classList.toggle('sidebar-left', swapped);
+  updateResizeHandlePosition();
 }
 
 async function loadWorkspacePanelSide(): Promise<void> {
@@ -81,15 +96,58 @@ async function loadWorkspacePanelSide(): Promise<void> {
 }
 
 // ─── Resize handle ───
-const SIDEBAR_WIDTH_KEY = 'workspace-sidebar-width';
 const $resizeHandle = document.getElementById('resize-handle')!;
 const $sidebar = document.querySelector('.sidebar') as HTMLElement;
+const MIN_SIDEBAR_WIDTH = 160;
+const MAX_SIDEBAR_WIDTH = 560;
 
-// Restore saved width
-const savedWidth = localStorage.getItem(SIDEBAR_WIDTH_KEY);
-if (savedWidth) {
-  $sidebar.style.width = savedWidth + 'px';
+function constrainSidebarWidth(width: number): number {
+  const maxWidth = Math.min(window.innerWidth * 0.5, MAX_SIDEBAR_WIDTH);
+  return Math.max(MIN_SIDEBAR_WIDTH, Math.min(maxWidth, width));
 }
+
+async function getStoredSidebarWidth(): Promise<number | null> {
+  try {
+    const result = await webExtensionApi.storage.local.get(['markdownViewerSettings']);
+    const stored = result.markdownViewerSettings as { readerSidebarWidth?: number } | undefined;
+    if (typeof stored?.readerSidebarWidth !== 'number' || Number.isNaN(stored.readerSidebarWidth)) {
+      return null;
+    }
+    return stored.readerSidebarWidth;
+  } catch {
+    return null;
+  }
+}
+
+async function setStoredSidebarWidth(width: number): Promise<void> {
+  try {
+    const storageLocal = webExtensionApi.storage.local as {
+      get: (keys: string | string[] | Record<string, unknown>) => Promise<Record<string, unknown>>;
+      set?: (items: Record<string, unknown>) => Promise<void>;
+    };
+
+    const result = await storageLocal.get(['markdownViewerSettings']);
+    const current = (result.markdownViewerSettings as Record<string, unknown>) || {};
+    if (typeof storageLocal.set === 'function') {
+      await storageLocal.set({
+        markdownViewerSettings: {
+          ...current,
+          readerSidebarWidth: width,
+        },
+      });
+    }
+  } catch {
+    // Ignore persistence failures to avoid blocking resize interactions.
+  }
+}
+
+void (async () => {
+  const savedWidth = await getStoredSidebarWidth();
+  if (savedWidth !== null) {
+    $sidebar.style.width = `${constrainSidebarWidth(savedWidth)}px`;
+  }
+  updateResizeHandlePosition();
+})();
 
 $resizeHandle.addEventListener('mousedown', (e: MouseEvent) => {
   e.preventDefault();
@@ -101,15 +159,15 @@ $resizeHandle.addEventListener('mousedown', (e: MouseEvent) => {
   const onMouseMove = (e: MouseEvent) => {
     const deltaX = e.clientX - startX;
     const newWidth = swapPanelSide ? startWidth + deltaX : startWidth - deltaX;
-    if (newWidth >= 160 && newWidth <= window.innerWidth * 0.5) {
-      $sidebar.style.width = newWidth + 'px';
-    }
+    const constrained = constrainSidebarWidth(newWidth);
+    $sidebar.style.width = `${constrained}px`;
+    updateResizeHandlePosition();
   };
 
   const onMouseUp = () => {
     $resizeHandle.classList.remove('active');
     $previewFrame.style.pointerEvents = '';
-    localStorage.setItem(SIDEBAR_WIDTH_KEY, String($sidebar.offsetWidth));
+    void setStoredSidebarWidth($sidebar.offsetWidth);
     document.removeEventListener('mousemove', onMouseMove);
     document.removeEventListener('mouseup', onMouseUp);
   };
@@ -117,6 +175,8 @@ $resizeHandle.addEventListener('mousedown', (e: MouseEvent) => {
   document.addEventListener('mousemove', onMouseMove);
   document.addEventListener('mouseup', onMouseUp);
 });
+
+window.addEventListener('resize', updateResizeHandlePosition);
 
 // Inject folder icons into buttons
 document.getElementById('pick-icon')!.innerHTML = folderPlus;
@@ -140,6 +200,11 @@ function isTextFile(name: string): boolean {
   const ext = name.slice(dot + 1).toLowerCase();
   return !IMAGE_EXTENSIONS.has(ext);
 }
+
+// Image extensions the browser can render natively (shown directly in iframe)
+const PREVIEW_IMAGE_EXTENSIONS = new Set([
+  'png', 'jpg', 'jpeg', 'gif', 'webp', 'bmp', 'ico', 'svg',
+]);
 
 const IMAGE_EXTENSIONS = new Set([
   'png', 'jpg', 'jpeg', 'gif', 'webp', 'bmp', 'ico', 'svg',
@@ -587,14 +652,19 @@ async function resolveFileFromRoot(path: string): Promise<File | null> {
   } catch { return null; }
 }
 
+// ─── Image preview via markdown pipeline ───
+async function showImagePreview(_file: File, name: string, _ext: string): Promise<void> {
+  // Pass a relative reference so resolveWorkspaceImages in viewer-embed
+  // can resolve it via the parent's File System Access API — no base64 needed.
+  sendToViewer(`![${name}](./${name})`, name + '.md');
+}
+
 // ─── File preview via embedded viewer ───
 function sendToViewer(content: string, filename: string, codeView = false) {
-  // Hide the iframe while it navigates + renders. The iframe element's blank
-  // frame during src reset would otherwise flash the default UA white (or
-  // the iframe body's unthemed background). The preview-pane behind it is
-  // already themed, so the user sees a stable surface until VIEWER_RENDERED.
+  // Keep iframe visible so rendering updates (including TOC generation) are
+  // visible during loading instead of appearing only after full completion.
   $previewEmpty.style.display = 'none';
-  $previewFrame.style.visibility = 'hidden';
+  $previewFrame.style.visibility = '';
   $previewFrame.style.display = 'block';
   $previewFrame.src = VIEWER_URL;
 
@@ -608,15 +678,26 @@ function sendToViewer(content: string, filename: string, codeView = false) {
         fileDir: currentFileDir,
         codeView,
       }, '*');
+      void postThemeToViewer();
       return;
     }
     if (event.data?.type === 'VIEWER_RENDERED') {
-      // Theme applied and body opacity=1 — safe to reveal the iframe.
       window.removeEventListener('message', onMessage);
-      $previewFrame.style.visibility = '';
     }
   };
   window.addEventListener('message', onMessage);
+}
+
+async function postThemeToViewer(themeId?: string): Promise<void> {
+  const targetThemeId = themeId ?? await themeManager.loadSelectedTheme();
+  if (!targetThemeId || !$previewFrame.contentWindow) {
+    return;
+  }
+
+  $previewFrame.contentWindow.postMessage({
+    type: 'SET_THEME',
+    themeId: targetThemeId,
+  }, '*');
 }
 
 async function openFile(fileHandle: FileSystemFileHandle) {
@@ -624,7 +705,14 @@ async function openFile(fileHandle: FileSystemFileHandle) {
   const name = fileHandle.name;
 
   // Save last opened file path
-  localStorage.setItem(`workspace-last-file:${rootDirHandle?.name}`, currentFileDir + name);
+  sessionStorage.setItem(`workspace-last-file:${rootDirHandle?.name}`, currentFileDir + name);
+
+  const ext = name.slice(name.lastIndexOf('.') + 1).toLowerCase();
+
+  if (PREVIEW_IMAGE_EXTENSIONS.has(ext)) {
+    await showImagePreview(file, name, ext);
+    return;
+  }
 
   if (isSupportedFile(name)) {
     const text = await file.text();
@@ -635,7 +723,6 @@ async function openFile(fileHandle: FileSystemFileHandle) {
   if (isTextFile(name) && await canPreviewAsText(file)) {
     // Code/text files: wrap in code block using extension as language tag
     const text = await file.text();
-    const ext = name.slice(name.lastIndexOf('.') + 1);
     sendToViewer(`\`\`\`${ext}\n${text.trimEnd()}\n\`\`\``, name, true);
     return;
   }
@@ -647,6 +734,7 @@ async function openFile(fileHandle: FileSystemFileHandle) {
 async function openWorkspace(dirHandle: FileSystemDirectoryHandle) {
   $landing.style.display = 'none';
   $workspace.style.display = 'flex';
+  requestAnimationFrame(updateResizeHandlePosition);
   $workspaceName.textContent = dirHandle.name;
   clearSearch(true);
   expandedPaths.clear();
@@ -844,7 +932,7 @@ async function restoreLastWorkspace(): Promise<boolean> {
           if (perm === 'granted') {
             await openWorkspace(item.handle);
             // Restore last opened file
-            const lastFile = localStorage.getItem(`workspace-last-file:${item.handle.name}`);
+            const lastFile = sessionStorage.getItem(`workspace-last-file:${item.handle.name}`);
             if (lastFile) {
               await restoreLastFile(lastFile);
             }
@@ -862,7 +950,7 @@ async function restoreLastWorkspace(): Promise<boolean> {
 // ─── Init ───
 // Dark-mode sync: read the currently selected theme's category from the
 // registry and toggle `.dark` on <html>. Doing this eagerly (not via the
-// iframe-written localStorage flag) guarantees the outer workspace surface
+// iframe-written sessionStorage flag) guarantees the outer workspace surface
 // is already dark on first paint after refresh, and stays consistent while
 // switching files — otherwise .preview-pane flashes white behind the iframe
 // element during its navigation blank frame.
@@ -872,7 +960,7 @@ async function syncDarkClassFromSelectedTheme(): Promise<void> {
     await themeManager.initialize();
     const isDark = themeManager.getThemeCategory(themeId) === 'dark';
     document.documentElement.classList.toggle('dark', isDark);
-    try { localStorage.setItem('mdv-dark', isDark ? '1' : '0'); } catch { /* storage disabled */ }
+    try { sessionStorage.setItem('mdv-dark', isDark ? '1' : '0'); } catch { /* storage disabled */ }
   } catch { /* keep default light */ }
 }
 
@@ -886,8 +974,8 @@ Localization.init().then(async () => {
         return;
       }
 
-      const oldSettings = changes.markdownViewerSettings.oldValue as { swapPanelSide?: boolean; preferredLocale?: string } | undefined;
-      const nextSettings = changes.markdownViewerSettings.newValue as { swapPanelSide?: boolean; preferredLocale?: string } | undefined;
+      const oldSettings = changes.markdownViewerSettings.oldValue as { swapPanelSide?: boolean; preferredLocale?: string; themeId?: string } | undefined;
+      const nextSettings = changes.markdownViewerSettings.newValue as { swapPanelSide?: boolean; preferredLocale?: string; themeId?: string } | undefined;
       applyWorkspacePanelSide(Boolean(nextSettings?.swapPanelSide));
 
       const oldLocale = oldSettings?.preferredLocale ?? DEFAULT_SETTING_LOCALE;
@@ -905,6 +993,10 @@ Localization.init().then(async () => {
           .catch((error) => {
             console.error('[Workspace] Failed to update locale:', error);
           });
+      }
+
+      if (typeof nextSettings?.themeId === 'string' && nextSettings.themeId !== oldSettings?.themeId) {
+        void postThemeToViewer(nextSettings.themeId);
       }
 
       // Theme may have changed in the popup; re-sync dark class so the outer
