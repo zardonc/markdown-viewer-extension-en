@@ -20,7 +20,6 @@ import type {
   SimpleCacheStats
 } from '../../../src/types/index';
 
-
 // SimpleCacheStats is used for fallback error responses
 
 let offscreenCreated = false;
@@ -964,25 +963,15 @@ async function ensureOffscreenDocument(): Promise<void> {
   }
 }
 
-// Handle dynamic content script injection.
-// `fromContextMenu` is true when triggered by the right-click menu so we
-// always run the HTML→Markdown converter first (the script self-detects
-// whether the page is HTML via document.contentType and bails out early
-// if it's a raw text file).
-async function handleContentScriptInjection(tabId: number, fromContextMenu = false): Promise<void> {
+// Handle dynamic content script injection
+async function handleContentScriptInjection(tabId: number, url?: string): Promise<void> {
   try {
-    if (fromContextMenu) {
-      await chrome.scripting.executeScript({
-        target: { tabId },
-        files: ['core/html-to-markdown.js'],
-      });
-    }
-    // Inject CSS
+    // Inject CSS first
     await chrome.scripting.insertCSS({
       target: { tabId },
       files: ['ui/styles.css'],
     });
-    // Inject the viewer (handles markdown, .slides.md, and converted HTML)
+    // Then inject JavaScript (handles both normal markdown and .slides.md)
     await chrome.scripting.executeScript({
       target: { tabId },
       files: ['core/main.js'],
@@ -1172,8 +1161,8 @@ chrome.contextMenus.onClicked.addListener((info, tab) => {
       const isCurrentPage = targetUrl === tab.url;
       
       if (isCurrentPage) {
-        // Current page - always run html-to-markdown converter first
-        handleContentScriptInjection(tab.id, true).catch((error) => {
+        // Current page - inject directly
+        handleContentScriptInjection(tab.id).catch((error) => {
           console.error('Failed to inject content script:', error);
         });
       } else {

@@ -15,7 +15,7 @@
       "fontFamily": "Consolas"
     }
   },
-  "layoutScheme": "book",
+  "layoutScheme": "academic",
   "colorScheme": "sepia",
   "tableStyle": "borderless",
   "codeTheme": "warm-book"

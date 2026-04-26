@@ -32,18 +32,11 @@ import {
   handleThemeSwitchFlow,
 } from '../../../src/core/viewer/viewer-host';
 import { setupImageContextMenu } from '../../../src/ui/image-context-menu';
-import { findHeadingLine } from '../../../src/utils/heading-slug';
 
 // Extend Window interface for global access
 declare global {
   interface Window {
     docxExporter: DocxExporter;
-    /** Set by html-to-markdown.ts when the current tab is a rendered HTML page */
-    __mvHtmlConvertedMarkdown?: {
-      markdown: string;
-      title: string;
-      url: string;
-    };
   }
 }
 
@@ -107,32 +100,6 @@ interface IncomingBroadcastMessage {
 export async function initializeViewerMain(options: ViewerMainOptions): Promise<void> {
   const { platform, pluginRenderer, themeConfigRenderer } = options;
   const webExtensionApi = getWebExtensionApi();
-  const isMobile = platform.platform === 'mobile';
-
-  function applyTocPanelSide(swapped: boolean): void {
-    document.body.classList.toggle('toc-position-right', swapped);
-
-    const toggleTocBtn = document.getElementById('toggle-toc-btn');
-    const toolbarLeft = document.querySelector('.toolbar-left');
-    const toolbarRight = document.querySelector('.toolbar-right');
-
-    if (!toggleTocBtn || !toolbarLeft || !toolbarRight) {
-      return;
-    }
-
-    if (swapped) {
-      toolbarRight.prepend(toggleTocBtn);
-    } else {
-      toolbarLeft.prepend(toggleTocBtn);
-    }
-  }
-
-  // Prevent browser from auto-restoring scroll position before our content is ready.
-  // Without this, Chrome jumps to its remembered DOM position first (wrong),
-  // then our scroll sync corrects it (right) — causing a visible double-jump.
-  if ('scrollRestoration' in history) {
-    history.scrollRestoration = 'manual';
-  }
 
   const translate = (key: string, substitutions?: string | string[]): string =>
     Localization.translate(key, substitutions);
@@ -165,9 +132,9 @@ export async function initializeViewerMain(options: ViewerMainOptions): Promise<
     try {
       scrollSyncController = createViewerScrollSync({
         containerId: 'markdown-content',
-        scrollContainerId: 'markdown-wrapper',
         platform,
-        topOffset: 0,
+        // Default onUserScroll saves to FileStateService using currentFileKey
+        // which was set via setCurrentFileKey() above
       });
       scrollSyncController.start();
     } catch (error) {
@@ -193,34 +160,11 @@ export async function initializeViewerMain(options: ViewerMainOptions): Promise<
   setFavicon();
 
   // Initialize TOC manager
-  const tocManager = createTocManager(saveFileState, getFileState, isMobile);
+  const tocManager = createTocManager(saveFileState, getFileState);
   const { generateTOC, setupTocToggle, updateActiveTocItem, setupResponsiveToc } = tocManager;
 
-  // Get the raw markdown content.
-  // When the page is a rendered HTML document the html-to-markdown content
-  // script will have already extracted and converted the article content;
-  // fall back to document.body.textContent for plain-text / raw files.
-  const htmlConverted = window.__mvHtmlConvertedMarkdown;
-  const rawContent = htmlConverted?.markdown ?? document.body.textContent ?? '';
-  if (htmlConverted?.title) {
-    document.title = htmlConverted.title;
-  }
-
-  // When taking over an HTML page, strip the original page's stylesheets and
-  // inline styles so they don't bleed into the Markdown viewer layout.
-  if (htmlConverted) {
-    // Remove external stylesheets and <style> blocks (keep our own preload style)
-    document.head.querySelectorAll<HTMLElement>('link[rel~="stylesheet"], style').forEach((el) => {
-      if (el.id !== 'markdown-viewer-preload') {
-        el.remove();
-      }
-    });
-    // Reset any inline styles the original page applied to <html> / <body>
-    document.documentElement.removeAttribute('style');
-    document.body.removeAttribute('style');
-    // Wipe the existing page content so nothing leaks through during render
-    document.body.innerHTML = '';
-  }
+  // Get the raw markdown content
+  const rawContent = document.body.textContent || '';
 
   // ── Slidev mode: .slides.md files render as presentations ────────────
   if (/\.slides\.md$/i.test(currentUrl)) {
@@ -295,14 +239,13 @@ export async function initializeViewerMain(options: ViewerMainOptions): Promise<
       : 'normal';
   const initialMaxWidth = layoutConfigs[initialLayout].maxWidth;
   const initialZoom = initialState.zoom || 100;
-  const initialSwapPanelSide = await platform.settings.get('swapPanelSide');
 
   // Default TOC visibility based on screen width if no saved state
   let initialTocVisible: boolean;
   if (initialState.tocVisible !== undefined) {
     initialTocVisible = initialState.tocVisible;
   } else {
-    initialTocVisible = !isMobile;
+    initialTocVisible = window.innerWidth > 1024;
   }
   const initialTocClass = initialTocVisible ? '' : ' hidden';
 
@@ -314,7 +257,6 @@ export async function initializeViewerMain(options: ViewerMainOptions): Promise<
     escapeHtml,
     saveFileState,
     getFileState,
-    isMobile,
     rawMarkdown,
     docxExporter,
     cancelScrollRestore: () => {
@@ -342,23 +284,6 @@ export async function initializeViewerMain(options: ViewerMainOptions): Promise<
   if (!initialTocVisible) {
     document.body.classList.add('toc-hidden');
   }
-  applyTocPanelSide(Boolean(initialSwapPanelSide));
-
-  // Initialize scroll sync controller immediately after DOM is ready
-  initScrollSyncController();
-
-  // Load theme BEFORE unveiling the body. Doing it the other way around
-  // causes a brief flash of the default light body background (~6ms) when
-  // the selected theme is dark, because the preload style is removed and
-  // opacity flipped to 1 while the theme CSS is still in flight.
-  try {
-    currentThemeId = await themeManager.loadSelectedTheme();
-    // loadAndApplyTheme handles all theme logic including renderer config
-    await loadAndApplyTheme(currentThemeId);
-  } catch (error) {
-    // eslint-disable-next-line no-console
-    console.error('Failed to load theme at init, using defaults:', error);
-  }
 
   // Remove the preload style that hides the page content
   // This should be done after the toolbar is generated but before rendering
@@ -369,29 +294,26 @@ export async function initializeViewerMain(options: ViewerMainOptions): Promise<
 
   // Make body visible with a smooth fade-in
   document.body.style.opacity = '1';
-  document.body.style.overflow = 'hidden';
+  document.body.style.overflow = '';
   document.body.style.transition = 'opacity 0.15s ease-in';
 
-  // Notify the parent (workspace page) that the viewer is themed and visible,
-  // so it can reveal the iframe. Harmless when this page is not embedded.
+  // Initialize scroll sync controller immediately after DOM is ready
+  initScrollSyncController();
+
+  // Load theme at initialization (consistent with VSCode/Mobile)
+  // This ensures theme is applied before first render
   try {
-    if (window.parent !== window) {
-      window.parent.postMessage({ type: 'VIEWER_RENDERED' }, '*');
-    }
-  } catch { /* cross-origin parent \u2014 ignore */ }
+    currentThemeId = await themeManager.loadSelectedTheme();
+    // loadAndApplyTheme handles all theme logic including renderer config
+    await loadAndApplyTheme(currentThemeId);
+  } catch (error) {
+    // eslint-disable-next-line no-console
+    console.error('Failed to load theme at init, using defaults:', error);
+  }
 
   // Wait a bit for DOM to be ready, then start processing
   setTimeout(async () => {
-    let savedScrollLine = initialState.scrollLine ?? 0;
-
-    // Override scroll position with heading line if URL has a hash fragment
-    if (window.location.hash) {
-      const fragment = decodeURIComponent(window.location.hash.slice(1));
-      const headingLine = findHeadingLine(rawMarkdown, fragment);
-      if (typeof headingLine === 'number') {
-        savedScrollLine = headingLine;
-      }
-    }
+    const savedScrollLine = initialState.scrollLine ?? 0;
 
     toolbarManager.initializeToolbar();
 
@@ -406,7 +328,7 @@ export async function initializeViewerMain(options: ViewerMainOptions): Promise<
   // Listen for scroll events and save line number
   // Note: ScrollSyncController handles most scroll tracking, but we also listen for manual saves
   let scrollTimeout: ReturnType<typeof setTimeout>;
-  document.getElementById('markdown-wrapper')?.addEventListener('scroll', () => {
+  window.addEventListener('scroll', () => {
     updateActiveTocItem();
     clearTimeout(scrollTimeout);
     scrollTimeout = setTimeout(() => {
@@ -512,8 +434,6 @@ export async function initializeViewerMain(options: ViewerMainOptions): Promise<
         
         if (key === 'themeId' && typeof value === 'string') {
           void handleSetTheme(value);
-        } else if (key === 'swapPanelSide') {
-          applyTocPanelSide(Boolean(value));
         } else {
           // Other settings changed - just re-render with scroll preservation
           const scrollLine = scrollSyncController?.getCurrentLine() ?? 0;

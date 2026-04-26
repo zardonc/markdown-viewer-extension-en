@@ -23,32 +23,7 @@ interface TocManager {
  * @param getFileState - Function to get file state
  * @returns TOC manager instance
  */
-export function createTocManager(
-  saveFileState: SaveFileStateFunction,
-  getFileState: GetFileStateFunction,
-  isMobile: boolean
-): TocManager {
-  function getScrollContainer(): HTMLElement | null {
-    return document.getElementById('markdown-wrapper') as HTMLElement | null;
-  }
-
-  function scrollTargetIntoView(target: HTMLElement): void {
-    const scrollContainer = getScrollContainer();
-    if (!scrollContainer) {
-      target.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      return;
-    }
-
-    const containerRect = scrollContainer.getBoundingClientRect();
-    const targetRect = target.getBoundingClientRect();
-    const targetTop = targetRect.top - containerRect.top + scrollContainer.scrollTop;
-
-    scrollContainer.scrollTo({
-      top: Math.max(0, targetTop),
-      behavior: 'smooth'
-    });
-  }
-
+export function createTocManager(saveFileState: SaveFileStateFunction, getFileState: GetFileStateFunction): TocManager {
   /**
    * Generate table of contents from headings
    */
@@ -84,24 +59,6 @@ export function createTocManager(
 
     tocHTML += '</ul>';
     tocDiv.innerHTML = tocHTML;
-
-    tocDiv.querySelectorAll('a').forEach((link) => {
-      link.addEventListener('click', (event) => {
-        event.preventDefault();
-
-        const href = (link as HTMLAnchorElement).getAttribute('href');
-        if (!href?.startsWith('#')) {
-          return;
-        }
-
-        const target = document.getElementById(decodeURIComponent(href.slice(1)));
-        if (!target) {
-          return;
-        }
-
-        scrollTargetIntoView(target as HTMLElement);
-      });
-    });
     
     // Apply saved TOC visibility state after generating TOC
     const savedState = await getFileState();
@@ -113,8 +70,8 @@ export function createTocManager(
       if (savedState.tocVisible !== undefined) {
         shouldBeVisible = savedState.tocVisible;
       } else {
-        // No saved state - only mobile uses collapsed TOC by default.
-        shouldBeVisible = !isMobile;
+        // No saved state - use responsive default
+        shouldBeVisible = window.innerWidth > 1024;
       }
       
       const currentlyVisible = !tocDiv.classList.contains('hidden');
@@ -130,11 +87,7 @@ export function createTocManager(
           // Show TOC
           tocDiv.classList.remove('hidden');
           document.body.classList.remove('toc-hidden');
-          if (isMobile) {
-            overlayDiv.classList.remove('hidden');
-          } else {
-            overlayDiv.classList.add('hidden');
-          }
+          overlayDiv.classList.remove('hidden');
         }
       }
     }
@@ -154,11 +107,7 @@ export function createTocManager(
       const willBeHidden = !tocDiv.classList.contains('hidden');
       tocDiv.classList.toggle('hidden');
       document.body.classList.toggle('toc-hidden');
-      if (isMobile) {
-        overlayDiv.classList.toggle('hidden');
-      } else {
-        overlayDiv.classList.add('hidden');
-      }
+      overlayDiv.classList.toggle('hidden');
       
       // Save TOC visibility state
       saveFileState({
@@ -166,10 +115,8 @@ export function createTocManager(
       });
     };
 
-    // Close TOC when clicking overlay on mobile only.
-    if (isMobile) {
-      overlayDiv.addEventListener('click', toggleToc);
-    }
+    // Close TOC when clicking overlay (for mobile)
+    overlayDiv.addEventListener('click', toggleToc);
 
     // Return toggleToc function for use by toolbar button and keyboard shortcuts
     return toggleToc;
@@ -187,12 +134,9 @@ export function createTocManager(
     
     const headings = contentDiv.querySelectorAll('h1, h2, h3, h4, h5, h6');
     if (headings.length === 0) return;
-
-    const scrollContainer = getScrollContainer();
-    if (!scrollContainer) return;
     
     // Get current scroll position
-    const scrollTop = scrollContainer.scrollTop;
+    const scrollTop = window.scrollY || window.pageYOffset;
     
     // Get current zoom level
     let currentZoom = 1;
@@ -203,15 +147,14 @@ export function createTocManager(
     // Threshold: toolbar height (50px) + small tolerance (10px)
     // Scale threshold with zoom to ensure accurate detection
     // Use Math.max to ensure threshold is never too small for low zoom levels
-    const threshold = Math.max(10, 10 * currentZoom);
-    const containerRect = scrollContainer.getBoundingClientRect();
+    const threshold = Math.max(60, 60 * currentZoom);
     
     // Find the last heading that is above or near the viewport top
     let activeHeading: Element | null = null;
     
     for (let i = 0; i < headings.length; i++) {
       const heading = headings[i];
-      const headingTop = heading.getBoundingClientRect().top - containerRect.top + scrollTop;
+      const headingTop = heading.getBoundingClientRect().top + scrollTop;
       
       // If heading is above viewport top + threshold
       if (headingTop <= scrollTop + threshold) {
@@ -273,25 +216,25 @@ export function createTocManager(
    * Setup responsive TOC behavior
    */
   async function setupResponsiveToc(): Promise<void> {
-    if (!isMobile) {
-      return;
-    }
-
     const tocDiv = document.getElementById('table-of-contents');
 
     if (!tocDiv) return;
 
     const handleResize = async (): Promise<void> => {
       const savedState = await getFileState();
-
-      if (savedState.tocVisible === undefined || savedState.tocVisible === false) {
-        tocDiv.classList.add('hidden');
-        document.body.classList.add('toc-hidden');
-        const overlayDiv = document.getElementById('toc-overlay');
-        if (overlayDiv) {
-          overlayDiv.classList.add('hidden');
+      
+      if (window.innerWidth <= 1024) {
+        // On smaller screens, hide TOC by default (unless user explicitly wants it shown)
+        if (savedState.tocVisible === undefined || savedState.tocVisible === false) {
+          tocDiv.classList.add('hidden');
+          document.body.classList.add('toc-hidden');
+          const overlayDiv = document.getElementById('toc-overlay');
+          if (overlayDiv) {
+            overlayDiv.classList.add('hidden');
+          }
         }
       }
+      // On larger screens, respect user's saved preference (don't force show)
     };
 
     // Don't set initial state here - it's already set by generateTOC()

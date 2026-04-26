@@ -74,8 +74,7 @@ export class SvgRenderer extends BaseRenderer {
       base64: base64Data,
       width: canvas.width,
       height: canvas.height,
-      format: 'png',
-      svg
+      format: 'png'
     };
   }
 

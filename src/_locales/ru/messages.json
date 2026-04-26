@@ -155,10 +155,6 @@
     "message": "Просмотреть как Markdown",
     "description": "Context menu item to view any file as markdown"
   },
-  "copy_as_png": {
-    "message": "Copy as PNG",
-    "description": "Context menu item for copying a diagram as PNG"
-  },
   "delete": {
     "message": "Удалить",
     "description": "Delete button text"
@@ -182,18 +178,6 @@
   "export_docx": {
     "message": "Поделиться как Word",
     "description": "Menu item for exporting to DOCX"
-  },
-  "export_menu_export_docx": {
-    "message": "Экспортировать в DOCX",
-    "description": "Export menu item for exporting to DOCX"
-  },
-  "export_menu_print_pdf": {
-    "message": "Печать в PDF",
-    "description": "Export menu item for printing to PDF"
-  },
-  "export_menu_save_markdown": {
-    "message": "Сохранить как Markdown",
-    "description": "Export menu item for saving current file as Markdown"
   },
   "exporting": {
     "message": "Подготовка документа Word...",
@@ -559,14 +543,6 @@
     "message": "Поддерживаемые форматы",
     "description": "Title for supported file formats section in settings"
   },
-  "settings_swap_panel_side": {
-    "message": "Swap TOC / file tree side",
-    "description": "Checkbox label for swapping TOC and workspace file tree panel side"
-  },
-  "settings_swap_panel_side_note": {
-    "message": "Chrome switches both the TOC and workspace file tree. Firefox switches the TOC only.",
-    "description": "Helper note for TOC and workspace panel side swap setting"
-  },
   "settings_table_layout": {
     "message": "Расположение таблицы",
     "description": "Label for table layout selector"
@@ -659,14 +635,6 @@
     "message": "Откройте файл markdown, чтобы начать",
     "description": "Welcome message on empty state"
   },
-  "workspace_binary_file_cannot_preview": {
-    "message": "Бинарный файл нельзя просмотреть",
-    "description": "Message shown in workspace preview pane when selected file is binary"
-  },
-  "workspace_change_directory": {
-    "message": "Сменить каталог",
-    "description": "Tooltip for changing the current workspace directory"
-  },
   "workspace_choose_directory": {
     "message": "Выбрать каталог",
     "description": "Button to open directory picker"
@@ -682,42 +650,6 @@
   "workspace_recent": {
     "message": "Недавние рабочие пространства",
     "description": "Title for recent workspaces list"
-  },
-  "workspace_search_content_hint": {
-    "message": "Нажмите Enter, чтобы искать по содержимому файлов",
-    "description": "Hint shown before executing a workspace content search"
-  },
-  "workspace_search_content_no_results": {
-    "message": "Нет совпадающего содержимого",
-    "description": "Empty state shown when workspace content search returns no matches"
-  },
-  "workspace_search_content_placeholder": {
-    "message": "Искать по содержимому файлов",
-    "description": "Placeholder text for the workspace content search input"
-  },
-  "workspace_search_content_searching": {
-    "message": "Поиск по содержимому файлов...",
-    "description": "Status shown while workspace content search is running"
-  },
-  "workspace_search_mode_content_title": {
-    "message": "Режим поиска по содержимому",
-    "description": "Tooltip for workspace content search mode toggle"
-  },
-  "workspace_search_mode_filename_title": {
-    "message": "Режим поиска по имени файла",
-    "description": "Tooltip for workspace file name search mode toggle"
-  },
-  "workspace_search_no_results": {
-    "message": "Нет совпадающих файлов",
-    "description": "Empty state shown when workspace file search returns no matches"
-  },
-  "workspace_search_placeholder": {
-    "message": "Искать имена файлов",
-    "description": "Placeholder text for the workspace file name search input"
-  },
-  "workspace_search_title": {
-    "message": "Искать файлы",
-    "description": "Tooltip for the workspace file search button"
   },
   "workspace_select_file": {
     "message": "Выберите файл для предварительного просмотра",

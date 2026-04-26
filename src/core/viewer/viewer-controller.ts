@@ -76,10 +76,7 @@ export type RenderMarkdownOptions = {
 
   /** Called when headings are extracted (may be called multiple times during streaming) */
   onHeadings?: (headings: HeadingInfo[]) => void;
-
-  /** Called after each streaming chunk is committed to the DOM (may fire multiple times) */
-  onChunkComplete?: () => void;
-
+  
   /** Called when initial DOM streaming is complete (before async tasks) */
   onStreamingComplete?: () => void;
 
@@ -163,7 +160,6 @@ export async function renderMarkdownDocument(options: RenderMarkdownOptions): Pr
     taskManager: providedTaskManager,
     clearContainer = true,
     onHeadings,
-    onChunkComplete,
     onStreamingComplete,
     frontmatterDisplay = 'hide',
     tableMergeEmpty = false,
@@ -193,7 +189,7 @@ export async function renderMarkdownDocument(options: RenderMarkdownOptions): Pr
   
   if (isFirstRender) {
     // First render: render all blocks with streaming (slugger accumulates state)
-    await renderAllBlocksStreaming(doc, processor, container, taskManager, frontmatterDisplay, onHeadings, tableLayout, onChunkComplete);
+    await renderAllBlocksStreaming(doc, processor, container, taskManager, frontmatterDisplay, onHeadings, tableLayout);
   } else {
     // Incremental update: apply DOM commands
     await applyIncrementalUpdate(doc, processor, container, updateResult.commands, taskManager, frontmatterDisplay, tableLayout);
@@ -243,8 +239,7 @@ async function renderAllBlocksStreaming(
   taskManager: AsyncTaskManager,
   frontmatterDisplay: FrontmatterDisplay,
   onHeadings?: (headings: HeadingInfo[]) => void,
-  tableLayout: 'left' | 'center' = 'center',
-  onChunkComplete?: () => void
+  tableLayout: 'left' | 'center' = 'center'
 ): Promise<void> {
   const blocks = doc.getBlocks();
   
@@ -306,10 +301,7 @@ async function renderAllBlocksStreaming(
         const headings = extractHeadings(container);
         onHeadings(headings);
       }
-
-      // Notify chunk complete so caller can attempt scroll to target line
-      onChunkComplete?.();
-
+      
       // Prepare next chunk
       currentLineCount = 0;
       targetChunkSize *= CHUNK_GROWTH_FACTOR;

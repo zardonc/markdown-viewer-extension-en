@@ -83,8 +83,6 @@ import type { ReadFileOptions } from '../../../src/types/platform';
  * Background script has permission to read local files.
  */
 export class ChromeDocumentService extends BaseDocumentService {
-  private _workspaceFileReader: ((relativePath: string, binary: boolean) => Promise<string>) | null = null;
-
   constructor() {
     super();
     // Initialize from current page URL for file:// pages
@@ -100,15 +98,6 @@ export class ChromeDocumentService extends BaseDocumentService {
     }
   }
 
-  /**
-   * Set a workspace file reader for workspace mode.
-   * In workspace mode, file:// paths are not available; files must be read
-   * via File System Access API through the parent workspace page.
-   */
-  setWorkspaceFileReader(reader: (relativePath: string, binary: boolean) => Promise<string>): void {
-    this._workspaceFileReader = reader;
-  }
-
   async readFile(absolutePath: string, options?: ReadFileOptions): Promise<string> {
     // Send to background script for file reading
     const response = await serviceChannel.send('READ_LOCAL_FILE', {
@@ -120,11 +109,6 @@ export class ChromeDocumentService extends BaseDocumentService {
   }
 
   async readRelativeFile(relativePath: string, options?: ReadFileOptions): Promise<string> {
-    // In workspace mode, use workspace file reader (File System Access API via parent)
-    if (this._workspaceFileReader) {
-      return this._workspaceFileReader(relativePath, options?.binary ?? false);
-    }
-
     // Resolve relative path to absolute file:// URL
     const absoluteUrl = new URL(relativePath, this._baseUrl).href;
     

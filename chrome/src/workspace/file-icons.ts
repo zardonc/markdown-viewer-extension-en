@@ -8,10 +8,6 @@ import * as mi from './file-icons-data';
 const A = 'xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"';
 export const chevronRight = `<svg ${A}><path d="m9 18 6-6-6-6"/></svg>`;
 export const chevronDown = `<svg ${A}><path d="m6 9 6 6 6-6"/></svg>`;
-export const searchIcon = `<svg ${A}><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>`;
-export const closeIcon = `<svg ${A}><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>`;
-export const fileSearchIcon = `<svg ${A}><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>`;
-export const textSearchIcon = `<svg ${A}><path d="M4 7V4h16v3"/><path d="M9 20h6"/><path d="M12 4v16"/></svg>`;
 
 // ─── Folder icons (Lucide, stroke-based, follows currentColor) ───
 export const folderClosed = `<svg ${A}><path d="M20 20a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.9a2 2 0 0 1-1.69-.9L9.6 3.9A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2Z"/></svg>`;

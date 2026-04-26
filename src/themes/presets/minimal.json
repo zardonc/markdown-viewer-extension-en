@@ -15,7 +15,7 @@
       "fontFamily": "Monaco"
     }
   },
-  "layoutScheme": "compact",
+  "layoutScheme": "document",
   "colorScheme": "neutral",
   "tableStyle": "borderless",
   "codeTheme": "light-clean"

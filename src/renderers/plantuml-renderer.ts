@@ -12,12 +12,6 @@ import { applyRoughEffect, type RoughSvgOptions } from './libs/rough-svg';
 import { getStencilsService } from '../services/stencils-service';
 import type { RendererThemeConfig, RenderResult } from '../types/index';
 
-interface DrawUmlThemeOptions {
-  mode?: 'light' | 'dark';
-  fontSize?: number;
-  fontFamily?: string;
-}
-
 /**
  * Extract stencil group names from DrawIO XML
  */
@@ -40,29 +34,6 @@ function getPrimaryFontFamily(fontFamily?: string): string | undefined {
   const first = fontFamily.split(',')[0]?.trim();
   if (!first) return undefined;
   return first.replace(/^['"]|['"]$/g, '');
-}
-
-function buildDrawUmlTheme(themeConfig: RendererThemeConfig | null): DrawUmlThemeOptions | undefined {
-  if (!themeConfig) return undefined;
-
-  const theme: DrawUmlThemeOptions = {};
-
-  if (themeConfig.colorSchema === 'dark') {
-    theme.mode = 'dark';
-  } else if (themeConfig.colorSchema === 'light') {
-    theme.mode = 'light';
-  }
-
-  if (typeof themeConfig.fontSize === 'number' && Number.isFinite(themeConfig.fontSize)) {
-    theme.fontSize = themeConfig.fontSize;
-  }
-
-  const primaryFontFamily = getPrimaryFontFamily(themeConfig.fontFamily);
-  if (primaryFontFamily) {
-    theme.fontFamily = primaryFontFamily;
-  }
-
-  return Object.keys(theme).length > 0 ? theme : undefined;
 }
 
 export class PlantumlRenderer extends BaseRenderer {
@@ -101,9 +72,7 @@ export class PlantumlRenderer extends BaseRenderer {
     this.validateInput(dsl);
 
     // Step 1: Convert PlantUML DSL to DrawIO XML
-    const drawioXml = await textToDrawioXml(dsl as string, {
-      theme: buildDrawUmlTheme(themeConfig),
-    });
+    const drawioXml = await textToDrawioXml(dsl as string);
 
     // Step 2: Prepare stencils for DrawIO rendering
     await this.ensureStencils();

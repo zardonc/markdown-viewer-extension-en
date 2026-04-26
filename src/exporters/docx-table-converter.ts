@@ -26,7 +26,7 @@ import {
   type CellMergeInfo 
 } from '../utils/table-merge-utils';
 
-type ConvertInlineNodesFunction = (children: InlineNode[], options?: { bold?: boolean; color?: string }) => Promise<InlineResult[]>;
+type ConvertInlineNodesFunction = (children: InlineNode[], options?: { bold?: boolean; size?: number; color?: string }) => Promise<InlineResult[]>;
 
 /** Table layout mode */
 export type TableLayout = 'left' | 'center';
@@ -130,13 +130,11 @@ export function createTableConverter({ themeStyles, convertInlineNodes, mergeEmp
               }
             }
             
+            const isBold = isHeaderRow && (headerStyles.bold ?? true);
             const headerColor = isHeaderRow && headerStyles.color ? headerStyles.color : undefined;
             const children = isHeaderRow
-              ? await convertInlineNodes(
-                  (cell.children || []) as InlineNode[],
-                  headerColor ? { color: headerColor } : undefined
-                )
-              : await convertInlineNodes((cell.children || []) as InlineNode[]);
+              ? await convertInlineNodes((cell.children || []) as InlineNode[], { bold: isBold, size: 20, color: headerColor })
+              : await convertInlineNodes((cell.children || []) as InlineNode[], { size: 20 });
 
             const cellAlignment = alignments[colIndex];
             let paragraphAlignment: (typeof AlignmentType)[keyof typeof AlignmentType] = AlignmentType.LEFT;
@@ -150,19 +148,12 @@ export function createTableConverter({ themeStyles, convertInlineNodes, mergeEmp
 
             const paragraphOptions: IParagraphOptions = {
               children: children as ParagraphChild[],
-              style: isHeaderRow ? 'TableHeader' : 'TableText',
+              alignment: paragraphAlignment,
+              spacing: { before: 60, after: 60, line: 240 },
             };
 
-            if (!isHeaderRow && paragraphAlignment !== AlignmentType.LEFT) {
-              paragraphOptions.alignment = paragraphAlignment;
-            }
-
-            // Hidden-border color: use page background when available so Word's
-            // in-editor dotted cell outline blends into the page on dark themes
-            // instead of showing white lines.
-            const hiddenBorderColor = themeStyles.pageBackground || 'FFFFFF';
-            const whiteBorder: IBorderOptions = { style: BorderStyle.SINGLE, size: 0, color: hiddenBorderColor };
-            const noneBorder: IBorderOptions = { style: BorderStyle.NONE, size: 0, color: hiddenBorderColor };
+            const whiteBorder: IBorderOptions = { style: BorderStyle.SINGLE, size: 0, color: 'FFFFFF' };
+            const noneBorder: IBorderOptions = { style: BorderStyle.NONE, size: 0, color: 'FFFFFF' };
             const isFirstColumn = colIndex === 0;
 
             let borders: ITableCellOptions['borders'];

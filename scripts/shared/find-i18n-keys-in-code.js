@@ -24,7 +24,6 @@ const SCAN_DIRS = {
  * - translate(key)
  * - chrome.i18n.getMessage('key')
  * - data-i18n="key"
- * - data-i18n-attr="attr:key,attr:key"
  * - __MSG_key__ (manifest)
  * - localization.t('key')
  * - localization.translate('key')
@@ -63,25 +62,9 @@ export function findI18nKeysInCode() {
       const content = fs.readFileSync(filePath, 'utf8');
 
       const i18nPattern = /data-i18n\s*=\s*["']([^"']+)["']/g;
-      const i18nAttrPattern = /data-i18n-attr\s*=\s*["']([^"']+)["']/g;
       let match;
       while ((match = i18nPattern.exec(content)) !== null) {
         keysUsedInHTML.add(match[1]);
-      }
-
-      while ((match = i18nAttrPattern.exec(content)) !== null) {
-        const entries = match[1].split(',');
-        for (const entry of entries) {
-          const separatorIndex = entry.indexOf(':');
-          if (separatorIndex === -1) {
-            continue;
-          }
-
-          const key = entry.slice(separatorIndex + 1).trim();
-          if (key) {
-            keysUsedInHTML.add(key);
-          }
-        }
       }
     } catch {
       // Ignore unreadable files

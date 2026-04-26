@@ -15,7 +15,7 @@
       "fontFamily": "Consolas"
     }
   },
-  "layoutScheme": "regular",
+  "layoutScheme": "document",
   "colorScheme": "ocean",
   "tableStyle": "minimal-gray",
   "codeTheme": "cool-modern"

@@ -6,9 +6,6 @@
 
 import * as vscode from 'vscode';
 import * as path from 'path';
-import * as fs from 'fs';
-import * as os from 'os';
-import { findHeadingLine } from '../../../src/utils/heading-slug';
 import type { CacheStorage } from './cache-storage';
 import type { EmojiStyle } from '../../../src/types/docx.js';
 
@@ -41,11 +38,6 @@ export class MarkdownPreviewPanel {
   private _exportProgressCallback: ((progress: number) => void) | null = null;
   private _renderProgressCallback: ((completed: number, total: number) => void) | null = null;
 
-  // Progress tracking for webview-initiated DOCX exports (no host-side resolver)
-  private _webviewExportProgressReporter: vscode.Progress<{ increment?: number; message?: string }> | null = null;
-  private _webviewExportDoneResolver: (() => void) | null = null;
-  private _webviewExportLastPercent = 0;
-
   // Webview ready state
   private _isWebviewReady = false;
   private _pendingOperations: Array<() => void> = [];
@@ -53,17 +45,8 @@ export class MarkdownPreviewPanel {
   // Flag to open settings after webview is ready
   private _openSettingsOnReady = false;
 
-  // Flag to prevent scroll feedback loop (Preview → Editor → Preview).
-  // When we scroll the editor from a preview event, editor fires
-  // onDidChangeTextEditorVisibleRanges and onDidChangeActiveTextEditor,
-  // which would bounce the (possibly offset) line back. Use a timestamp
-  // so ALL events within the window are suppressed, not just the first.
-  private _previewScrolledEditorUntil = 0;
-
-  // Suppress editor-driven scroll sync during anchor navigation.
-  // showTextDocument triggers onDidChangeTextEditorVisibleRanges, whose
-  // topLine differs from the heading line and would override it.
-  private _suppressEditorScrollUntil = 0;
+  // Flag to prevent scroll feedback loop (Preview → Editor → Preview)
+  private _isScrolling = false;
 
   public static createOrShow(
     extensionUri: vscode.Uri,
@@ -186,22 +169,20 @@ export class MarkdownPreviewPanel {
   public setDocument(document: vscode.TextDocument, initialLine?: number): void {
     const isSameDocument = this._document?.uri.toString() === document.uri.toString();
     
-    // If same document, just scroll to the requested line (e.g., anchor navigation)
+    // If same document, skip update to avoid unnecessary refresh
     if (isSameDocument) {
-      if (typeof initialLine === 'number') {
-        this.scrollToLine(initialLine);
-      }
       return;
     }
     
     this._document = document;
     this._panel.title = `Preview: ${path.basename(document.fileName)}`;
     
-    // Include scrollLine so the render flow uses it as targetLine directly,
-    // instead of relying on a separate SCROLL_TO_LINE message that may race
-    // with editor-driven scroll events.
+    this.updateContent(document.getText());
+    
+    // Send scroll position immediately - ScrollSyncController will handle
+    // waiting for content to render and repositioning automatically
     const line = typeof initialLine === 'number' ? initialLine : 0;
-    this.updateContent(document.getText(), line);
+    this.scrollToLine(line);
   }
 
   public isDocumentMatch(document: vscode.TextDocument): boolean {
@@ -229,7 +210,7 @@ export class MarkdownPreviewPanel {
     });
   }
 
-  public updateContent(content: string, scrollLine?: number): void {
+  public updateContent(content: string): void {
     // Calculate document directory webview URI for resolving relative paths
     let documentBaseUri: string | undefined;
     if (this._document) {
@@ -240,8 +221,7 @@ export class MarkdownPreviewPanel {
     this._postToWebview('UPDATE_CONTENT', {
       content,
       filename: this._document ? path.basename(this._document.fileName) : 'untitled.md',
-      documentBaseUri,
-      scrollLine,
+      documentBaseUri
     });
   }
 
@@ -263,16 +243,6 @@ export class MarkdownPreviewPanel {
     }
   }
 
-  public openExportMenu(): void {
-    if (this._isWebviewReady) {
-      this._postToWebview('OPEN_EXPORT_MENU');
-    } else {
-      this._pendingOperations.push(() => {
-        this._postToWebview('OPEN_EXPORT_MENU');
-      });
-    }
-  }
-
   /**
    * Toggle TOC (Table of Contents) panel in webview
    */
@@ -284,24 +254,6 @@ export class MarkdownPreviewPanel {
       // Queue the operation for when webview is ready
       this._pendingOperations.push(() => {
         this._postToWebview('TOGGLE_TOC');
-      });
-    }
-  }
-
-  public print(): void {
-    // Read the bundled styles.css to inline into the standalone print HTML
-    const stylesPath = vscode.Uri.joinPath(this._extensionUri, 'webview', 'styles.css');
-    let inlineCSS = '';
-    try {
-      inlineCSS = fs.readFileSync(stylesPath.fsPath, 'utf8');
-    } catch {
-      // styles not found, proceed without base CSS
-    }
-    if (this._isWebviewReady) {
-      this._postToWebview('PRINT', { inlineCSS });
-    } else {
-      this._pendingOperations.push(() => {
-        this._postToWebview('PRINT', { inlineCSS });
       });
     }
   }
@@ -321,26 +273,26 @@ export class MarkdownPreviewPanel {
       
       this._postToWebview('EXPORT_DOCX');
     });
-  }
+ }
 
-  /**
-   * Export to HTML
-   */
-  public async exportToHtml(onProgress?: (progress: number) => void): Promise<boolean> {
-    return new Promise((resolve) => {
-      // Store callbacks
-      this._exportProgressCallback = onProgress || null;
-      this._exportResultResolver = (success: boolean) => {
-        this._exportProgressCallback = null;
-        this._exportResultResolver = null;
-        resolve(success);
-      };
+ /**
+ * Export to HTML
+ */
+ public async exportToHtml(onProgress?: (progress: number) => void): Promise<boolean> {
+ return new Promise((resolve) => {
+ // Store callbacks
+ this._exportProgressCallback = onProgress || null;
+ this._exportResultResolver = (success: boolean) => {
+ this._exportProgressCallback = null;
+ this._exportResultResolver = null;
+ resolve(success);
+ };
 
-      this._postToWebview('EXPORT_HTML');
-    });
-  }
+ this._postToWebview('EXPORT_HTML');
+ });
+ }
 
-  /**
+ /**
    * Set callback for render progress updates
    */
   public setRenderProgressCallback(callback: ((completed: number, total: number) => void) | null): void {
@@ -353,37 +305,11 @@ export class MarkdownPreviewPanel {
    */
   public scrollToLine(line: number): void {
     // Skip if this scroll was triggered by preview scrolling editor
-    if (Date.now() < this._previewScrolledEditorUntil) {
+    if (this._isScrolling) {
+      this._isScrolling = false;
       return;
     }
     this._postToWebview('SCROLL_TO_LINE', { line });
-  }
-
-  /**
-   * Called from onDidChangeActiveTextEditor. Subject to anchor and
-   * preview-scroll suppression to prevent feedback loops.
-   */
-  public setDocumentFromEditor(document: vscode.TextDocument, initialLine?: number): void {
-    if (Date.now() < this._suppressEditorScrollUntil || Date.now() < this._previewScrolledEditorUntil) {
-      return;
-    }
-    this.setDocument(document, initialLine);
-  }
-
-  public scrollToLineFromEditor(line: number): void {
-    if (Date.now() < this._previewScrolledEditorUntil) {
-      return;
-    }
-    if (Date.now() < this._suppressEditorScrollUntil) {
-      return;
-    }
-    // Compensate for Sticky Scroll: visibleRanges reports a line that is
-    // lower by the sticky header height. Compute the actual heading ancestor
-    // depth at this position and add it so the preview stays aligned with
-    // the actual editor content below the sticky header.
-    const stickyHeight = this._getEstimatedStickyHeight(Math.floor(line));
-    const adjustedLine = line + stickyHeight;
-    this._postToWebview('SCROLL_TO_LINE', { line: adjustedLine });
   }
 
   /**
@@ -405,45 +331,11 @@ export class MarkdownPreviewPanel {
   }
 
   /**
-   * Estimate the number of sticky scroll header lines at the given editor line.
-   * Counts the ancestor heading levels that VSCode's sticky scroll would display.
-   * Returns 0 if sticky scroll is disabled or no headings are found.
-   */
-  private _getEstimatedStickyHeight(line: number): number {
-    if (!this._document) return 0;
-
-    const config = vscode.workspace.getConfiguration('editor');
-    if (!config.get<boolean>('stickyScroll.enabled', true)) return 0;
-
-    const maxLines = config.get<number>('stickyScroll.maxLineCount', 5);
-    let stickyCount = 0;
-    let minLevel = 7; // higher than max heading level (6)
-
-    for (let i = line - 1; i >= 0 && stickyCount < maxLines; i--) {
-      const text = this._document.lineAt(i).text;
-      const match = text.match(/^(#{1,6})\s/);
-      if (match) {
-        const level = match[1].length;
-        if (level < minLevel) {
-          minLevel = level;
-          stickyCount++;
-          if (level === 1) break; // h1 is the top-level ancestor
-        }
-      }
-    }
-
-    return stickyCount;
-  }
-
-  /**
    * Scroll editor to specified line
    */
   private _scrollEditorToLine(line: number, editor: vscode.TextEditor): void {
-    // Suppress editor-to-preview scroll for a window after we programmatically
-    // scroll the editor. With Sticky Scroll, visibleRanges reports a line
-    // offset by the sticky header height; the timestamp window ensures all
-    // resulting events (visibleRanges, activeTextEditor) are suppressed.
-    this._previewScrolledEditorUntil = Date.now() + 500;
+    // Set flag to prevent feedback loop
+    this._isScrolling = true;
     
     const sourceLine = Math.max(0, Math.floor(line));
     const lineCount = editor.document.lineCount;
@@ -565,77 +457,37 @@ export class MarkdownPreviewPanel {
         case 'EXPORT_PROGRESS':
           // DOCX export progress update
           if (this._exportProgressCallback && payload) {
-            // Command-initiated export: forward to withProgress callback
             const { completed, total } = payload as { completed: number; total: number };
             const progress = total > 0 ? Math.round((completed / total) * 100) : 0;
             this._exportProgressCallback(progress);
-          } else if (payload) {
-            // Webview-initiated export: start a withProgress notification on first message
-            const { completed, total } = payload as { completed: number; total: number };
-            const percent = total > 0 ? Math.round((completed / total) * 100) : 0;
-            if (!this._webviewExportProgressReporter) {
-              this._webviewExportLastPercent = 0;
-              vscode.window.withProgress(
-                { location: vscode.ProgressLocation.Notification, title: 'Exporting to DOCX', cancellable: false },
-                (progressReporter) => {
-                  this._webviewExportProgressReporter = progressReporter;
-                  return new Promise<void>((resolve) => {
-                    this._webviewExportDoneResolver = resolve;
-                  });
-                }
-              );
-            }
-            if (this._webviewExportProgressReporter) {
-              const increment = percent - this._webviewExportLastPercent;
-              if (increment > 0) {
-                this._webviewExportProgressReporter.report({ increment, message: `${percent}%` });
-                this._webviewExportLastPercent = percent;
-              }
-            }
           }
           break;
 
-        case 'EXPORT_DOCX_RESULT':
-          // Export completed - resolve the promise
-          if (this._exportResultResolver) {
-            const result = payload as { success: boolean } | undefined;
-            this._exportResultResolver(result?.success ?? false);
-          } else {
-            // Webview-initiated export (from export menu button)
-            const result = payload as { success: boolean; filename?: string; error?: string } | undefined;
-            if (this._webviewExportDoneResolver) {
-              this._webviewExportDoneResolver();
-              this._webviewExportProgressReporter = null;
-              this._webviewExportDoneResolver = null;
-              this._webviewExportLastPercent = 0;
-            }
-            if (result?.success) {
-              vscode.window.showInformationMessage(result.filename ? `Exported: ${result.filename}` : 'DOCX exported successfully');
-            } else {
-              vscode.window.showErrorMessage(`DOCX export failed${result?.error ? ': ' + result.error : ''}`);
-            }
-          }
-          break;
+ case 'EXPORT_DOCX_RESULT':
+ // Export completed - resolve the promise
+ if (this._exportResultResolver) {
+ const result = payload as { success: boolean } | undefined;
+ this._exportResultResolver(result?.success ?? false);
+ }
+ break;
 
-        case 'EXPORT_HTML_RESULT':
-          // HTML Export completed - resolve the promise
-          if (this._exportResultResolver) {
-            const result = payload as { success: boolean } | undefined;
-            this._exportResultResolver(result?.success ?? false);
-          }
-          break;
-
-        case 'DOWNLOAD_HTML':
-          // HTML export download - save HTML file
-          response = await this._handleDownloadHtml(payload as { filename: string; data: string; mimeType: string });
-          break;
-
-        case 'REVEAL_LINE':
-          // Preview scrolled, sync editor (Preview → Editor)
-          if (payload && typeof (payload as { line: number }).line === 'number') {
-            this._onPreviewScroll((payload as { line: number }).line);
-          }
-          break;
+ case 'EXPORT_HTML_RESULT':
+ // HTML Export completed - resolve the promise
+ if (this._exportResultResolver) {
+ const result = payload as { success: boolean } | undefined;
+ this._exportResultResolver(result?.success ?? false);
+ }
+      break;
+    case 'DOWNLOAD_HTML':
+      // HTML export download - save HTML file
+      response = await this._handleDownloadHtml(payload as { filename: string; data: string; mimeType: string });
+      break;
+    case 'REVEAL_LINE':
+      // Preview scrolled, sync editor (Preview → Editor)
+      if (payload && typeof (payload as { line: number }).line === 'number') {
+        this._onPreviewScroll((payload as { line: number }).line);
+      }
+      break;
 
         case 'OPEN_URL':
           // Open external URL in default browser
@@ -646,35 +498,6 @@ export class MarkdownPreviewPanel {
           response = { success: true };
           break;
 
-        case 'NOTIFY':
-          // Show a notification message from the webview
-          if (payload) {
-            const notify = payload as { type?: string; message: string };
-            if (notify.message) {
-              if (notify.type === 'error') {
-                vscode.window.showErrorMessage(notify.message);
-              } else {
-                vscode.window.showInformationMessage(notify.message);
-              }
-            }
-          }
-          break;
-
-        case 'PRINT_HTML_RESULT': {
-          // Webview serialized its rendered HTML — save to temp file and open in browser
-          const printPayload = payload as { html: string; filename?: string } | undefined;
-          if (printPayload?.html) {
-            const tmpFile = path.join(os.tmpdir(), `mv-print-${Date.now()}.html`);
-            try {
-              fs.writeFileSync(tmpFile, printPayload.html, 'utf8');
-              vscode.env.openExternal(vscode.Uri.file(tmpFile));
-            } catch (err) {
-              vscode.window.showErrorMessage(`Print failed: ${String(err)}`);
-            }
-          }
-          break;
-        }
-
         case 'READ_LOCAL_FILE':
           // Read local file content (for SVG plugin, etc.)
           response = await this._handleReadLocalFile(payload as { filePath: string });
@@ -683,7 +506,6 @@ export class MarkdownPreviewPanel {
           // Open relative file in VS Code
           if (payload && (payload as { path: string }).path && this._document) {
             const relativePath = (payload as { path: string }).path;
-            const fragment = (payload as { path: string; fragment?: string }).fragment;
             const documentDir = path.dirname(this._document.uri.fsPath);
             const targetPath = path.resolve(documentDir, relativePath);
             const targetUri = vscode.Uri.file(targetPath);
@@ -692,24 +514,8 @@ export class MarkdownPreviewPanel {
             if (relativePath.endsWith('.md') || relativePath.endsWith('.markdown')) {
               // Open markdown file and show preview
               const doc = await vscode.workspace.openTextDocument(targetUri);
-              // Find heading line number matching the fragment
-              const headingLine = fragment ? findHeadingLine(doc.getText(), fragment) : undefined;
-              const showOptions: vscode.TextDocumentShowOptions = {
-                viewColumn: vscode.ViewColumn.One,
-              };
-              if (typeof headingLine === 'number') {
-                const range = new vscode.Range(headingLine, 0, headingLine, 0);
-                showOptions.selection = range;
-              }
-              // Suppress editor-driven events (onDidChangeActiveTextEditor,
-              // onDidChangeTextEditorVisibleRanges) that showTextDocument fires.
-              // Their topLine ≠ headingLine and would override the correct scroll.
-              this._suppressEditorScrollUntil = Date.now() + 1000;
-              // Set document BEFORE showTextDocument so updateContent carries
-              // the correct scrollLine. showTextDocument triggers editor events
-              // that would race with this and set wrong targetLine.
-              this.setDocument(doc, headingLine);
-              await vscode.window.showTextDocument(doc, showOptions);
+              await vscode.window.showTextDocument(doc, vscode.ViewColumn.One);
+              this.setDocument(doc);
             } else {
               // Open other files normally
               await vscode.commands.executeCommand('vscode.open', targetUri);
@@ -1222,7 +1028,7 @@ export class MarkdownPreviewPanel {
   <link rel="stylesheet" href="${styleUri}">
   <link rel="stylesheet" href="${settingsStyleUri}">
   <link rel="stylesheet" href="${searchStyleUri}">
-  <link rel="stylesheet" href="${tocStyleUri}">
+    <link rel="stylesheet" href="${tocStyleUri}">
   <title>Markdown Preview</title>
   <style>
     /* Hide Chrome extension specific UI elements */
@@ -1232,56 +1038,30 @@ export class MarkdownPreviewPanel {
       display: none !important;
     }
     
-    /* VS Code webview layout - use markdown wrapper scroll */
+    /* VS Code webview layout - use body scroll */
     html, body {
       height: 100%;
       margin: 0;
       padding: 0;
-      overflow: hidden;
     }
     
     #vscode-root {
-      height: 100%;
+      min-height: 100%;
     }
     
     #vscode-content {
-      height: 100%;
+      /* No overflow: auto - let body scroll */
     }
     
-    /* Reset wrapper for VS Code (no sidebar offset / no toolbar gap) */
+    /* Reset wrapper for VS Code (no sidebar offset) */
     #markdown-wrapper {
       margin-left: 0 !important;
       margin-top: 0 !important;
-      margin-right: 0 !important;
-      height: 100vh !important;
-      overflow-y: auto !important;
-      overflow-x: hidden !important;
     }
     
     /* Full width content for VS Code */
     #markdown-page {
       max-width: none !important;
-    }
-
-    @media print {
-      html, body,
-      #vscode-root,
-      #vscode-content,
-      #markdown-wrapper,
-      #markdown-page {
-        height: auto !important;
-        min-height: 0 !important;
-        max-height: none !important;
-        overflow: visible !important;
-        -webkit-print-color-adjust: exact;
-        print-color-adjust: exact;
-      }
-
-      #markdown-wrapper {
-        margin-left: 0 !important;
-        margin-top: 0 !important;
-        margin-right: 0 !important;
-      }
     }
   </style>
 </head>

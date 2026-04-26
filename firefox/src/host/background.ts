@@ -593,19 +593,9 @@ initGlobalCacheStorage();
 // Content Script Injection (Firefox uses tabs.executeScript in MV2)
 // ============================================================================
 
-// Handle dynamic content script injection.
-// `fromContextMenu` is true when triggered by the right-click menu so we
-// always run the HTML→Markdown converter first (the script self-detects
-// whether the page is HTML via document.contentType and bails out early
-// if it's a raw text file).
-async function handleContentScriptInjection(tabId: number, fromContextMenu = false): Promise<void> {
+async function handleContentScriptInjection(tabId: number): Promise<void> {
   try {
-    if (fromContextMenu) {
-      await browser.scripting.executeScript({
-        target: { tabId },
-        files: ['/core/html-to-markdown.js']
-      });
-    }
+    // MV3 uses scripting API instead of tabs.executeScript
     await browser.scripting.executeScript({
       target: { tabId },
       files: ['/core/main.js']
@@ -1100,8 +1090,8 @@ browser.menus.onClicked.addListener((info, tab) => {
       const isCurrentPage = targetUrl === tab.url || targetUrl === info.pageUrl;
       
       if (isCurrentPage) {
-        // Current page - always run html-to-markdown converter first
-        handleContentScriptInjection(tab.id, true).catch((error) => {
+        // Current page - inject directly
+        handleContentScriptInjection(tab.id).catch((error) => {
           console.error('[Firefox Background] Failed to inject content script:', error);
         });
       } else {

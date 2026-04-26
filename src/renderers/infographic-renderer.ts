@@ -57,10 +57,6 @@ export class InfographicRenderer extends BaseRenderer {
     
     // Check if hand-drawn style should be applied
     const isHandDrawn = themeConfig?.diagramStyle === 'handDrawn';
-    // Dark theme: @antv/infographic ships a built-in theme named 'dark' that
-    // maps colorBg + text colors for a dark page. Rough stylize can still be
-    // layered on top via themeConfig.
-    const isDark = themeConfig?.colorSchema === 'dark';
     
     try {
       // Build Infographic options
@@ -69,7 +65,6 @@ export class InfographicRenderer extends BaseRenderer {
         width: number;
         height: number;
         padding: number;
-        theme?: string;
         themeConfig?: {
           stylize: {
             type: 'rough';
@@ -83,11 +78,6 @@ export class InfographicRenderer extends BaseRenderer {
         height: 600,
         padding: 24,
       };
-
-      // Select built-in dark theme when active color scheme is dark
-      if (isDark) {
-        infographicOptions.theme = 'dark';
-      }
 
       // Add rough stylize config for hand-drawn style
       if (isHandDrawn) {
@@ -190,8 +180,7 @@ export class InfographicRenderer extends BaseRenderer {
         base64: base64Data,
         width: canvas.width,
         height: canvas.height,
-        format: 'png',
-        svg: svgContent
+        format: 'png'
       };
     } finally {
       // Always remove the container

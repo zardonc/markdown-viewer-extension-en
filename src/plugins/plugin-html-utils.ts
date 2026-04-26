@@ -67,6 +67,7 @@ export function replacePlaceholderWithImage(id: string, result: PluginRenderResu
     
     // Validate source hash match to prevent concurrent rendering race conditions
     if (sourceHash && expectedSourceHash !== sourceHash) {
+      console.debug('[replacePlaceholder] Source hash mismatch, skipping update:', { id, expected: expectedSourceHash, actual: sourceHash });
       return;
     }
     

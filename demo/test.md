@@ -26,7 +26,7 @@ tags: [markdown, test, demo]
 4. **表格** - 基础表格、对齐表格
 5. **代码** - 行内代码、代码块、多语言语法高亮
 6. **数学公式** - KaTeX 行内和块级公式
-7. **Mermaid 图表** - [完整演示](./mermaid-demo.md)，[锚点](./mermaid-demo.md#业务流程图)
+7. **Mermaid 图表** - [完整演示](./mermaid-demo.md)
 8. **Vega-Lite 图表** - [完整演示](./vega-demo.md)
 9. **DOT 图表** - [完整演示](./dot-demo.md)
 10. **Infographic 图表** - [完整演示](./infographic-demo.md)
@@ -324,13 +324,6 @@ tags: [markdown, test, demo]
 上表中：
 - 第1、2行的"分组"列是空的，但因为是首行，不会合并，各自独立显示
 - 第3、4行的"已分组" 跨 2 行（正常合并）
-
-| Name | Description |
-|------|-------------|
-| `rt1`, `rt2` |  Foo. |
-| `tc`         | Bar. |
-
-上表导出 docx 时，Name 应该为两行。
 
 ---
 

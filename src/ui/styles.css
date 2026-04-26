@@ -43,56 +43,6 @@
   --shadow-toolbar: 0 2px 4px rgba(0, 0, 0, 0.06);
 }
 
-/* Dark frame palette — activated when a dark theme is selected.
-   Only overrides the frame variables; #markdown-content stays driven by the
-   current theme's ColorScheme (page/surface/text), so content and frame stay
-   visually consistent instead of showing a light gray frame around dark
-   content. */
-:root.dark {
-  --color-bg-body: #1a1d21;
-  --color-bg-surface: #24272c;
-  --color-bg-toc: #1f2227;
-  --color-text-primary: #e6e6e6;
-  --color-text-secondary: #b4b9c2;
-  --color-text-tertiary: #8b919b;
-  --color-border: #3a3f46;
-  --color-border-hover: #4a5058;
-  --color-primary-light: #1e293b;
-  --color-primary-subtle: #233044;
-  --shadow-toolbar: 0 2px 4px rgba(0, 0, 0, 0.35);
-
-  /* Flip the neutral gray scale too so hover states (which use
-     --gray-100 / --gray-200 as subtle surface tints) land on a tone
-     slightly lighter than the dark surface instead of a bright light
-     background. Text colors using gray-700 / gray-900 remain readable
-     because they're consumed against the dark surface. */
-  --gray-50: #2a2d33;
-  --gray-100: #2e3239;
-  --gray-200: #363b44;
-  --gray-300: #3f454f;
-  --gray-400: #6c737f;
-  --gray-500: #8b919b;
-  --gray-600: #a9afb8;
-  --gray-700: #c7ccd4;
-  --gray-900: #e6e6e6;
-}
-
-/* Dark scrollbars — WebKit/Chromium only. Falls back silently elsewhere. */
-:root.dark ::-webkit-scrollbar {
-  width: 10px;
-  height: 10px;
-}
-:root.dark ::-webkit-scrollbar-track {
-  background: transparent;
-}
-:root.dark ::-webkit-scrollbar-thumb {
-  background: #3a3f46;
-  border-radius: 5px;
-}
-:root.dark ::-webkit-scrollbar-thumb:hover {
-  background: #4a5058;
-}
-
 * {
   box-sizing: border-box;
 }
@@ -100,8 +50,6 @@
 body {
   margin: 0;
   padding: 0;
-  height: 100vh;
-  overflow: hidden;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
   line-height: 1.6;
   color: var(--gray-700);
@@ -144,10 +92,6 @@ body {
 
 .toolbar-right {
   justify-content: flex-end;
-}
-
-.toolbar-menu-container {
-  position: relative;
 }
 
 .toolbar-btn {
@@ -214,55 +158,6 @@ body {
   stroke: currentColor;
 }
 
-.toolbar-menu-trigger {
-  gap: 6px;
-}
-
-.toolbar-menu-caret {
-  width: 12px;
-  height: 12px;
-}
-
-.toolbar-menu {
-  position: absolute;
-  top: calc(100% + 6px);
-  right: 0;
-  min-width: 140px;
-  display: flex;
-  flex-direction: column;
-  padding: 6px;
-  background: var(--color-surface, #ffffff);
-  border: 1px solid var(--color-border);
-  border-radius: 8px;
-  box-shadow: var(--shadow-toolbar);
-  z-index: 1002;
-}
-
-.toolbar-menu[hidden] {
-  display: none;
-}
-
-.toolbar-menu-item {
-  width: 100%;
-  padding: 8px 10px;
-  border: 0;
-  border-radius: 6px;
-  background: transparent;
-  color: var(--color-text-primary);
-  text-align: left;
-  cursor: pointer;
-  font: inherit;
-}
-
-.toolbar-menu-item:hover {
-  background: var(--gray-100);
-}
-
-.toolbar-menu-item:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
 .file-name {
   font-size: 14px;
   font-weight: 500;
@@ -303,10 +198,6 @@ body.toc-hidden #markdown-wrapper {
   margin-left: 0;
 }
 
-body.toc-position-right.toc-hidden #markdown-wrapper {
-  margin-right: 0;
-}
-
 #table-of-contents {
   width: 280px;
   background: var(--color-bg-toc);
@@ -325,17 +216,6 @@ body.toc-position-right.toc-hidden #markdown-wrapper {
 
 #table-of-contents.hidden {
   transform: translateX(-100%);
-}
-
-body.toc-position-right #table-of-contents {
-  left: auto;
-  right: 0;
-  border-right: none;
-  border-left: 1px solid var(--color-border);
-}
-
-body.toc-position-right #table-of-contents.hidden {
-  transform: translateX(100%);
 }
 
 #toc-overlay {
@@ -391,16 +271,7 @@ body.toc-position-right #table-of-contents.hidden {
 #markdown-wrapper {
   margin-left: 280px;
   margin-top: 50px;
-  height: calc(100vh - 50px);
-  overflow-y: auto;
-  overflow-x: hidden;
-  overscroll-behavior: contain;
-  scroll-padding-top: 12px;
-}
-
-body.toc-position-right #markdown-wrapper {
-  margin-left: 0;
-  margin-right: 280px;
+  min-height: calc(100vh - 50px);
 }
 
 #markdown-page {
@@ -415,7 +286,7 @@ body.toc-position-right #markdown-wrapper {
   margin: 0 auto;
   padding: 40px;
   box-sizing: border-box;
-  min-height: 100%;
+  min-height: calc(100vh - 50px);
 }
 
 #markdown-content h1,
@@ -424,7 +295,8 @@ body.toc-position-right #markdown-wrapper {
 #markdown-content h4,
 #markdown-content h5,
 #markdown-content h6 {
-  scroll-margin-top: 12px;
+  scroll-margin-top: 50px;
+  /* Offset for fixed toolbar (50px) */
 }
 
 #markdown-content p {
@@ -499,16 +371,6 @@ html[data-code-view] #markdown-content pre code::before {
   border-left: 4px solid #dfe2e5;
   padding: 1px 13px;
   margin: 0;
-}
-
-/* Normalize first/last child margins inside blockquote so that
-   visible top/bottom spacing is determined symmetrically by the
-   blockquote's own padding + margin, not by inner paragraph margins. */
-#markdown-content blockquote > :first-child {
-  margin-top: 0;
-}
-#markdown-content blockquote > :last-child {
-  margin-bottom: 0;
 }
 
 #markdown-content ul,
@@ -586,24 +448,15 @@ html[data-code-view] #markdown-content pre code::before {
 @media (max-width: 1024px) {
   #markdown-wrapper {
     margin-left: 0;
-    margin-right: 0;
   }
 
   #table-of-contents {
     transform: translateX(-100%);
+    width: 80%;
+    max-width: 320px;
   }
 
   #table-of-contents:not(.hidden) {
-    transform: translateX(0);
-  }
-
-  body.toc-position-right #table-of-contents {
-    left: auto;
-    right: 0;
-    transform: translateX(100%);
-  }
-
-  body.toc-position-right #table-of-contents:not(.hidden) {
     transform: translateX(0);
   }
 
@@ -617,6 +470,11 @@ html[data-code-view] #markdown-content pre code::before {
 }
 
 @media (max-width: 768px) {
+  #table-of-contents {
+    width: 90%;
+    max-width: 300px;
+  }
+
   #markdown-content {
     padding: 20px;
   }
@@ -703,22 +561,6 @@ html[data-code-view] #markdown-content pre code::before {
   margin: 0 auto 12px;
 }
 
-/* Dark-theme overrides for the async placeholder — the hard-coded light
-   grays above would otherwise show as a bright block inside dark content. */
-:root.dark .async-placeholder {
-  background: #24272c;
-  border-color: #3a3f46;
-}
-:root.dark .async-placeholder:hover {
-  background: #2e3239;
-  border-color: #4a5058;
-}
-:root.dark .async-loading { color: #b4b9c2; }
-:root.dark .async-spinner {
-  border-color: #2e3239;
-  border-top-color: #60a5fa;
-}
-
 @keyframes async-spin {
   0% {
     transform: rotate(0deg);
@@ -786,25 +628,6 @@ html[data-code-view] #markdown-content pre code::before {
 /* Print Styles - Only show content area */
 @media print {
 
-  :root {
-    /* Match DOCX image sizing strategy: keep tall media within one printable page. */
-    --print-max-media-height: 9.5in;
-  }
-
-  html,
-  body,
-  #vscode-root,
-  #vscode-content,
-  #markdown-wrapper,
-  #markdown-page {
-    height: auto !important;
-    min-height: 0 !important;
-    max-height: none !important;
-    overflow: visible !important;
-    -webkit-print-color-adjust: exact;
-    print-color-adjust: exact;
-  }
-
   /* Hide toolbar, TOC and overlay completely when printing */
   #toolbar,
   #table-of-contents,
@@ -816,13 +639,11 @@ html[data-code-view] #markdown-content pre code::before {
   #markdown-wrapper {
     margin-left: 0 !important;
     margin-top: 0 !important;
-    margin-right: 0 !important;
   }
 
   /* Optimize content area for printing */
   #markdown-page {
     margin: 0 auto !important;
-    overflow: visible !important;
   }
 
   #markdown-content {
@@ -830,16 +651,14 @@ html[data-code-view] #markdown-content pre code::before {
     margin: 0 auto !important;
     padding: 20px !important;
     zoom: 1 !important;
-    -webkit-print-color-adjust: exact;
-    print-color-adjust: exact;
+    background: white !important;
   }
 
   /* Adjust body for print */
   body {
+    background-color: white !important;
     margin: 0 !important;
     padding: 0 !important;
-    -webkit-print-color-adjust: exact;
-    print-color-adjust: exact;
   }
 
   /* Hide processing indicators when printing */
@@ -858,8 +677,7 @@ html[data-code-view] #markdown-content pre code::before {
 
   #markdown-content pre,
   #markdown-content blockquote,
-  #markdown-content table,
-  #markdown-content .diagram-block {
+  #markdown-content table {
     page-break-inside: avoid;
     break-inside: avoid;
   }
@@ -884,25 +702,8 @@ html[data-code-view] #markdown-content pre code::before {
   #markdown-content img {
     max-width: 100% !important;
     height: auto !important;
-    max-height: var(--print-max-media-height) !important;
     page-break-inside: avoid;
     break-inside: avoid;
-  }
-
-  #markdown-content .diagram-block {
-    overflow: visible !important;
-  }
-
-  #markdown-content .diagram-block img,
-  #markdown-content .diagram-block svg {
-    max-height: var(--print-max-media-height) !important;
-  }
-
-  /* Override the shared width:100% rule so small SVG diagrams keep their natural size in print. */
-  #markdown-content .diagram-block svg {
-    max-width: 100% !important;
-    width: auto !important;
-    height: auto !important;
   }
 }
 

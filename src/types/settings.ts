@@ -11,7 +11,6 @@ export type SettingKey =
   | 'themeId'
   | 'tableMergeEmpty'
   | 'tableLayout'
-  | 'swapPanelSide'
   | 'frontmatterDisplay'
   | 'preferredLocale'
   | 'docxHrDisplay'
@@ -24,7 +23,6 @@ export interface SettingTypes {
   themeId: string;
   tableMergeEmpty: boolean;
   tableLayout: 'left' | 'center';
-  swapPanelSide: boolean;
   frontmatterDisplay: 'hide' | 'table' | 'raw';
   preferredLocale: string;
   docxHrDisplay: 'pageBreak' | 'line' | 'hide';
@@ -38,7 +36,6 @@ export const DEFAULT_SETTINGS: SettingTypes = {
   themeId: 'default',
   tableMergeEmpty: true,
   tableLayout: 'center',
-  swapPanelSide: false,
   frontmatterDisplay: 'hide',
   preferredLocale: 'auto',
   docxHrDisplay: 'hide',
