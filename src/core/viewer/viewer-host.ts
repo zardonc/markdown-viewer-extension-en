@@ -480,16 +480,6 @@ export async function renderMarkdownFlow(options: RenderMarkdownFlowOptions): Pr
       }
     }
 
-<<<<<<< HEAD
-=======
-    if (!hasRenderableContent) {
-      setContainerVisible(false);
-    } else {
-      // Reveal immediately before rendering starts — never wait for render completion.
-      setContainerVisible(true);
-    }
-
->>>>>>> parent of c062dd7 (feat: improve initial rendering behavior by controlling container visibility during markdown flow)
     // Set target line for scroll sync
     // VSCode: targetLine is undefined, uses message-driven value (setTargetLine called from events)
     // Chrome/Mobile: targetLine is passed BUT we do NOT scroll yet — wait for processAll.
