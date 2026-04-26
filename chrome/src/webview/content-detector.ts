@@ -1,5 +1,5 @@
-// Lightweight content script for detecting Markdown files and registering element runtime
-// This script runs on all pages to check if they are Markdown files or HTML pages
+// Lightweight content script for detecting Markdown files
+// This script runs on all pages to check if they are Markdown files
 // Supports both Chrome (chrome.*) and Firefox (browser.*) APIs
 
 import { getWebExtensionApi } from '../../../src/utils/platform-info';
@@ -146,34 +146,19 @@ async function detectAndInject(): Promise<void> {
     return;
   }
 
-  // HTML files: ask background to inject element-runtime.js (same pattern as main.js for .md)
-  // Direct call fails because platform/ServiceChannel cannot init inside a content script context
-  if (matchedExt === '.html') {
-    const request = {
-      id: `${Date.now()}-${Math.random().toString(16).slice(2)}`,
-      type: 'INJECT_ELEMENT_RUNTIME',
-      payload: {},
-      timestamp: Date.now(),
-      source: 'content-detector',
-    };
-    const sendPromise = webExtensionApi.runtime.sendMessage(request);
-    if (sendPromise && typeof sendPromise.then === 'function') {
-      sendPromise.catch(() => {
-        // Ignore errors - fire and forget
-      });
-    }
-    return;
-  }
-
   // Check if content is processable
-  const processable = isProcessableContent();
-  if (!processable) {
+  if (!isProcessableContent()) {
     return;
   }
 
   // Markdown files (including .slides.md) are always supported
   if (matchedExt === '.md' || matchedExt === '.markdown' || matchedExt === '.slides.md') {
     injectContentScript();
+    return;
+  }
+
+  // HTML files are never supported (would interfere with normal browsing)
+  if (matchedExt === '.html') {
     return;
   }
 

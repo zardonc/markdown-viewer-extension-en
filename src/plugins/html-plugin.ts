@@ -3,15 +3,10 @@
  * 
  * Handles HTML code block processing in content script and DOCX export
  */
-import { BasePlugin } from './base-plugin.ts';
-import { sanitizeAndCheck } from '../utils/html-sanitizer.ts';
-import { loadImageAsDataUrl } from '../utils/image-loader.ts';
+import { BasePlugin } from './base-plugin';
+import { sanitizeAndCheck } from '../utils/html-sanitizer';
+import { loadImageAsDataUrl } from '../utils/image-loader';
 import type { DocumentService } from '../types/platform';
-import {
-  ensureRelativeDotSlash,
-  isDocumentRelativeUrl,
-  isNetworkUrl,
-} from '../utils/document-url.ts';
 
 /**
  * AST node interface for HTML plugin
@@ -55,7 +50,7 @@ export class HtmlPlugin extends BasePlugin {
 
       // Remote images: convert via <img> + canvas in main webview
       // (render worker srcdoc iframe has sandbox restrictions)
-      if (isNetworkUrl(src)) {
+      if (src.startsWith('http://') || src.startsWith('https://')) {
         try {
           const dataUrl = await loadImageAsDataUrl(src);
           if (dataUrl) {
@@ -128,7 +123,7 @@ function isLocalImageSrc(src: string): boolean {
     return false;
   }
 
-  if (isNetworkUrl(lower)) {
+  if (lower.startsWith('http://') || lower.startsWith('https://') || lower.startsWith('//')) {
     return false;
   }
 
@@ -147,7 +142,12 @@ function isLocalImageSrc(src: string): boolean {
     return true;
   }
 
-  return isDocumentRelativeUrl(src);
+  const hasScheme = /^[a-zA-Z][a-zA-Z0-9+.-]*:/.test(src);
+  if (hasScheme) {
+    return false;
+  }
+
+  return true;
 }
 
 function resolveLocalPath(src: string, docService: DocumentService): string {
@@ -160,8 +160,7 @@ function resolveLocalPath(src: string, docService: DocumentService): string {
     return `file:///${normalized}`;
   }
 
-  const normalizedRelative = ensureRelativeDotSlash(src);
-  return docService.resolvePath(normalizedRelative);
+  return docService.resolvePath(src);
 }
 
 function getImageMimeType(src: string): string {

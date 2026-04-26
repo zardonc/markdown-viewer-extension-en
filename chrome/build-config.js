@@ -54,9 +54,6 @@ export const createBuildConfig = () => {
   const config = {
     entryPoints: {
       'core/content-detector': 'chrome/src/webview/content-detector.ts',
-      'core/element-runtime': 'chrome/src/webview/element-runtime-runner.ts',
-      'core/element-runtime-main': 'chrome/src/webview/element-runtime-main.ts',
-      'core/runtime-bridge': 'chrome/src/webview/runtime-bridge.ts',
       'core/main': 'chrome/src/webview/main.ts',
       'core/html-to-markdown': 'chrome/src/webview/html-to-markdown.ts',
       'core/background': 'chrome/src/host/background.ts',

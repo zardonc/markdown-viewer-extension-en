@@ -10,7 +10,6 @@ import {
   type ParagraphChild
 } from 'docx';
 import { convertLatex2Math } from './docx-math-converter';
-import { isNetworkUrl } from '../utils/document-url';
 import {
   calculateImageDimensions,
   getImageDimensions,
@@ -529,7 +528,7 @@ export function createInlineConverter({
   async function convertSvgImageFromUrl(url: string, alt?: string): Promise<ImageRun | TextRun> {
     try {
       // Remote SVG: pass URL directly to renderer (uses renderFromUrl internally)
-      if (isNetworkUrl(url)) {
+      if (url.startsWith('http://') || url.startsWith('https://')) {
         if (!renderer) {
           reportResourceProgress();
           return new TextRun({ text: '[SVG 图片 - 渲染器不可用]', italics: true, color: '666666' });

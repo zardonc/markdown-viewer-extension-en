@@ -3,7 +3,7 @@
 
 import { platform } from './index';
 import { startViewer } from '../../../chrome/src/webview/viewer-main';
-import { initializeViewerBase } from '../../../src/core/viewer/viewer-bootstrap';
+import { createPluginRenderer } from '../../../src/core/viewer/viewer-host';
 import { getWebExtensionApi } from '../../../src/utils/platform-info';
 
 // Storage key for clipboard content
@@ -28,7 +28,8 @@ async function init(): Promise<void> {
     contentElement.textContent = content;
   }
 
-  const pluginRenderer = await initializeViewerBase(platform);
+  // Create plugin renderer using shared utility from viewer-host
+  const pluginRenderer = createPluginRenderer(platform);
 
   // Start the viewer with Firefox-specific configuration
   startViewer({

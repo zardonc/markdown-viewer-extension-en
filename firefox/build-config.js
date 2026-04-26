@@ -60,9 +60,6 @@ export const createBuildConfig = () => {
   const config = {
     entryPoints: {
       'core/content-detector': 'chrome/src/webview/content-detector.ts',
-      'core/element-runtime': 'firefox/src/webview/element-runtime-runner.ts',
-      'core/element-runtime-main': 'firefox/src/webview/element-runtime-main.ts',
-      'core/runtime-bridge': 'firefox/src/webview/runtime-bridge.ts',
       'core/main': 'firefox/src/webview/main.ts',
       'core/html-to-markdown': 'chrome/src/webview/html-to-markdown.ts',
       'core/drawio2svg': 'src/renderers/entries/drawio2svg-global.ts',
@@ -70,7 +67,6 @@ export const createBuildConfig = () => {
       'core/render-worker': 'firefox/src/host/render-worker.ts',
       'core/background': 'firefox/src/host/background.ts',
       'ui/popup/popup': 'firefox/src/popup/popup.ts',  // Firefox popup with Firefox platform
-      'ui/workspace/viewer-embed': 'chrome/src/workspace/viewer-embed.ts',
       'ui/styles': 'src/ui/styles.css'
     },
     bundle: true,
@@ -102,20 +98,6 @@ export const createBuildConfig = () => {
     minify: true,
     sourcemap: false,
     plugins: [
-      {
-        name: 'firefox-viewer-embed-platform-alias',
-        setup(build) {
-          const chromeEmbedEntry = path.resolve(projectRoot, 'chrome/src/workspace/viewer-embed.ts');
-          const firefoxIndex = path.resolve(projectRoot, 'firefox/src/webview/index.ts');
-
-          build.onResolve({ filter: /^\.\.\/webview\/index$/ }, (args) => {
-            if (path.resolve(args.importer) === chromeEmbedEntry) {
-              return { path: firefoxIndex };
-            }
-            return undefined;
-          });
-        }
-      },
       // Redirect @markdown-viewer/drawio2svg and draw-uml imports to shims
       // ONLY for files under src/renderers/ — these run in the render worker
       // where the real libraries are loaded via separate <script> tags.
@@ -146,9 +128,7 @@ export const createBuildConfig = () => {
                 { src: 'firefox/manifest.json', dest: 'dist/firefox/manifest.json', log: '📄 Copied manifest.json from firefox/' },
                 { src: 'chrome/src/popup/popup.html', dest: 'dist/firefox/ui/popup/popup.html' },
                 { src: 'chrome/src/popup/popup.css', dest: 'dist/firefox/ui/popup/popup.css' },
-                { src: 'firefox/src/host/background.html', dest: 'dist/firefox/ui/background.html', log: '📄 Copied background.html' },
-                { src: 'chrome/src/workspace/viewer-embed.html', dest: 'dist/firefox/ui/workspace/viewer-embed.html' },
-                { src: 'chrome/src/workspace/dark-preload.js', dest: 'dist/firefox/ui/workspace/dark-preload.js' }
+                { src: 'firefox/src/host/background.html', dest: 'dist/firefox/ui/background.html', log: '📄 Copied background.html' }
               ];
 
               fileCopies.push(...copyDirectory('icons', 'dist/firefox/icons'));

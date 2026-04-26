@@ -137,9 +137,7 @@ export function getLineForScrollPosition(
   const pos = getBlockAtScrollPosition(options);
   if (!pos) return null;
   
-  const line = lineMapper.getLineFromBlockId(pos.blockId, pos.progress);
-  
-  return line;
+  return lineMapper.getLineFromBlockId(pos.blockId, pos.progress);
 }
 
 /**
@@ -160,14 +158,10 @@ export function scrollToLine(
   }
   
   // If no lineMapper, can't scroll to line
-  if (!lineMapper) {
-    return false;
-  }
+  if (!lineMapper) return false;
   
   const pos = lineMapper.getBlockPositionFromLine(line);
-  if (!pos) {
-    return false;
-  }
+  if (!pos) return false;
   
   return scrollToBlock(pos.blockId, pos.progress, options);
 }
@@ -228,7 +222,7 @@ export function createScrollSyncController(options: ScrollSyncControllerOptions)
     topOffset,
   } = options;
 
-  let targetLine: number | undefined;
+  let targetLine: number = 0;
   let disposed = false;
 
   // Once we successfully scroll to targetLine, stop re-scrolling in onStreamingComplete.
@@ -278,19 +272,9 @@ export function createScrollSyncController(options: ScrollSyncControllerOptions)
       // restore uses the fast scrollTo({top:0}) path instead of scrollToLine(0.5).
       const scrollTop = getScrollTop(scrollContainer);
       if (scrollTop >= 1 || lastReportedLine <= 0) {
-        if (targetLine === undefined && currentLine <= 0) {
-          return;
-        }
         targetLine = currentLine;
         return;
       }
-    }
-
-    // No explicit scroll target has been set yet. Ignore passive top-position
-    // samples (line<=0) so initial render/streaming does not trigger forced
-    // scroll-to-top retries.
-    if (targetLine === undefined && currentLine <= 0) {
-      return;
     }
     
     targetLine = currentLine;
@@ -339,10 +323,6 @@ export function createScrollSyncController(options: ScrollSyncControllerOptions)
     },
 
     onStreamingComplete(): void {
-      if (targetLine === undefined) {
-        return;
-      }
-
       // Once scroll has settled (target block found and scrolled to), stop re-scrolling.
       // Repeated doScrolls fight browser scroll anchoring and cause visible position jumps
       // as scroll anchoring adjusts for content changes (font load, early diagram render).
@@ -355,10 +335,6 @@ export function createScrollSyncController(options: ScrollSyncControllerOptions)
     },
 
     onRenderComplete(): void {
-      if (targetLine === undefined) {
-        return;
-      }
-
       // Force one final re-scroll after async rendering (diagrams etc.) finishes.
       // At this point all block heights are final, so the position is accurate.
       scrollSettled = false;
@@ -369,7 +345,7 @@ export function createScrollSyncController(options: ScrollSyncControllerOptions)
     },
 
     reset(): void {
-      targetLine = undefined;
+      targetLine = 0;
       scrollSettled = false;
       lastReportedLine = null;
     },

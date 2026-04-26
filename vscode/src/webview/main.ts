@@ -8,7 +8,7 @@
  */
 
 import { platform, vscodeBridge } from './api-impl';
-import type { AsyncTaskManager, FrontmatterDisplay, HeadingInfo } from '../../../src/core/markdown-processor';
+import type { AsyncTaskManager, FrontmatterDisplay } from '../../../src/core/markdown-processor';
 import { wrapFileContent } from '../../../src/utils/file-wrapper';
 import type { ScrollSyncController } from '../../../src/core/line-based-scroll';
 import type { EmojiStyle } from '../../../src/types/docx.js';
@@ -32,11 +32,10 @@ import {
 // VSCode-specific UI components
 import { createSettingsPanel, type SettingsPanel, type ThemeOption, type LocaleOption } from './settings-panel';
 import { createSearchPanel, type SearchPanel, type HighlightMatch, type SearchOptions } from './search-panel';
-import { createTocPanel, type TocPanel } from '../../../src/ui/toc-panel';
+import { createTOCPanel, type TOCPanel, type TOCHeading } from './toc-panel';
 import { setupImageContextMenu } from '../../../src/ui/image-context-menu';
 import { createExportMenu, type ExportMenu } from '../../../src/ui/export-menu';
 import { printElement } from '../../../src/ui/print-utils';
-import { isExternalUrl, splitPathAndFragment } from '../../../src/utils/document-url';
 
 // Declare global types for VSCode-specific variables
 declare global {
@@ -66,7 +65,7 @@ let renderQueue: Promise<void> = Promise.resolve();
 // UI components
 let settingsPanel: SettingsPanel | null = null;
 let searchPanel: SearchPanel | null = null;
-let tocPanel: TocPanel | null = null;
+let tocPanel: TOCPanel | null = null; // TOC sidebar panel
 let exportMenu: ExportMenu | null = null;
 let currentHighlights: Map<HTMLElement, HTMLElement> = new Map(); // Original element → wrapper
 
@@ -255,7 +254,6 @@ async function handleUpdateContent(payload: UpdateContentPayload): Promise<void>
   // ── Slidev mode: .slides.md files render as presentations ────────────
   if (newFilename.endsWith('.slides.md')) {
     isSlidevMode = true;
-    tocPanel?.setHeadings([]);
 
     // Hide normal markdown wrapper, use vscode-root as container
     const wrapper = document.getElementById('markdown-wrapper');
@@ -310,11 +308,13 @@ async function handleUpdateContent(payload: UpdateContentPayload): Promise<void>
           });
         }
       },
-      getShellHtml: async () => {
+      getShellSource: async () => {
         const resp = await fetch(`${baseUri}/slidev-shell-inline.html`);
         if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
-        const html = await resp.text();
-        return html.replaceAll('__SLIDEV_NONCE__', nonce);
+        let html = await resp.text();
+        html = html.replaceAll('__SLIDEV_NONCE__', nonce);
+        const blob = new Blob([html], { type: 'text/html' });
+        return URL.createObjectURL(blob);
       },
       getThemeCode: async (name) => {
         const bundles = await fetchBundles();
@@ -362,8 +362,6 @@ async function handleUpdateContent(payload: UpdateContentPayload): Promise<void>
     currentTaskManagerRef: { current: currentTaskManager },
     targetLine: scrollLine,
     onHeadings: (headings) => {
-      tocPanel?.setHeadings(headings as HeadingInfo[]);
-      updateActiveTocHeading();
       vscodeBridge.postMessage('HEADINGS_UPDATED', headings);
     },
     onProgress: (completed, total) => {
@@ -376,60 +374,6 @@ async function handleUpdateContent(payload: UpdateContentPayload): Promise<void>
     const headings = tocPanel.extractHeadingsFromContent(container as HTMLElement);
     tocPanel.setHeadings(headings);
   }
-}
-
-function updateActiveTocHeading(): void {
-  if (!tocPanel) {
-    return;
-  }
-
-  const contentDiv = document.getElementById('markdown-content');
-  const wrapper = document.getElementById('markdown-wrapper');
-  if (!contentDiv || !wrapper) {
-    tocPanel.setActiveHeading(null);
-    return;
-  }
-
-  const headings = contentDiv.querySelectorAll<HTMLElement>('h1, h2, h3, h4, h5, h6');
-  if (headings.length === 0) {
-    tocPanel.setActiveHeading(null);
-    return;
-  }
-
-  const scrollTop = wrapper.scrollTop;
-  const wrapperRect = wrapper.getBoundingClientRect();
-  let activeId: string | null = null;
-
-  for (const heading of headings) {
-    const top = heading.getBoundingClientRect().top - wrapperRect.top + scrollTop;
-    if (top <= scrollTop + 10) {
-      activeId = heading.id || null;
-    } else {
-      break;
-    }
-  }
-
-  if (!activeId && headings[0]) {
-    activeId = headings[0].id || null;
-  }
-
-  tocPanel.setActiveHeading(activeId);
-}
-
-function scrollToHeadingById(headingId: string): void {
-  const wrapper = document.getElementById('markdown-wrapper') as HTMLElement | null;
-  const target = document.getElementById(headingId) as HTMLElement | null;
-  if (!wrapper || !target) {
-    return;
-  }
-
-  const wrapperRect = wrapper.getBoundingClientRect();
-  const targetRect = target.getBoundingClientRect();
-  const targetTop = targetRect.top - wrapperRect.top + wrapper.scrollTop;
-  wrapper.scrollTo({
-    top: Math.max(0, targetTop),
-    behavior: 'smooth'
-  });
 }
 
 // ============================================================================
@@ -620,15 +564,6 @@ function initializeUI(): void {
     }
   });
 
-  // Setup keyboard shortcut for TOC drawer (Cmd/Ctrl+B)
-  document.addEventListener('keydown', (e) => {
-    if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'b') {
-      e.preventDefault();
-      e.stopPropagation();
-      tocPanel?.toggle();
-    }
-  });
-
   // Setup link click handling via event delegation
   // This ensures all links (including dynamically added ones) are handled
   const contentContainer = document.getElementById('markdown-content');
@@ -642,8 +577,8 @@ function initializeUI(): void {
       e.preventDefault();
       e.stopPropagation();
       
-      // External links (http/https/mailto/tel/custom schemes)
-      if (isExternalUrl(href)) {
+      // External links (http/https) - open in external browser
+      if (href.startsWith('http://') || href.startsWith('https://')) {
         vscodeBridge.postMessage('OPEN_URL', { url: href });
       }
       // Anchor links
@@ -656,14 +591,15 @@ function initializeUI(): void {
       }
       // Relative links (including .md files)
       else {
-        const { path, fragment } = splitPathAndFragment(href);
-        if (fragment !== undefined) {
+        // Split hash fragment from path (e.g., ./file.md#section → path + fragment)
+        const hashIndex = href.indexOf('#');
+        if (hashIndex >= 0) {
           vscodeBridge.postMessage('OPEN_RELATIVE_FILE', {
-            path,
-            fragment: decodeURIComponent(fragment),
+            path: href.slice(0, hashIndex),
+            fragment: decodeURIComponent(href.slice(hashIndex + 1)),
           });
         } else {
-          vscodeBridge.postMessage('OPEN_RELATIVE_FILE', { path });
+          vscodeBridge.postMessage('OPEN_RELATIVE_FILE', { path: href });
         }
       }
     });
@@ -691,9 +627,6 @@ function initializeUI(): void {
       
       // Update search panel localization
       searchPanel?.updateLocalization();
-
-      // Update TOC panel localization
-      tocPanel?.updateLocalization();
       
       // Reload themes with new locale names
       await loadThemesForSettings();
@@ -766,20 +699,6 @@ function initializeUI(): void {
     }
   });
   document.body.appendChild(searchPanel.getElement());
-
-  tocPanel = createTocPanel({
-    onSelectHeading: (headingId) => {
-      scrollToHeadingById(headingId);
-    }
-  });
-  document.body.appendChild(tocPanel.getElement());
-
-  const wrapper = document.getElementById('markdown-wrapper');
-  if (wrapper) {
-    wrapper.addEventListener('scroll', () => {
-      updateActiveTocHeading();
-    });
-  }
 
   // Setup image context menu for saving images (shared cross-platform implementation)
   if (contentContainer) {

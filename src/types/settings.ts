@@ -12,7 +12,6 @@ export type SettingKey =
   | 'tableMergeEmpty'
   | 'tableLayout'
   | 'swapPanelSide'
-  | 'readerSidebarWidth'
   | 'frontmatterDisplay'
   | 'preferredLocale'
   | 'docxHrDisplay'
@@ -26,7 +25,6 @@ export interface SettingTypes {
   tableMergeEmpty: boolean;
   tableLayout: 'left' | 'center';
   swapPanelSide: boolean;
-  readerSidebarWidth: number;
   frontmatterDisplay: 'hide' | 'table' | 'raw';
   preferredLocale: string;
   docxHrDisplay: 'pageBreak' | 'line' | 'hide';
@@ -41,7 +39,6 @@ export const DEFAULT_SETTINGS: SettingTypes = {
   tableMergeEmpty: true,
   tableLayout: 'center',
   swapPanelSide: false,
-  readerSidebarWidth: 280,
   frontmatterDisplay: 'hide',
   preferredLocale: 'auto',
   docxHrDisplay: 'hide',

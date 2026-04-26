@@ -3,7 +3,7 @@
 
 import { platform } from './index';
 import { startViewer } from './viewer-main';
-import { initializeViewerBase } from '../../../src/core/viewer/viewer-bootstrap';
+import { createPluginRenderer } from '../../../src/core/viewer/viewer-host';
 
 // Storage key for clipboard content
 const CLIPBOARD_CONTENT_KEY = 'clipboardPreviewContent';
@@ -29,7 +29,8 @@ async function init(): Promise<void> {
     contentElement.textContent = content;
   }
 
-  const pluginRenderer = await initializeViewerBase(platform);
+  // Create plugin renderer using shared utility from viewer-host
+  const pluginRenderer = createPluginRenderer(platform);
 
   // Start the viewer with Chrome-specific configuration
   startViewer({

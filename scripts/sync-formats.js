@@ -182,9 +182,7 @@ function buildContentScriptMatches() {
 
 function updateManifest(manifestPath) {
   updateJsonFile(manifestPath, (manifest) => {
-    // Use wildcard matches for all protocols since content-detector.js handles file type detection
-    // file:// for local files, http/https for web
-    const matches = ['file:///*', '*://*/*'];
+    const matches = buildContentScriptMatches();
     if (manifest.content_scripts && manifest.content_scripts[0]) {
       manifest.content_scripts[0].matches = matches;
     }

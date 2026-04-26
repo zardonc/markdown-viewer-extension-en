@@ -693,18 +693,6 @@ chrome.runtime.onMessage.addListener((message: BackgroundMessage, sender, sendRe
     return;
   }
 
-  // Inject element runtime for HTML pages with <markdown-viewer> element
-  if (isRequestEnvelope(message) && message.type === 'INJECT_ELEMENT_RUNTIME') {
-    handleElementRuntimeInjection(sender.tab?.id || 0)
-      .then(() => {
-        sendResponseEnvelope(message.id, sendResponse, { ok: true, data: { success: true } });
-      })
-      .catch((error) => {
-        sendResponseEnvelope(message.id, sendResponse, { ok: false, errorMessage: (error as Error).message });
-      });
-    return true;
-  }
-
   // New service envelope: dynamic content script injection (preferred)
   if (isRequestEnvelope(message) && message.type === 'INJECT_CONTENT_SCRIPT') {
     const injectionUrl = (message.payload as { url?: string })?.url;
@@ -981,22 +969,6 @@ async function ensureOffscreenDocument(): Promise<void> {
 // always run the HTML→Markdown converter first (the script self-detects
 // whether the page is HTML via document.contentType and bails out early
 // if it's a raw text file).
-async function handleElementRuntimeInjection(tabId: number): Promise<void> {
-  await chrome.scripting.insertCSS({
-    target: { tabId },
-    files: ['ui/styles.css'],
-  });
-  await chrome.scripting.executeScript({
-    target: { tabId },
-    files: ['core/element-runtime.js'],
-  });
-  await chrome.scripting.executeScript({
-    target: { tabId },
-    world: 'MAIN',
-    files: ['core/element-runtime-main.js'],
-  });
-}
-
 async function handleContentScriptInjection(tabId: number, fromContextMenu = false): Promise<void> {
   try {
     if (fromContextMenu) {

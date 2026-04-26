@@ -23,7 +23,6 @@ import type {
 } from 'docx';
 import { mathJaxReady, convertLatex2Math } from './docx-math-converter';
 import { loadImageAsBuffer } from '../utils/image-loader';
-import { isNetworkUrl } from '../utils/document-url';
 import { unified } from 'unified';
 import remarkParse from 'remark-parse';
 import remarkInlineHtml from '../plugins/remark-inline-html';
@@ -34,7 +33,6 @@ import remarkGemoji from 'remark-gemoji';
 import remarkSuperSub from '../plugins/remark-super-sub';
 import { visit } from 'unist-util-visit';
 import { loadThemeForDOCX } from './theme-to-docx';
-import { rewriteObsidianLinks } from '../utils/obsidian-link-rewrite';
 import type { FrontmatterDisplay } from '../ui/popup/settings-tab';
 import themeManager from '../utils/theme-manager';
 import { getPluginForNode, convertNodeToDOCX } from '../plugins/index';
@@ -451,7 +449,6 @@ class DocxExporter {
     // Extract frontmatter if present
     const [frontmatter, cleanMarkdown] = this.extractFrontmatter(markdown);
     this.frontmatterContent = frontmatter;
-    const normalizedMarkdown = rewriteObsidianLinks(cleanMarkdown);
 
     const processor = unified()
       .use(remarkParse)
@@ -462,7 +459,7 @@ class DocxExporter {
       .use(remarkGemoji)
       .use(remarkSuperSub);
 
-    const ast = processor.parse(normalizedMarkdown);
+    const ast = processor.parse(cleanMarkdown);
     const transformed = processor.runSync(ast);
 
     this.linkDefinitions = new Map();
@@ -941,8 +938,10 @@ class DocxExporter {
       throw new Error('DocumentService not available - platform not initialized');
     }
 
+    const isNetworkUrl = url.startsWith('http://') || url.startsWith('https://');
+
     try {
-      if (isNetworkUrl(url)) {
+      if (isNetworkUrl) {
         // Use <img> + canvas to load remote images (bypasses fetch/CSP restrictions)
         const imgResult = await loadImageAsBuffer(url);
         if (!imgResult) {

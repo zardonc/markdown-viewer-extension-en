@@ -116,7 +116,7 @@ function rewriteSingleSvgEmbed(
 
   const resolvedPath = resolveLinkPath(linkPath);
   const imagePath = resolvedPath
-    ? (isSvgPath(resolvedPath) ? toRelativeVaultPath(sourcePath, resolvedPath) : linkPath)
+    ? toRelativeVaultPath(sourcePath, resolvedPath)
     : linkPath;
 
   return `![](${formatMarkdownDestination(imagePath)})`;

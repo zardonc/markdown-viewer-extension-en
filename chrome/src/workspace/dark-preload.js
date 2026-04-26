@@ -5,7 +5,7 @@
 // workspace init code (outer page), so both surfaces converge quickly.
 (function () {
   try {
-    if (sessionStorage.getItem('mdv-dark') === '1') {
+    if (localStorage.getItem('mdv-dark') === '1') {
       document.documentElement.classList.add('dark');
     }
   } catch (_) { /* storage disabled */ }

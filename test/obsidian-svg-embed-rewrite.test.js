@@ -18,13 +18,6 @@ describe('rewriteObsidianSvgEmbeds', () => {
     assert.strictEqual(output, '![](../../assets/diagram.svg)');
   });
 
-  it('ignores resolved targets when resolver returns non-svg file', () => {
-    const input = '![[test.svg]]';
-    const output = rewriteObsidianSvgEmbeds(input, 'notes/spec.md', () => 'notes/test.md');
-
-    assert.strictEqual(output, '![](test.svg)');
-  });
-
   it('strips obsidian embed options before rewriting', () => {
     const input = '![[assets/diagram.svg|320]]';
     const output = rewriteObsidianSvgEmbeds(input, 'notes/spec.md', () => 'notes/assets/diagram.svg');

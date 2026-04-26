@@ -24,7 +24,6 @@ import rehypeTableMerge from '../plugins/rehype-table-merge';
 import { registerRemarkPlugins } from '../plugins/index';
 import { createPlaceholderElement } from '../plugins/plugin-content-utils';
 import { generateContentHash, hashCode } from '../utils/hash';
-import { isDocumentRelativeUrl } from '../utils/document-url';
 import {
   splitMarkdownIntoBlocksWithLines as splitBlocks,
   splitMarkdownIntoBlocks as splitBlocksSimple,
@@ -202,8 +201,8 @@ export function isSafeUrl(url: string | null | undefined): boolean {
     return lower.startsWith('data:image/') || lower.startsWith('data:application/pdf');
   }
 
-  // Allow document-relative URLs via shared URL policy.
-  if (isDocumentRelativeUrl(trimmed)) {
+  // Allow relative paths (don't start with a protocol)
+  if (!trimmed.includes(':') || trimmed.startsWith('./') || trimmed.startsWith('../') || trimmed.startsWith('/')) {
     return true;
   }
 
@@ -478,20 +477,10 @@ export class AsyncTaskManager {
     const totalTasks = tasks.length;
     let completedTasks = 0;
 
-    const waitForNextFrame = async (): Promise<void> => {
-      await new Promise<void>((resolve) => {
-        if (typeof requestAnimationFrame === 'function') {
-          requestAnimationFrame(() => resolve());
-          return;
-        }
-        setTimeout(() => resolve(), 0);
-      });
-    };
-
     const waitForReady = async (task: AsyncTask): Promise<void> => {
       // Check task's own context instead of global aborted flag
       while (task.status === 'fetching' && !task.context.cancelled) {
-        await waitForNextFrame();
+        await new Promise(resolve => setTimeout(resolve, 50));
       }
     };
 
