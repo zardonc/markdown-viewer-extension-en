@@ -678,6 +678,7 @@ function sendToViewer(content: string, filename: string, codeView = false) {
         fileDir: currentFileDir,
         codeView,
       }, '*');
+      void postThemeToViewer();
       return;
     }
     if (event.data?.type === 'VIEWER_RENDERED') {
@@ -685,6 +686,18 @@ function sendToViewer(content: string, filename: string, codeView = false) {
     }
   };
   window.addEventListener('message', onMessage);
+}
+
+async function postThemeToViewer(themeId?: string): Promise<void> {
+  const targetThemeId = themeId ?? await themeManager.loadSelectedTheme();
+  if (!targetThemeId || !$previewFrame.contentWindow) {
+    return;
+  }
+
+  $previewFrame.contentWindow.postMessage({
+    type: 'SET_THEME',
+    themeId: targetThemeId,
+  }, '*');
 }
 
 async function openFile(fileHandle: FileSystemFileHandle) {
@@ -961,8 +974,8 @@ Localization.init().then(async () => {
         return;
       }
 
-      const oldSettings = changes.markdownViewerSettings.oldValue as { swapPanelSide?: boolean; preferredLocale?: string } | undefined;
-      const nextSettings = changes.markdownViewerSettings.newValue as { swapPanelSide?: boolean; preferredLocale?: string } | undefined;
+      const oldSettings = changes.markdownViewerSettings.oldValue as { swapPanelSide?: boolean; preferredLocale?: string; themeId?: string } | undefined;
+      const nextSettings = changes.markdownViewerSettings.newValue as { swapPanelSide?: boolean; preferredLocale?: string; themeId?: string } | undefined;
       applyWorkspacePanelSide(Boolean(nextSettings?.swapPanelSide));
 
       const oldLocale = oldSettings?.preferredLocale ?? DEFAULT_SETTING_LOCALE;
@@ -980,6 +993,10 @@ Localization.init().then(async () => {
           .catch((error) => {
             console.error('[Workspace] Failed to update locale:', error);
           });
+      }
+
+      if (typeof nextSettings?.themeId === 'string' && nextSettings.themeId !== oldSettings?.themeId) {
+        void postThemeToViewer(nextSettings.themeId);
       }
 
       // Theme may have changed in the popup; re-sync dark class so the outer
