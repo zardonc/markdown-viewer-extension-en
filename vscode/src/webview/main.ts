@@ -110,9 +110,6 @@ async function initialize(): Promise<void> {
     // Initialize toolbar and settings panel (after theme is loaded)
     initializeUI();
 
-    // Initialize TOC panel
-    initializeTOC();
-
     // Render iframe is lazily created on first render request
     // No pre-initialization needed - ensureReady() is called in render()
 
@@ -371,11 +368,6 @@ async function handleUpdateContent(payload: UpdateContentPayload): Promise<void>
     },
   });
 
-  // Update TOC after rendering
-  if (tocPanel) {
-    const headings = tocPanel.extractHeadingsFromContent(container as HTMLElement);
-    tocPanel.setHeadings(headings);
-  }
 }
 
 function updateActiveTocHeading(): void {
@@ -748,6 +740,7 @@ function initializeUI(): void {
   exportMenu = createExportMenu({
     translate: (key) => Localization.translate(key),
     onExportDocx: () => handleExportDocx(),
+    onExportHtml: () => handleExportHtml(true),
   });
 
   // Create search panel
@@ -823,22 +816,6 @@ function handleOpenSearch(): void {
       searchPanel.focus();
     }
   }
-}
-
-/**
- * Initialize TOC (Table of Contents) panel
- */
-function initializeTOC(): void {
-  tocPanel = createTOCPanel({
-    onItemClick: (heading) => {
-      // Scroll to the heading in the main content
-      tocPanel?.scrollToHeading(heading.id);
-    },
-    onVisibilityChange: (visible) => {
-      // Optional: notify extension or adjust layout
-      console.log('[VSCode Webview] TOC visibility:', visible);
-    }
-  });
 }
 
 /**
