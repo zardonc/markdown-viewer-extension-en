@@ -447,9 +447,6 @@ export class MarkdownPreviewPanel {
     
     const sourceLine = Math.max(0, Math.floor(line));
     const lineCount = editor.document.lineCount;
-    const previewText = sourceLine < lineCount
-      ? editor.document.lineAt(sourceLine).text.trim().slice(0, 120)
-      : '<out-of-range>';
     
     if (sourceLine >= lineCount) {
       const lastLine = lineCount - 1;
@@ -1293,7 +1290,7 @@ export class MarkdownPreviewPanel {
     <div id="vscode-content">
       <div id="markdown-wrapper">
         <div id="markdown-page">
-          <div id="markdown-content" style="visibility: hidden;"></div>
+          <div id="markdown-content"></div>
         </div>
       </div>
     </div>

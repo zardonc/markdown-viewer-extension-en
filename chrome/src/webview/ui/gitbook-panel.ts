@@ -26,9 +26,10 @@ interface GitbookPanel {
   setupResponsivePanel(): Promise<void>;
 }
 
+const gitbookDebugPrefix = '[GitBookNav]';
+
 function logDebug(message: string, ...args: unknown[]): void {
-  void message;
-  void args;
+  console.debug(gitbookDebugPrefix, message, ...args);
 }
 
 function isMarkdownDocumentUrl(url: string): boolean {
@@ -118,8 +119,7 @@ async function readSummaryByRelativePath(
   readRelativeFile?: (relativePath: string) => Promise<string>
 ): Promise<{ summaryUrl: string; content: string } | null> {
   try {
-    const summaryParsedUrl = new URL(relativePath, currentUrl);
-    const summaryUrl = summaryParsedUrl.href;
+    const summaryUrl = new URL(relativePath, currentUrl).href;
     logDebug('Trying summary candidate', { relativePath, summaryUrl });
 
     if (readRelativeFile) {
@@ -133,12 +133,6 @@ async function readSummaryByRelativePath(
           error: (error as Error).message,
         });
       }
-    }
-
-    // Avoid fetch on local file URLs to prevent browser CORS errors in file origin.
-    if (summaryParsedUrl.protocol === 'file:') {
-      logDebug('Skip fetch for file URL summary candidate', { summaryUrl });
-      return null;
     }
 
     const response = await fetch(summaryUrl);
@@ -314,32 +308,16 @@ export function createGitbookPanel(
         logDebug('Navigate via GitBook panel', { href, title });
         
         try {
-          let content: string | null = null;
-
-          if (options.readRelativeFile && href.startsWith('file://')) {
-            try {
-              content = await options.readRelativeFile(href);
-            } catch (error) {
-              logDebug('readRelativeFile failed for navigation target, fallback to fetch', {
-                href,
-                error: (error as Error).message,
-              });
-            }
+          // Fetch file content
+          const response = await fetch(href);
+          if (!response.ok) {
+            console.error('Failed to fetch file:', response.status);
+            return;
           }
-
-          if (content === null) {
-            const response = await fetch(href);
-            if (!response.ok) {
-              console.error('Failed to fetch file:', response.status);
-              return;
-            }
-            content = await response.text();
-          }
-
-          // If there is no history state yet, keep URL unchanged.
-          if (window.history.state !== null && !href.startsWith('file://')) {
-            history.pushState({ url: href }, title || '', href);
-          }
+          const content = await response.text();
+          
+          // Update browser history
+          history.pushState({ url: href }, title || '', href);
           
           // Call navigation callback if provided
           if (options.onNavigateFile) {

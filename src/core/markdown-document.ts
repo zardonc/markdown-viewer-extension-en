@@ -96,6 +96,7 @@ export class MarkdownDocument {
   private blocks: BlockMeta[] = [];
   private blockIdMap: Map<string, number> = new Map(); // blockId -> index for O(1) lookup
   private rawContent: string = '';
+  private normalizedContent: string = '';
   private idCounter: number = 0;
   
   /**
@@ -160,11 +161,12 @@ export class MarkdownDocument {
     return this.rawContent;
   }
 
-
-
-
-
-
+  /**
+   * Get normalized content (math blocks expanded)
+   */
+  getNormalizedContent(): string {
+    return this.normalizedContent;
+  }
 
   /**
    * Find block by line number
@@ -200,9 +202,7 @@ export class MarkdownDocument {
     index: number; 
     progress: number;
   } | null {
-    if (this.blocks.length === 0 || line < 0) {
-      return null;
-    }
+    if (this.blocks.length === 0 || line < 0) return null;
 
     // Find the block containing this line
     for (let i = 0; i < this.blocks.length; i++) {
@@ -215,7 +215,6 @@ export class MarkdownDocument {
         const progress = block.lineCount > 0 
           ? Math.max(0, Math.min(1, lineOffset / block.lineCount))
           : 0;
-
         return { block, index: i, progress };
       }
     }
@@ -275,14 +274,10 @@ export class MarkdownDocument {
    */
   getLineFromBlockId(blockId: string, progress: number = 0): number | null {
     const block = this.getBlockById(blockId);
-    if (!block) {
-      return null;
-    }
+    if (!block) return null;
     
     const clampedProgress = Math.max(0, Math.min(1, progress));
-    const resultLine = block.startLine + clampedProgress * block.lineCount;
-    
-    return resultLine;
+    return block.startLine + clampedProgress * block.lineCount;
   }
 
   /**
@@ -294,10 +289,8 @@ export class MarkdownDocument {
    */
   getBlockPositionFromLine(line: number): { blockId: string; progress: number } | null {
     const pos = this.getLinePosition(line);
-    if (!pos) {
-      return null;
-    }
-
+    if (!pos) return null;
+    
     return {
       blockId: pos.block.id,
       progress: pos.progress,
@@ -311,10 +304,10 @@ export class MarkdownDocument {
     const oldBlocks = this.blocks;
     const isFirstRender = oldBlocks.length === 0;
     
-    // Parse blocks from raw content
+    // Normalize and parse
     this.rawContent = markdown;
-    // Keep line mapping anchored to raw markdown to avoid normalization-induced drift.
-    const parsedBlocks = splitMarkdownIntoBlocksWithLines(this.rawContent);
+    this.normalizedContent = normalizeMathBlocks(markdown);
+    const parsedBlocks = splitMarkdownIntoBlocksWithLines(this.normalizedContent);
     
     // Build new block metadata
     const newBlocks: BlockMeta[] = parsedBlocks.map((block, index) => {
@@ -671,6 +664,7 @@ export class MarkdownDocument {
   static fromJSON(data: { blocks: Omit<BlockMeta, 'html' | 'hasPlaceholder'>[]; rawContent: string; idCounter: number }): MarkdownDocument {
     const doc = new MarkdownDocument();
     doc.rawContent = data.rawContent;
+    doc.normalizedContent = normalizeMathBlocks(data.rawContent);
     doc.blocks = data.blocks.map(b => ({ ...b, html: undefined }));
     doc.idCounter = data.idCounter;
     return doc;

@@ -32,7 +32,7 @@ import {
 // VSCode-specific UI components
 import { createSettingsPanel, type SettingsPanel, type ThemeOption, type LocaleOption } from './settings-panel';
 import { createSearchPanel, type SearchPanel, type HighlightMatch, type SearchOptions } from './search-panel';
-import { createTocPanel, type TocPanel } from '../../../src/ui/toc-panel';
+import { createTocPanel, type TocPanel } from './toc-panel';
 import { setupImageContextMenu } from '../../../src/ui/image-context-menu';
 import { createExportMenu, type ExportMenu } from '../../../src/ui/export-menu';
 import { printElement } from '../../../src/ui/print-utils';
@@ -310,11 +310,13 @@ async function handleUpdateContent(payload: UpdateContentPayload): Promise<void>
           });
         }
       },
-      getShellHtml: async () => {
+      getShellSource: async () => {
         const resp = await fetch(`${baseUri}/slidev-shell-inline.html`);
         if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
-        const html = await resp.text();
-        return html.replaceAll('__SLIDEV_NONCE__', nonce);
+        let html = await resp.text();
+        html = html.replaceAll('__SLIDEV_NONCE__', nonce);
+        const blob = new Blob([html], { type: 'text/html' });
+        return URL.createObjectURL(blob);
       },
       getThemeCode: async (name) => {
         const bundles = await fetchBundles();

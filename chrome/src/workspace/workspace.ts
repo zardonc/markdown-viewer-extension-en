@@ -661,10 +661,12 @@ async function showImagePreview(_file: File, name: string, _ext: string): Promis
 
 // ─── File preview via embedded viewer ───
 function sendToViewer(content: string, filename: string, codeView = false) {
-  // Keep iframe visible so rendering updates (including TOC generation) are
-  // visible during loading instead of appearing only after full completion.
+  // Hide the iframe while it navigates + renders. The iframe element's blank
+  // frame during src reset would otherwise flash the default UA white (or
+  // the iframe body's unthemed background). The preview-pane behind it is
+  // already themed, so the user sees a stable surface until VIEWER_RENDERED.
   $previewEmpty.style.display = 'none';
-  $previewFrame.style.visibility = '';
+  $previewFrame.style.visibility = 'hidden';
   $previewFrame.style.display = 'block';
   $previewFrame.src = VIEWER_URL;
 
@@ -678,26 +680,15 @@ function sendToViewer(content: string, filename: string, codeView = false) {
         fileDir: currentFileDir,
         codeView,
       }, '*');
-      void postThemeToViewer();
       return;
     }
     if (event.data?.type === 'VIEWER_RENDERED') {
+      // Theme applied and body opacity=1 — safe to reveal the iframe.
       window.removeEventListener('message', onMessage);
+      $previewFrame.style.visibility = '';
     }
   };
   window.addEventListener('message', onMessage);
-}
-
-async function postThemeToViewer(themeId?: string): Promise<void> {
-  const targetThemeId = themeId ?? await themeManager.loadSelectedTheme();
-  if (!targetThemeId || !$previewFrame.contentWindow) {
-    return;
-  }
-
-  $previewFrame.contentWindow.postMessage({
-    type: 'SET_THEME',
-    themeId: targetThemeId,
-  }, '*');
 }
 
 async function openFile(fileHandle: FileSystemFileHandle) {
@@ -974,8 +965,8 @@ Localization.init().then(async () => {
         return;
       }
 
-      const oldSettings = changes.markdownViewerSettings.oldValue as { swapPanelSide?: boolean; preferredLocale?: string; themeId?: string } | undefined;
-      const nextSettings = changes.markdownViewerSettings.newValue as { swapPanelSide?: boolean; preferredLocale?: string; themeId?: string } | undefined;
+      const oldSettings = changes.markdownViewerSettings.oldValue as { swapPanelSide?: boolean; preferredLocale?: string } | undefined;
+      const nextSettings = changes.markdownViewerSettings.newValue as { swapPanelSide?: boolean; preferredLocale?: string } | undefined;
       applyWorkspacePanelSide(Boolean(nextSettings?.swapPanelSide));
 
       const oldLocale = oldSettings?.preferredLocale ?? DEFAULT_SETTING_LOCALE;
@@ -993,10 +984,6 @@ Localization.init().then(async () => {
           .catch((error) => {
             console.error('[Workspace] Failed to update locale:', error);
           });
-      }
-
-      if (typeof nextSettings?.themeId === 'string' && nextSettings.themeId !== oldSettings?.themeId) {
-        void postThemeToViewer(nextSettings.themeId);
       }
 
       // Theme may have changed in the popup; re-sync dark class so the outer

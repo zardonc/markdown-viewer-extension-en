@@ -16,7 +16,6 @@ import {
   parseFrontmatter,
   renderFrontmatterAsTable,
   renderFrontmatterAsRaw,
-  normalizeMathBlocks,
   type HeadingInfo,
 } from '../markdown-processor';
 
@@ -409,8 +408,7 @@ function normalizeHeadingIds(container: HTMLElement): void {
  * Render a single block's content to HTML
  */
 async function renderBlockContent(content: string, processor: Processor, tableLayout: 'left' | 'center' = 'center'): Promise<string> {
-  const normalizedContent = normalizeMathBlocks(content);
-  const file = await processor.process(normalizedContent);
+  const file = await processor.process(content);
   let html = String(file);
   html = processTablesForWordCompatibility(html, tableLayout);
   html = sanitizeRenderedHtml(html);

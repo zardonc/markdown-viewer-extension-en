@@ -324,8 +324,8 @@ function copyAssets() {
   }
 
   // Copy TOC panel styles
-  if (fs.existsSync('src/ui/toc-panel.css')) {
-    fs.copyFileSync('src/ui/toc-panel.css', path.join(outdir, 'webview', 'toc-panel.css'));
+  if (fs.existsSync('vscode/src/webview/toc-panel.css')) {
+    fs.copyFileSync('vscode/src/webview/toc-panel.css', path.join(outdir, 'webview', 'toc-panel.css'));
     console.log('  • toc-panel.css');
   }
 

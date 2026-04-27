@@ -595,23 +595,6 @@ initGlobalCacheStorage();
 
 // Handle dynamic content script injection.
 // `fromContextMenu` is true when triggered by the right-click menu so we
-async function handleElementRuntimeInjection(tabId: number): Promise<void> {
-  await browser.scripting.insertCSS({
-    target: { tabId },
-    files: ['/ui/styles.css'],
-    origin: 'USER',
-  });
-  await browser.scripting.executeScript({
-    target: { tabId },
-    files: ['/core/element-runtime.js'],
-  });
-  await browser.scripting.executeScript({
-    target: { tabId },
-    world: 'MAIN',
-    files: ['/core/element-runtime-main.js'],
-  });
-}
-
 // always run the HTML→Markdown converter first (the script self-detects
 // whether the page is HTML via document.contentType and bails out early
 // if it's a raw text file).
@@ -684,17 +667,6 @@ browser.runtime.onMessage.addListener((message: BackgroundMessage, sender): Prom
         resolve(response as object);
       });
     });
-  }
-
-  // Element runtime injection for HTML pages with <markdown-viewer> element
-  if (message.type === 'INJECT_ELEMENT_RUNTIME') {
-    const tabId = sender.tab?.id;
-    if (!tabId || tabId <= 0) {
-      return Promise.resolve(createResponseEnvelope(message.id, { ok: false, errorMessage: 'Invalid tab ID' }));
-    }
-    return handleElementRuntimeInjection(tabId)
-      .then(() => createResponseEnvelope(message.id, { ok: true, data: { success: true } }))
-      .catch((error) => createResponseEnvelope(message.id, { ok: false, errorMessage: (error as Error).message }));
   }
 
   // Content script injection request

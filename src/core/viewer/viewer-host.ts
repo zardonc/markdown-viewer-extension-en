@@ -19,7 +19,6 @@ import { getDocument, renderMarkdownDocument } from './viewer-controller';
 import { AsyncTaskManager } from '../markdown-processor';
 import type { PluginRenderer, PlatformAPI } from '../../types/index';
 import type { FrontmatterDisplay } from './viewer-controller';
-import type { MountedViewer } from '../../integration/types';
 
 // ============================================================================
 // File Key Management (for scroll position persistence)
@@ -62,8 +61,6 @@ export interface ViewerScrollSyncOptions {
   onUserScroll?: (line: number) => void;
   /** Offset from viewport top (e.g., fixed toolbar height) */
   topOffset?: number;
-  /** Optional callback for exposing current scroll line to host/UI layers */
-  onScrollLineChange?: (line: number) => void;
 }
 
 /**
@@ -94,7 +91,6 @@ export function createViewerScrollSync(options: ViewerScrollSyncOptions): Scroll
     platform,
     onUserScroll,
     topOffset,
-    onScrollLineChange,
   } = options;
 
   const container = document.getElementById(containerId);
@@ -117,196 +113,13 @@ export function createViewerScrollSync(options: ViewerScrollSyncOptions): Scroll
     }
   };
 
-  const effectiveOnUserScroll = (line: number) => {
-    onScrollLineChange?.(line);
-    (onUserScroll ?? defaultOnUserScroll)(line);
-  };
-
   return createScrollSyncController({
     container,
     scrollContainer: scrollContainer ?? undefined,
     getLineMapper: getDocument,
-    onUserScroll: effectiveOnUserScroll,
+    onUserScroll: onUserScroll ?? defaultOnUserScroll,
     topOffset,
   });
-}
-
-export interface MountedViewerRenderOptions {
-  fileChanged?: boolean;
-  forceRender?: boolean;
-  targetLine?: number;
-  zoomLevel?: number;
-}
-
-export interface MountedViewerOptions {
-  container: HTMLElement;
-  scrollContainer?: HTMLElement;
-  platform: PlatformAPI;
-  renderer: PluginRenderer;
-  translate: TranslateFn;
-  topOffset?: number;
-  initialZoomLevel?: number;
-  onHeadings?: (headings: Array<{ level: number; text: string; id: string }>) => void;
-  onProgress?: (completed: number, total: number) => void;
-  beforeProcessAll?: () => void;
-  afterProcessAll?: () => void;
-  afterRender?: () => void;
-  onScrollLineChange?: (line: number) => void;
-  applyTheme?: (themeId: string) => Promise<void>;
-  saveTheme?: (themeId: string) => Promise<void>;
-}
-
-export interface MountedViewerController extends MountedViewer {
-  render(markdown: string, options?: MountedViewerRenderOptions): Promise<void>;
-  setScrollLine(line: number): void;
-  getCurrentLine(): number | null;
-  setZoomLevel(zoomLevel: number): void;
-  getZoomLevel(): number;
-  scrollToAnchor(anchor: string): boolean;
-  switchTheme(themeId: string): Promise<void>;
-}
-
-/**
- * Create a mounted viewer runtime instance without touching existing entrypoints.
- * This is an incremental abstraction over renderMarkdownFlow + scroll sync + theme flow.
- */
-export function createMountedViewer(options: MountedViewerOptions): MountedViewerController {
-  const {
-    container,
-    scrollContainer,
-    platform,
-    renderer,
-    translate,
-    topOffset,
-    initialZoomLevel = 1,
-    onHeadings,
-    onProgress,
-    beforeProcessAll,
-    afterProcessAll,
-    afterRender,
-    onScrollLineChange,
-    applyTheme,
-    saveTheme,
-  } = options;
-
-  const currentTaskManagerRef: { current: AsyncTaskManager | null } = { current: null };
-  let currentMarkdown = '';
-  let zoomLevel = initialZoomLevel;
-
-  const scrollController = createScrollSyncController({
-    container,
-    scrollContainer,
-    getLineMapper: getDocument,
-    onUserScroll: (line) => {
-      onScrollLineChange?.(line);
-      if (currentFileKey) {
-        platform.fileState.set(currentFileKey, { scrollLine: line });
-      }
-    },
-    topOffset,
-  });
-  scrollController.start();
-
-  const render = async (markdown: string, renderOptions?: MountedViewerRenderOptions): Promise<void> => {
-    currentMarkdown = markdown;
-    if (renderOptions?.zoomLevel !== undefined) {
-      zoomLevel = renderOptions.zoomLevel;
-    }
-
-    await renderMarkdownFlow({
-      markdown,
-      container,
-      fileChanged: renderOptions?.fileChanged ?? false,
-      forceRender: renderOptions?.forceRender ?? false,
-      zoomLevel,
-      scrollController,
-      renderer,
-      translate,
-      platform,
-      currentTaskManagerRef,
-      targetLine: renderOptions?.targetLine,
-      onHeadings,
-      onProgress,
-      beforeProcessAll,
-      afterProcessAll,
-      afterRender,
-    });
-  };
-
-  return {
-    render,
-    setScrollLine(line: number) {
-      scrollController.setTargetLine(line);
-    },
-    getCurrentLine(): number | null {
-      return scrollController.getCurrentLine();
-    },
-    setZoomLevel(nextZoomLevel: number): void {
-      zoomLevel = nextZoomLevel;
-    },
-    getZoomLevel(): number {
-      return zoomLevel;
-    },
-    scrollToAnchor(anchor: string): boolean {
-      return scrollToAnchor(anchor, container, scrollContainer);
-    },
-    async switchTheme(themeId: string): Promise<void> {
-      if (!applyTheme) return;
-
-      await handleThemeSwitchFlow({
-        themeId,
-        scrollController,
-        applyTheme,
-        saveTheme,
-        rerender: currentMarkdown
-          ? async (line) => render(currentMarkdown, { forceRender: true, targetLine: line })
-          : undefined,
-      });
-    },
-    destroy(): void {
-      if (currentTaskManagerRef.current) {
-        currentTaskManagerRef.current.abort();
-        currentTaskManagerRef.current = null;
-      }
-      scrollController.dispose();
-    },
-  };
-}
-
-/**
- * Scroll to a heading anchor inside the rendered markdown container.
- *
- * @returns true if anchor was found and scroll was performed, false otherwise.
- */
-export function scrollToAnchor(
-  anchor: string,
-  container: HTMLElement,
-  scrollContainer?: HTMLElement,
-  behavior: ScrollBehavior = 'smooth',
-): boolean {
-  const normalized = decodeURIComponent(anchor || '').replace(/^#/, '').trim();
-  if (!normalized) return false;
-
-  const escaped = typeof CSS !== 'undefined' && CSS.escape
-    ? CSS.escape(normalized)
-    : normalized.replace(/([\\"'\]\[])/g, '\\$1');
-
-  const target = container.querySelector<HTMLElement>(`#${escaped}`)
-    ?? container.querySelector<HTMLElement>(`[id="${escaped}"]`);
-
-  if (!target) return false;
-
-  if (scrollContainer) {
-    const containerRect = scrollContainer.getBoundingClientRect();
-    const targetRect = target.getBoundingClientRect();
-    const top = targetRect.top - containerRect.top + scrollContainer.scrollTop;
-    scrollContainer.scrollTo({ top: Math.max(0, top), behavior });
-    return true;
-  }
-
-  const targetTop = target.getBoundingClientRect().top + (window.scrollY || window.pageYOffset || 0);
-  window.scrollTo({ top: Math.max(0, targetTop), behavior });
-  return true;
 }
 
 // ============================================================================
@@ -640,18 +453,6 @@ export async function renderMarkdownFlow(options: RenderMarkdownFlowOptions): Pr
     afterRender,
   } = options;
 
-  const hasRenderableContent = markdown.trim().length > 0;
-
-  const setContainerVisible = (visible: boolean): void => {
-    container.style.visibility = visible ? '' : 'hidden';
-    // Also reveal the outer #markdown-content wrapper (e.g. Chrome, where the render
-    // container is a child element inside #markdown-content).
-    const outerContent = container.closest('#markdown-content') as HTMLElement | null;
-    if (outerContent && outerContent !== container) {
-      outerContent.style.visibility = visible ? '' : 'hidden';
-    }
-  };
-
   // Abort any previous rendering task
   if (currentTaskManagerRef.current) {
     currentTaskManagerRef.current.abort();
@@ -662,10 +463,6 @@ export async function renderMarkdownFlow(options: RenderMarkdownFlowOptions): Pr
     // Create task manager
     const taskManager = new AsyncTaskManager(translate);
     currentTaskManagerRef.current = taskManager;
-
-    // First render from an empty container should stay hidden until base
-    // markdown content has been inserted, otherwise users see an empty shell block.
-    const hadContentBeforeRender = container.childNodes.length > 0;
 
     // Determine if we need to clear container
     const shouldClear = fileChanged || forceRender;
@@ -681,16 +478,6 @@ export async function renderMarkdownFlow(options: RenderMarkdownFlowOptions): Pr
       if (isRealFileSwitch && fileChanged) {
         scrollController?.reset();
       }
-    }
-
-    if (!hasRenderableContent) {
-      setContainerVisible(false);
-    } else if (hadContentBeforeRender) {
-      // Updating existing content: reveal immediately to avoid flicker.
-      setContainerVisible(true);
-    } else {
-      // Initial content paint: keep hidden until first chunk is rendered.
-      setContainerVisible(false);
     }
 
     // Set target line for scroll sync
@@ -750,10 +537,6 @@ export async function renderMarkdownFlow(options: RenderMarkdownFlowOptions): Pr
       },
     });
 
-    if (hasRenderableContent && !hadContentBeforeRender) {
-      setContainerVisible(true);
-    }
-
     if (taskManager.isAborted()) {
       return;
     }
@@ -761,11 +544,7 @@ export async function renderMarkdownFlow(options: RenderMarkdownFlowOptions): Pr
     // Platform-specific: called after streaming, before async tasks
     // Chrome uses this to update TOC active state
     if (afterRender) {
-      if (typeof requestAnimationFrame === 'function') {
-        requestAnimationFrame(() => afterRender());
-      } else {
-        queueMicrotask(afterRender);
-      }
+      setTimeout(afterRender, 100);
     }
 
     // Process async tasks (diagrams, charts).
@@ -821,10 +600,7 @@ export async function renderMarkdownFlow(options: RenderMarkdownFlowOptions): Pr
       currentTaskManagerRef.current = null;
     }
 
-    setContainerVisible(hasRenderableContent);
-
   } catch (error) {
-    setContainerVisible(hasRenderableContent);
     // eslint-disable-next-line no-console
     console.error('[ViewerHost] Render failed:', error);
   }
@@ -894,21 +670,12 @@ export async function handleThemeSwitchFlow(options: ThemeSwitchFlowOptions): Pr
   } = options;
 
   // Save current reading position before reset
-  let savedLine = 0;
-  try {
-    savedLine = scrollController?.getCurrentLine() ?? 0;
-  } catch {
-    savedLine = 0;
-  }
+  const savedLine = scrollController?.getCurrentLine() ?? 0;
   
   // Only reset scroll controller - don't call setTargetLine here
   // because DOM hasn't been updated yet. Let renderMarkdownFlow handle
   // setTargetLine after the DOM is updated with new theme.
-  try {
-    scrollController?.reset();
-  } catch {
-    // Ignore early lifecycle scroll state errors before content is rendered.
-  }
+  scrollController?.reset();
 
   // Load and apply theme
   await applyTheme(themeId);
