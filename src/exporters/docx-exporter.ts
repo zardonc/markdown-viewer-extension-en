@@ -40,7 +40,7 @@ import type { PluginRenderer } from '../types/plugin';
 import type { DocumentService } from '../types/platform';
 import type {
   DOCXThemeStyles,
-  DOCXHeadingStyle,
+  DOCXNamedParagraphStyle,
   LinkDefinition,
   ImageBufferResult,
   DOCXASTNode,
@@ -271,9 +271,9 @@ class DocxExporter {
       const docChildren = await this.convertAstToDocx(ast);
       const renderTime = performance.now() - tRenderStart;
 
-      const paragraphStyles = Object.entries(this.themeStyles.paragraphStyles).map(([id, style]) => ({
-        id,
-        ...this.toHeadingStyle(style),
+      const paragraphStyles = Object.values(this.themeStyles.paragraphStyles).map((style) => ({
+        id: style.id,
+        ...this.toParagraphStyle(style),
       }));
 
       const styles: IStylesOptions = {
@@ -286,6 +286,9 @@ class DocxExporter {
       const doc = new Document({
         creator: 'Markdown Viewer Extension',
         lastModifiedBy: 'Markdown Viewer Extension',
+        ...(this.themeStyles?.pageBackground
+          ? { background: { color: this.themeStyles.pageBackground } }
+          : {}),
         numbering: {
           config: [
             {
@@ -540,7 +543,6 @@ class DocxExporter {
       }
     } else if (this.frontmatterDisplay === 'raw') {
       // Render as raw text using code block style (reuse codeHighlighter styles)
-      const codeStyle = this.themeStyles?.characterStyles?.code || { font: 'Consolas', size: 20 };
       const codeBackground = this.themeStyles?.characterStyles?.code?.background || 'F6F8FA';
       const foregroundColor = this.themeStyles?.codeColors?.foreground || '24292E';
 
@@ -553,17 +555,14 @@ class DocxExporter {
         }
         runs.push(new TextRun({
           text: line || ' ',
-          font: codeStyle.font,
-          size: codeStyle.size,
           color: foregroundColor,
         }));
       });
 
       elements.push(new Paragraph({
         children: runs,
+        style: 'CodeBlock',
         wordWrap: true,
-        alignment: AlignmentType.LEFT,
-        spacing: { before: 200, after: 200, line: 276 },
         shading: { fill: codeBackground },
         indent: { left: 200, right: 200 },
         border: {
@@ -625,18 +624,20 @@ class DocxExporter {
       }
 
       if (node.type === 'table' && lastNodeType === 'table') {
+        const tableGap = this.themeStyles?.blockSpacing?.table;
+        const tableAfter = tableGap?.after ?? 120;
         elements.push(new Paragraph({
           text: '',
-          alignment: AlignmentType.LEFT,
-          spacing: { before: 120, after: 120, line: 240 },
+          spacing: { before: tableAfter, after: tableAfter, line: 240 },
         }));
       }
 
       if (node.type === 'blockquote' && lastNodeType === 'blockquote') {
+        const blockquoteGap = this.themeStyles?.blockSpacing?.blockquote;
+        const blockquoteAfter = blockquoteGap?.after ?? 120;
         elements.push(new Paragraph({
           text: '',
-          alignment: AlignmentType.LEFT,
-          spacing: { before: 120, after: 120, line: 240 },
+          spacing: { before: blockquoteAfter, after: blockquoteAfter, line: 240 },
         }));
       }
 
@@ -731,15 +732,10 @@ class DocxExporter {
       5: HeadingLevel.HEADING_5, 6: HeadingLevel.HEADING_6,
     };
     const depth = node.depth || 1;
-    const headingStyle = this.themeStyles?.paragraphStyles?.[`heading${depth}` as keyof typeof this.themeStyles.paragraphStyles];
-
-    // Pass heading's run style (size, bold, font, color) so inline converter uses correct heading font size
-    const headingRunStyle = headingStyle?.run || {};
 
     // Convert inline nodes to support styles (bold, italic, code, etc.)
     const children = await this.inlineConverter!.convertInlineNodes(
-      (node.children || []) as unknown as InlineNode[],
-      headingRunStyle
+      (node.children || []) as unknown as InlineNode[]
     );
 
     const config: {
@@ -757,10 +753,6 @@ class DocxExporter {
       config.text = '';
     }
 
-    if (headingStyle?.paragraph?.alignment === 'center') {
-      config.alignment = AlignmentType.CENTER;
-    }
-
     return new Paragraph(config);
   }
 
@@ -769,20 +761,22 @@ class DocxExporter {
       (node.children || []) as unknown as InlineNode[],
       parentStyle
     );
-    const spacing = this.themeStyles?.default?.paragraph?.spacing || { before: 0, after: 200, line: 276 };
 
     return new Paragraph({
       children: children.length > 0 ? children : undefined,
       text: children.length === 0 ? '' : undefined,
-      spacing: { before: spacing.before, after: spacing.after, line: spacing.line },
-      alignment: AlignmentType.LEFT,
     });
   }
 
   private convertCodeBlock(node: DOCXASTNode, listLevel = 0, blockquoteNestLevel = 0): Paragraph {
     const runs = this.codeHighlighter!.getHighlightedRunsForCode(node.value ?? '', node.lang);
     const codeBackground = this.themeStyles?.characterStyles?.code?.background || 'F6F8FA';
-    
+    // Use the code fill itself as the border color so the border blends into the
+    // shading (Word still needs the border to create the "space" padding ring,
+    // but we don't want a visible line — especially on dark themes where a
+    // hardcoded light-gray line stood out).
+    const codeBorderColor = codeBackground;
+
     // Border space (10 points) extends outward, need to compensate with indent
     // 10 points = 200 twips (1 point = 20 twips)
     const borderSpace = 200;
@@ -796,16 +790,15 @@ class DocxExporter {
 
     return new Paragraph({
       children: runs,
+      style: 'CodeBlock',
       wordWrap: true,
-      alignment: AlignmentType.LEFT,
-      spacing: { before: 200, after: 200, line: 276 },
       shading: { fill: codeBackground },
       indent: { left: indentLeft, right: indentRight },
       border: {
-        top: { color: 'E1E4E8', space: 10, style: BorderStyle.SINGLE, size: 6 },
-        bottom: { color: 'E1E4E8', space: 10, style: BorderStyle.SINGLE, size: 6 },
-        left: { color: 'E1E4E8', space: 10, style: BorderStyle.SINGLE, size: 6 },
-        right: { color: 'E1E4E8', space: 10, style: BorderStyle.SINGLE, size: 6 },
+        top: { color: codeBorderColor, space: 10, style: BorderStyle.SINGLE, size: 6 },
+        bottom: { color: codeBorderColor, space: 10, style: BorderStyle.SINGLE, size: 6 },
+        left: { color: codeBorderColor, space: 10, style: BorderStyle.SINGLE, size: 6 },
+        right: { color: codeBorderColor, space: 10, style: BorderStyle.SINGLE, size: 6 },
       },
     });
   }
@@ -832,18 +825,14 @@ class DocxExporter {
     }
 
     if (this.docxHrDisplay === 'hide') {
-      const spacing = this.themeStyles?.default?.paragraph?.spacing || { before: 0, after: 200, line: 276 };
       return new Paragraph({
         text: '',
-        alignment: AlignmentType.LEFT,
-        spacing: { before: spacing.before, after: spacing.after, line: spacing.line },
       });
     }
 
     return new Paragraph({
+      style: 'HorizontalRule',
       text: '',
-      alignment: AlignmentType.LEFT,
-      spacing: { before: 300, after: 300, line: 120, lineRule: 'exact' },
       border: { bottom: { color: 'E1E4E8', space: 1, style: BorderStyle.SINGLE, size: 12 } },
     });
   }
@@ -852,17 +841,14 @@ class DocxExporter {
     try {
       const math = convertLatex2Math(node.value || '');
       return new Paragraph({
+        style: 'MathBlock',
         children: [math],
-        spacing: { before: 120, after: 120 },
-        alignment: AlignmentType.CENTER,
       });
     } catch (error) {
       console.warn('Math conversion error:', error);
-      const codeStyle = this.themeStyles?.characterStyles?.code || { font: 'Consolas', size: 20 };
       return new Paragraph({
-        children: [new TextRun({ text: node.value || '', font: codeStyle.font, size: codeStyle.size })],
-        alignment: AlignmentType.LEFT,
-        spacing: { before: 120, after: 120 },
+        style: 'MathBlock',
+        children: [new TextRun({ text: node.value || '' })],
       });
     }
   }
@@ -908,11 +894,13 @@ class DocxExporter {
     };
   }
 
-  private toHeadingStyle(style: DOCXHeadingStyle): IBaseParagraphStyleOptions {
-    const paragraph: IParagraphStylePropertiesOptions = {
-      spacing: style.paragraph.spacing,
-      alignment: this.toAlignmentType(style.paragraph.alignment),
-    };
+  private toParagraphStyle(style: DOCXNamedParagraphStyle): IBaseParagraphStyleOptions {
+    const paragraph: IParagraphStylePropertiesOptions | undefined = style.paragraph
+      ? {
+          spacing: style.paragraph.spacing,
+          alignment: this.toAlignmentType(style.paragraph.alignment),
+        }
+      : undefined;
 
     return {
       name: style.name,

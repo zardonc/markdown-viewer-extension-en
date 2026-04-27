@@ -67,7 +67,10 @@ export function createPlaceholderElement(
  * @returns Error HTML
  */
 export function createErrorHTML(errorMessage: string): string {
-  return `<pre style="background: #fee; border-left: 4px solid #f00; padding: 10px; font-size: 12px;">${errorMessage}</pre>`;
+  // Explicit color + background so the block stays readable under both light
+  // and dark themes (inherited text color would otherwise be light in dark
+  // themes and become illegible on the light pink background).
+  return `<pre style="background: #fee; color: #8b0000; border-left: 4px solid #f00; padding: 10px; font-size: 12px; white-space: pre-wrap; word-break: break-word;">${errorMessage}</pre>`;
 }
 
 // PluginRenderer is defined in src/types/plugin.ts

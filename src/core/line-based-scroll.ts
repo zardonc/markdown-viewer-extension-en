@@ -21,8 +21,34 @@ export interface LineMapper {
 export interface ScrollOptions {
   /** Content container element */
   container: HTMLElement;
+  /** Optional scroll container; defaults to window */
+  scrollContainer?: HTMLElement;
   /** Scroll behavior */
   behavior?: ScrollBehavior;
+  /** Offset from viewport top (e.g., fixed toolbar height) */
+  topOffset?: number;
+}
+
+function getScrollTop(scrollContainer?: HTMLElement): number {
+  return scrollContainer ? scrollContainer.scrollTop : (window.scrollY || window.pageYOffset || 0);
+}
+
+function scrollToPosition(top: number, behavior: ScrollBehavior, scrollContainer?: HTMLElement): void {
+  if (scrollContainer) {
+    scrollContainer.scrollTo({ top, behavior });
+    return;
+  }
+
+  window.scrollTo({ top, behavior });
+}
+
+function getBlockTop(block: HTMLElement, scrollContainer?: HTMLElement): number {
+  if (!scrollContainer) {
+    return block.getBoundingClientRect().top + getScrollTop();
+  }
+
+  const containerRect = scrollContainer.getBoundingClientRect();
+  return block.getBoundingClientRect().top - containerRect.top + scrollContainer.scrollTop;
 }
 
 /**
@@ -30,23 +56,23 @@ export interface ScrollOptions {
  * @returns blockId and progress (0-1) within that block
  */
 export function getBlockAtScrollPosition(options: ScrollOptions): { blockId: string; progress: number } | null {
-  const { container } = options;
+  const { container, scrollContainer, topOffset = 0 } = options;
   
   // Get all block elements
   const blocks = container.querySelectorAll<HTMLElement>('[data-block-id]');
   if (blocks.length === 0) return null;
   
-  // Get current scroll position (always use window scroll)
-  const scrollTop = window.scrollY || window.pageYOffset || 0;
+  const scrollTop = getScrollTop(scrollContainer);
+  // Account for fixed elements (e.g., toolbar) covering the viewport top
+  const effectiveScrollTop = scrollTop + topOffset;
   
   // Find the block containing current scroll position
   let targetBlock: HTMLElement | null = null;
   
   for (const block of Array.from(blocks)) {
-    const rect = block.getBoundingClientRect();
-    const blockTop = rect.top + scrollTop;
+    const blockTop = getBlockTop(block, scrollContainer);
     
-    if (blockTop > scrollTop) {
+    if (blockTop > effectiveScrollTop) {
       break;
     }
     targetBlock = block;
@@ -60,11 +86,10 @@ export function getBlockAtScrollPosition(options: ScrollOptions): { blockId: str
   if (!blockId) return null;
   
   // Calculate progress within block
-  const rect = targetBlock.getBoundingClientRect();
-  const blockTop = rect.top + scrollTop;
-  const blockHeight = rect.height;
+  const blockTop = getBlockTop(targetBlock, scrollContainer);
+  const blockHeight = targetBlock.getBoundingClientRect().height;
   
-  const pixelOffset = scrollTop - blockTop;
+  const pixelOffset = effectiveScrollTop - blockTop;
   const progress = blockHeight > 0 ? Math.max(0, Math.min(1, pixelOffset / blockHeight)) : 0;
   
   return { blockId, progress };
@@ -79,25 +104,22 @@ export function scrollToBlock(
   progress: number, 
   options: ScrollOptions
 ): boolean {
-  const { container, behavior = 'auto' } = options;
+  const { container, scrollContainer, behavior = 'auto', topOffset = 0 } = options;
   
   // Find the block element
   const block = container.querySelector<HTMLElement>(`[data-block-id="${blockId}"]`);
   if (!block) return false;
   
-  // Get current scroll context (always use window scroll)
-  const currentScroll = window.scrollY || window.pageYOffset || 0;
-  
   // Calculate target scroll position
-  const rect = block.getBoundingClientRect();
-  const blockTop = rect.top + currentScroll;
-  const blockHeight = rect.height;
+  const blockTop = getBlockTop(block, scrollContainer);
+  const blockHeight = block.getBoundingClientRect().height;
   
   const clampedProgress = Math.max(0, Math.min(1, progress));
-  const scrollTo = blockTop + clampedProgress * blockHeight;
+  // Subtract topOffset so content appears below fixed elements (e.g., toolbar)
+  const scrollTo = blockTop + clampedProgress * blockHeight - topOffset;
   
   // Perform scroll
-  window.scrollTo({ top: Math.max(0, scrollTo), behavior });
+  scrollToPosition(Math.max(0, scrollTo), behavior, scrollContainer);
   
   return true;
 }
@@ -131,7 +153,7 @@ export function scrollToLine(
   
   // Special case: line <= 0 means scroll to top
   if (line <= 0) {
-    window.scrollTo({ top: 0, behavior });
+    scrollToPosition(0, behavior, options.scrollContainer);
     return true;
   }
   
@@ -152,8 +174,10 @@ export interface ScrollSyncController {
   setTargetLine(line: number): void;
   /** Get current scroll position as line number */
   getCurrentLine(): number | null;
-  /** Notify that streaming has completed */
+  /** Notify that a streaming chunk is done — attempts scroll if not yet settled */
   onStreamingComplete(): void;
+  /** Force a final re-scroll after async content (diagrams) finishes rendering */
+  onRenderComplete(): void;
   /** Reset to initial state (call when document changes) */
   reset(): void;
   /** Start the controller */
@@ -168,10 +192,14 @@ export interface ScrollSyncController {
 export interface ScrollSyncControllerOptions {
   /** Content container element */
   container: HTMLElement;
+  /** Optional scroll container; defaults to window */
+  scrollContainer?: HTMLElement;
   /** Line mapper getter (called each time to get latest document state) */
   getLineMapper: () => LineMapper;
   /** Callback when user scrolls (for reverse sync) */
   onUserScroll?: (line: number) => void;
+  /** Offset from viewport top (e.g., fixed toolbar height) */
+  topOffset?: number;
 }
 
 /**
@@ -188,12 +216,19 @@ export interface ScrollSyncControllerOptions {
 export function createScrollSyncController(options: ScrollSyncControllerOptions): ScrollSyncController {
   const {
     container,
+    scrollContainer,
     getLineMapper,
     onUserScroll,
+    topOffset,
   } = options;
 
   let targetLine: number = 0;
   let disposed = false;
+
+  // Once we successfully scroll to targetLine, stop re-scrolling in onStreamingComplete.
+  // This prevents fighting browser scroll anchoring while later chunks/diagrams are loading.
+  // onRenderComplete() resets this for the final post-processAll re-scroll.
+  let scrollSettled = false;
 
   // Prevent feedback loop between programmatic scroll (host-driven) and user scroll reporting.
   // When we scroll due to setTargetLine/onStreamingComplete, we temporarily suppress
@@ -205,13 +240,16 @@ export function createScrollSyncController(options: ScrollSyncControllerOptions)
 
   const scrollOptions: ScrollOptions = {
     container,
+    scrollContainer,
+    topOffset,
   };
 
   /**
-   * Perform scroll to target line
+   * Perform scroll to target line, returns true if block was found and scrolled to
    */
-  const doScroll = (line: number): void => {
-    scrollToLine(line, getLineMapper(), scrollOptions);
+  const doScroll = (line: number): boolean => {
+    const result = scrollToLine(line, getLineMapper(), scrollOptions);
+    return result;
   };
 
   /**
@@ -219,7 +257,9 @@ export function createScrollSyncController(options: ScrollSyncControllerOptions)
    */
   const handleUserScroll = (): void => {
     // Ignore scroll events caused by our own programmatic scroll.
-    if (Date.now() < suppressUserScrollUntilMs) return;
+    if (Date.now() < suppressUserScrollUntilMs) {
+      return;
+    }
 
     const currentLine = getLineForScrollPosition(getLineMapper(), scrollOptions);
     if (currentLine === null || isNaN(currentLine)) return;
@@ -230,7 +270,7 @@ export function createScrollSyncController(options: ScrollSyncControllerOptions)
       // Exception: detect scroll-to-top. Transitions like 0.5 → 0.0 are
       // normally swallowed (both floor to 0), but we must report 0 so that
       // restore uses the fast scrollTo({top:0}) path instead of scrollToLine(0.5).
-      const scrollTop = window.scrollY || window.pageYOffset || 0;
+      const scrollTop = getScrollTop(scrollContainer);
       if (scrollTop >= 1 || lastReportedLine <= 0) {
         targetLine = currentLine;
         return;
@@ -256,21 +296,26 @@ export function createScrollSyncController(options: ScrollSyncControllerOptions)
   };
 
   const setupListeners = (): void => {
-    window.addEventListener('scroll', handleScroll, { passive: true });
+    const target = scrollContainer ?? window;
+    target.addEventListener('scroll', handleScroll, { passive: true });
   };
 
   const removeListeners = (): void => {
-    window.removeEventListener('scroll', handleScroll);
+    const target = scrollContainer ?? window;
+    target.removeEventListener('scroll', handleScroll);
   };
 
   return {
     setTargetLine(line: number): void {
       targetLine = line;
+      scrollSettled = false;
 
       // Suppress reverse-sync for a short window; window.scrollTo triggers 'scroll'.
       // Keep this small to preserve legitimate user scroll reporting.
       suppressUserScrollUntilMs = Date.now() + 200;
-      doScroll(line);
+      if (doScroll(line)) {
+        scrollSettled = true;
+      }
     },
 
     getCurrentLine(): number | null {
@@ -278,14 +323,30 @@ export function createScrollSyncController(options: ScrollSyncControllerOptions)
     },
 
     onStreamingComplete(): void {
-      // Re-apply the latest target line after the main (streaming) render phase.
-      // This helps the preview catch up when blocks become available.
+      // Once scroll has settled (target block found and scrolled to), stop re-scrolling.
+      // Repeated doScrolls fight browser scroll anchoring and cause visible position jumps
+      // as scroll anchoring adjusts for content changes (font load, early diagram render).
+      if (scrollSettled) return;
+
       suppressUserScrollUntilMs = Date.now() + 200;
-      doScroll(targetLine);
+      if (doScroll(targetLine)) {
+        scrollSettled = true;
+      }
+    },
+
+    onRenderComplete(): void {
+      // Force one final re-scroll after async rendering (diagrams etc.) finishes.
+      // At this point all block heights are final, so the position is accurate.
+      scrollSettled = false;
+      suppressUserScrollUntilMs = Date.now() + 200;
+      if (doScroll(targetLine)) {
+        scrollSettled = true;
+      }
     },
 
     reset(): void {
       targetLine = 0;
+      scrollSettled = false;
       lastReportedLine = null;
     },
 

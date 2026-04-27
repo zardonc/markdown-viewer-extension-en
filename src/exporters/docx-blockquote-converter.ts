@@ -6,7 +6,6 @@ import {
   Table,
   TableRow,
   TableCell,
-  AlignmentType,
   BorderStyle,
   WidthType,
   TableLayoutType,
@@ -46,17 +45,19 @@ const BLOCKQUOTE_STYLES = {
 export function createBlockquoteConverter({ themeStyles, convertInlineNodes, convertChildNode: initialConvertChildNode }: BlockquoteConverterOptions): BlockquoteConverter {
   const defaultSpacing = themeStyles.default?.paragraph?.spacing || { before: 0, line: 276 };
   const defaultLineSpacing = defaultSpacing.line ?? 276;
+  const blockquoteSpacing = themeStyles.blockSpacing?.blockquote;
   
   // Calculate cell padding to compensate for line height bottom spacing
   // Word's line height adds extra space BELOW text (not evenly distributed)
   // So we need to add equivalent top padding to balance the visual appearance
   const lineSpacingExtra = defaultLineSpacing - 240; // Extra spacing from line height (240 = single line)
-  const basePadding = 80;
+  const basePadding = blockquoteSpacing?.paddingVertical ?? 80;
+  const horizontalPadding = blockquoteSpacing?.paddingHorizontal ?? 200;
   const cellPadding = {
     top: basePadding + lineSpacingExtra, // Compensate for full bottom spacing from line height
     bottom: 0,
-    left: 200,
-    right: 100,
+    left: horizontalPadding,
+    right: Math.round(horizontalPadding / 2),
   };
 
   // Mutable reference to convertChildNode (set later to avoid circular dependency)
@@ -77,12 +78,8 @@ export function createBlockquoteConverter({ themeStyles, convertInlineNodes, con
     
     const paragraphConfig: IParagraphOptions = {
       children: children as ParagraphChild[],
-      spacing: { 
-        before: isFirst ? 0 : 120, 
-        after: 0, 
-        line: defaultLineSpacing 
-      },
-      alignment: AlignmentType.LEFT,
+      style: 'BlockquoteText',
+      spacing: isFirst ? { before: 0 } : undefined,
     };
     
     return new Paragraph(paragraphConfig);
@@ -128,20 +125,30 @@ export function createBlockquoteConverter({ themeStyles, convertInlineNodes, con
       cellChildren.push(new Paragraph({ text: '' }));
     }
 
+    // Hidden-border color: prefer blockquote bg, then page bg, fallback white.
+    // Using the background color makes Word's in-editor dotted outline blend in
+    // with the surrounding fill in dark themes (instead of showing white lines).
+    const hiddenBorderColor = themeStyles.blockquoteBackground
+      || themeStyles.pageBackground
+      || 'FFFFFF';
+
     // Create the table cell with blockquote styling
     const cell = new TableCell({
       children: cellChildren,
       margins: cellPadding,
       borders: {
-        top: { style: BorderStyle.SINGLE, size: 0, color: 'FFFFFF' },
-        bottom: { style: BorderStyle.SINGLE, size: 0, color: 'FFFFFF' },
-        right: { style: BorderStyle.SINGLE, size: 0, color: 'FFFFFF' },
-        left: { 
-          style: BorderStyle.SINGLE, 
-          size: BLOCKQUOTE_STYLES.leftBorderSize, 
-          color: themeStyles.blockquoteColor 
+        top: { style: BorderStyle.SINGLE, size: 0, color: hiddenBorderColor },
+        bottom: { style: BorderStyle.SINGLE, size: 0, color: hiddenBorderColor },
+        right: { style: BorderStyle.SINGLE, size: 0, color: hiddenBorderColor },
+        left: {
+          style: BorderStyle.SINGLE,
+          size: BLOCKQUOTE_STYLES.leftBorderSize,
+          color: themeStyles.blockquoteColor
         },
       },
+      ...(themeStyles.blockquoteBackground
+        ? { shading: { fill: themeStyles.blockquoteBackground } }
+        : {}),
     });
 
     // Create single-row table

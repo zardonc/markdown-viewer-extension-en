@@ -31,6 +31,12 @@ export interface ColorScheme {
   
   background: {
     code: string;       // Code block background
+    /** Page background color. Falls back to #ffffff when absent. */
+    page?: string;
+    /** Surface color for cards / callouts. Falls back to page when absent. */
+    surface?: string;
+    /** Blockquote background. Falls back to transparent when absent. */
+    blockquote?: string;
   };
   
   blockquote: {

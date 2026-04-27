@@ -5,12 +5,13 @@
  * No iframe — the viewer module runs in the same process and uses
  * DirectTransport for ServiceChannel communication with the host handlers.
  *
- * Provides title-bar action buttons for DOCX export and settings.
+ * Provides title-bar action buttons for export and settings.
  */
 
 import { ItemView, WorkspaceLeaf, TFile, Menu, Notice } from 'obsidian';
 import type MarkdownViewerPlugin from './main';
 import { getFileType } from '../../../src/utils/file-wrapper';
+import { rewriteObsidianSvgEmbeds } from './obsidian-svg-embed-rewrite';
 
 // Viewer module — runs in same process, no iframe
 import { initializeViewer, obsidianHostTransport } from '../webview/main';
@@ -44,13 +45,13 @@ export class MarkdownPreviewView extends ItemView {
     this.plugin = plugin;
 
     // addAction items render right-to-left, so register in reverse order:
-    // Settings (rightmost) first, then Export DOCX (leftmost)
+    // Settings (rightmost) first, then Export (leftmost)
     this.addAction('settings', 'Settings', () => {
       this.openSettings();
     });
 
-    this.addAction('download', 'Export to DOCX', () => {
-      this.exportToDocx();
+    this.addAction('download', 'Export', () => {
+      this.openExportMenu();
     });
   }
 
@@ -88,10 +89,8 @@ export class MarkdownPreviewView extends ItemView {
 
     // Listen for READY from the viewer module
     this.hostChannel.on('READY', () => {
-      console.debug('[MV Host] Viewer READY received!');
       this.isViewerReady = true;
       // Flush pending messages
-      console.debug('[MV Host] Flushing', this.pendingMessages.length, 'pending messages');
       for (const pending of this.pendingMessages) {
         this.hostChannel!.post(pending.type, pending.payload);
       }
@@ -103,13 +102,11 @@ export class MarkdownPreviewView extends ItemView {
     });
 
     // Initialize the viewer directly in the container (no iframe)
-    console.debug('[MV Host] Initializing viewer in container...');
     await initializeViewer(container);
 
     // Load current active file
     const activeFile = this.app.workspace.getActiveFile();
     if (activeFile && isSupportedFile(activeFile)) {
-      console.debug('[MV Host] Active file:', activeFile.path);
       await this.setFile(activeFile);
     }
   }
@@ -140,7 +137,8 @@ export class MarkdownPreviewView extends ItemView {
   }
 
   private async sendFileContent(file: TFile): Promise<void> {
-    const content = await this.app.vault.read(file);
+    const rawContent = await this.app.vault.read(file);
+    const content = this.preprocessMarkdownContent(rawContent, file);
 
     // Build resource base URI for image path resolution.
     // Use a placeholder filename so getResourcePath returns a proper app:// URL
@@ -164,6 +162,17 @@ export class MarkdownPreviewView extends ItemView {
     });
   }
 
+  private preprocessMarkdownContent(content: string, file: TFile): string {
+    if (file.extension !== 'md' && file.extension !== 'markdown') {
+      return content;
+    }
+
+    return rewriteObsidianSvgEmbeds(content, file.path, (linkPath) => {
+      const target = this.app.metadataCache.getFirstLinkpathDest(linkPath, file.path);
+      return target?.path ?? null;
+    });
+  }
+
   /**
    * Check whether the given file matches the currently previewed file.
    */
@@ -181,8 +190,16 @@ export class MarkdownPreviewView extends ItemView {
     this.postToViewer('EXPORT_DOCX');
   }
 
+  private print(): void {
+    this.postToViewer('PRINT');
+  }
+
   private openSettings(): void {
     this.postToViewer('OPEN_SETTINGS');
+  }
+
+  private openExportMenu(): void {
+    this.postToViewer('OPEN_EXPORT_MENU');
   }
 
   onMoreOptionsMenu(menu: Menu): void {
@@ -200,6 +217,13 @@ export class MarkdownPreviewView extends ItemView {
         .setIcon('download')
         .setTitle('Export to DOCX')
         .onClick(() => this.exportToDocx());
+    });
+
+    menu.addItem((item) => {
+      item
+        .setIcon('printer')
+        .setTitle('Print')
+        .onClick(() => this.print());
     });
 
     super.onMoreOptionsMenu(menu);
@@ -221,11 +245,9 @@ export class MarkdownPreviewView extends ItemView {
    */
   private postToViewer(type: string, payload?: unknown): void {
     if (!this.isViewerReady || !this.hostChannel) {
-      console.debug('[MV Host] Queuing message (viewer not ready):', type);
       this.pendingMessages.push({ type, payload });
       return;
     }
-    console.debug('[MV Host] ▶ Sending to viewer:', type);
     this.hostChannel.post(type, payload);
   }
 

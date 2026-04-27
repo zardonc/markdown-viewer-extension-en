@@ -226,8 +226,24 @@ function generateFontAndLayoutCSS(fontScheme: FontScheme, layoutScheme: LayoutSc
   font-family: ${bodyFontFamily};
   font-size: ${bodyFontSize};
   line-height: ${bodyLineHeight};
-  color: ${colorScheme.text.primary};
+  color: ${colorScheme.text.primary};${colorScheme.background.page ? `
+  background-color: ${colorScheme.background.page};` : ''}
 }`);
+
+  // Expose surface/page as CSS variables for custom blocks
+  if (colorScheme.background.page || colorScheme.background.surface) {
+    const vars: string[] = [];
+    if (colorScheme.background.page) vars.push(`  --md-page-bg: ${colorScheme.background.page};`);
+    if (colorScheme.background.surface) vars.push(`  --md-surface: ${colorScheme.background.surface};`);
+    css.push(`#markdown-content {\n${vars.join('\n')}\n}`);
+  }
+
+  // Blockquote background (optional)
+  if (colorScheme.background.blockquote) {
+    css.push(`#markdown-content blockquote {
+  background-color: ${colorScheme.background.blockquote};
+}`);
+  }
 
   // Link colors from colorScheme
   css.push(`#markdown-content a {
@@ -651,7 +667,30 @@ export async function loadAndApplyTheme(themeId: string): Promise<void> {
     const fontFamily = themeManager.buildFontFamily(theme.fontScheme.body.fontFamily);
     const fontSize = parseFloat(layoutScheme.body.fontSize);
     const diagramStyle = theme.diagramStyle || 'normal';
-    platform.renderer.setThemeConfig({ fontFamily, fontSize, diagramStyle });
+    // Derive colorSchema from the theme's registry category. Dark presets live
+    // under the 'dark' category so downstream renderers (mermaid, vega, dot,
+    // infographic) can switch to dark styling. Mirrors the slidev mechanism.
+    const category = themeManager.getThemeCategory(theme.id);
+    const colorSchema: 'light' | 'dark' = category === 'dark' ? 'dark' : 'light';
+    platform.renderer.setThemeConfig({ fontFamily, fontSize, diagramStyle, colorSchema });
+
+    // Toggle a root-level class so frame CSS (toolbar, TOC, scrollbars) can
+    // follow the theme's color scheme. Mirrors the slidev-shell mechanism.
+    // Guarded for non-DOM contexts (e.g. worker bootstraps that import this
+    // module path transitively).
+    if (typeof document !== 'undefined' && document.documentElement) {
+      const root = document.documentElement;
+      root.classList.toggle('dark', colorSchema === 'dark');
+      root.classList.toggle('light', colorSchema !== 'dark');
+      // Persist the scheme so the workspace outer page (same origin) can
+      // read it synchronously via an inline preload script before CSS
+      // parses — prevents a white flash during iframe navigation.
+      try {
+        if (typeof localStorage !== 'undefined') {
+          localStorage.setItem('mdv-dark', colorSchema === 'dark' ? '1' : '0');
+        }
+      } catch { /* storage disabled */ }
+    }
   } catch (error) {
     console.error('[Theme] Error loading theme:', error);
     throw error;

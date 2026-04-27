@@ -130,6 +130,11 @@ export type FrontmatterDisplay = 'hide' | 'table' | 'raw';
 export type TableLayout = 'left' | 'center';
 
 /**
+ * Panel side swap setting
+ */
+export type PanelSideMode = boolean;
+
+/**
  * User settings structure
  */
 interface Settings {
@@ -141,6 +146,7 @@ interface Settings {
   frontmatterDisplay?: FrontmatterDisplay;
   tableMergeEmpty?: boolean;
   tableLayout?: TableLayout;
+  swapPanelSide?: PanelSideMode;
 }
 
 /**
@@ -184,6 +190,7 @@ export function createSettingsTabManager({
     frontmatterDisplay: 'hide',
     tableMergeEmpty: true,
     tableLayout: 'center',
+    swapPanelSide: false,
   };
   let currentTheme = 'default';
   let themes: ThemeDefinition[] = [];
@@ -214,9 +221,11 @@ export function createSettingsTabManager({
         settings.docxHrDisplay = 'hide';
       }
 
-      // Load selected theme
+      // Prefer the unified settings key, but keep fallback compatibility
+      // with the legacy selectedTheme storage key.
       const themeResult = await storageGet(['selectedTheme']);
-      currentTheme = (themeResult.selectedTheme as string) || 'default';
+      currentTheme = settings.themeId || (themeResult.selectedTheme as string) || 'default';
+      settings.themeId = currentTheme;
     } catch (error) {
       console.error('Failed to load settings:', error);
     }
@@ -319,6 +328,20 @@ export function createSettingsTabManager({
           await saveSettingsToStorage();
           // Notify all tabs to re-render
           notifySettingChanged('tableLayout', settings.tableLayout);
+        });
+      }
+    }
+
+    // Swap TOC / file tree side
+    const swapPanelSideEl = document.getElementById('swap-panel-side') as HTMLInputElement | null;
+    if (swapPanelSideEl) {
+      swapPanelSideEl.checked = settings.swapPanelSide ?? false;
+      if (!swapPanelSideEl.dataset.listenerAdded) {
+        swapPanelSideEl.dataset.listenerAdded = 'true';
+        swapPanelSideEl.addEventListener('change', async () => {
+          settings.swapPanelSide = swapPanelSideEl.checked;
+          await saveSettingsToStorage();
+          notifySettingChanged('swapPanelSide', settings.swapPanelSide);
         });
       }
     }
@@ -738,8 +761,13 @@ export function createSettingsTabManager({
    */
   async function switchTheme(themeId: string): Promise<void> {
     try {
-      // Save theme selection
-      await storageSet({ selectedTheme: themeId });
+      // Save theme selection to the unified settings container used by
+      // viewers/workspace init, while keeping the legacy key for compatibility.
+      settings.themeId = themeId;
+      await storageSet({
+        markdownViewerSettings: settings,
+        selectedTheme: themeId,
+      });
       currentTheme = themeId;
 
       // Update description
@@ -829,6 +857,7 @@ export function createSettingsTabManager({
         supportedExtensions: getDefaultSupportedExtensions(),
         tableMergeEmpty: true,
         tableLayout: 'center',
+        swapPanelSide: false,
       };
 
       await storageSet({
