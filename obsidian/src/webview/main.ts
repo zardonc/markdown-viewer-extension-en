@@ -10,7 +10,7 @@
  */
 
 import { platform, obsidianBridge } from './api-impl';
-import type { AsyncTaskManager, FrontmatterDisplay } from '../../../src/core/markdown-processor';
+import type { AsyncTaskManager, FrontmatterDisplay, HeadingInfo } from '../../../src/core/markdown-processor';
 import { wrapFileContent } from '../../../src/utils/file-wrapper';
 import { initSlidevViewer } from '../../../src/slidev/slidev-viewer';
 import type { ScrollSyncController } from '../../../src/core/line-based-scroll';
@@ -33,8 +33,10 @@ import {
 
 // Settings panel (reused from VSCode)
 import { createSettingsPanel, type SettingsPanel, type ThemeOption, type LocaleOption } from '../../../vscode/src/webview/settings-panel';
+import { createTocPanel, type TocPanel } from '../../../src/ui/toc-panel';
 import { findHeadingLine } from '../../../src/utils/heading-slug';
 import { printElement } from '../../../src/ui/print-utils';
+import { isDocumentRelativeUrl, isExternalUrl, splitPathAndFragment } from '../../../src/utils/document-url';
 
 // Make platform globally available (required by loadAndApplyTheme)
 globalThis.platform = platform;
@@ -79,6 +81,7 @@ let renderQueue: Promise<void> = Promise.resolve();
 
 // UI
 let settingsPanel: SettingsPanel | null = null;
+let tocPanel: TocPanel | null = null;
 
 // Listener cleanup
 let unsubscribeBridge: (() => void) | null = null;
@@ -280,15 +283,7 @@ const IMAGE_MIME_TYPES: Record<string, string> = {
  * Check if src is a local relative path (not absolute, not data/blob/http)
  */
 function isLocalRelativeSrc(src: string): boolean {
-  if (!src) return false;
-  const lower = src.toLowerCase();
-  if (lower.startsWith('data:') || lower.startsWith('blob:') ||
-      lower.startsWith('http://') || lower.startsWith('https://') ||
-      lower.startsWith('//') || lower.startsWith('file:') ||
-      lower.startsWith('app:')) {
-    return false;
-  }
-  return !(/^[a-zA-Z][a-zA-Z0-9+.-]*:/.test(src));
+  return isDocumentRelativeUrl(src);
 }
 
 /**
@@ -344,6 +339,7 @@ async function handleUpdateContent(payload: UpdateContentPayload): Promise<void>
   // ── Slidev mode: .slides.md files render as presentations ────────────
   if (newFilename.endsWith('.slides.md')) {
     isSlidevMode = true;
+    tocPanel?.setHeadings([]);
 
     // Hide normal markdown wrapper
     const wrapper = rootContainer?.querySelector('#markdown-wrapper') as HTMLElement;
@@ -458,6 +454,10 @@ async function handleUpdateContent(payload: UpdateContentPayload): Promise<void>
     platform,
     currentTaskManagerRef: { current: currentTaskManager },
     targetLine: targetScrollLine,
+    onHeadings: (headings) => {
+      tocPanel?.setHeadings(headings as HeadingInfo[]);
+      updateActiveTocHeading();
+    },
     onProgress: (completed, total) => {
       obsidianBridge.postMessage('RENDER_PROGRESS', { completed, total });
     },
@@ -465,6 +465,64 @@ async function handleUpdateContent(payload: UpdateContentPayload): Promise<void>
 
   // Post-render: inline local images as data URLs
   await inlineLocalImages(container as HTMLElement);
+}
+
+function updateActiveTocHeading(): void {
+  if (!tocPanel || !rootContainer) {
+    return;
+  }
+
+  const contentDiv = rootContainer.querySelector('#markdown-content');
+  const wrapper = rootContainer.querySelector('#markdown-wrapper');
+  if (!contentDiv || !wrapper) {
+    tocPanel.setActiveHeading(null);
+    return;
+  }
+
+  const headings = contentDiv.querySelectorAll<HTMLElement>('h1, h2, h3, h4, h5, h6');
+  if (headings.length === 0) {
+    tocPanel.setActiveHeading(null);
+    return;
+  }
+
+  const scrollTop = (wrapper as HTMLElement).scrollTop;
+  const wrapperRect = wrapper.getBoundingClientRect();
+  let activeId: string | null = null;
+
+  for (const heading of headings) {
+    const top = heading.getBoundingClientRect().top - wrapperRect.top + scrollTop;
+    if (top <= scrollTop + 10) {
+      activeId = heading.id || null;
+    } else {
+      break;
+    }
+  }
+
+  if (!activeId && headings[0]) {
+    activeId = headings[0].id || null;
+  }
+
+  tocPanel.setActiveHeading(activeId);
+}
+
+function scrollToHeadingById(headingId: string): void {
+  if (!rootContainer) {
+    return;
+  }
+
+  const wrapper = rootContainer.querySelector('#markdown-wrapper') as HTMLElement | null;
+  const target = document.getElementById(headingId) as HTMLElement | null;
+  if (!wrapper || !target) {
+    return;
+  }
+
+  const wrapperRect = wrapper.getBoundingClientRect();
+  const targetRect = target.getBoundingClientRect();
+  const targetTop = targetRect.top - wrapperRect.top + wrapper.scrollTop;
+  wrapper.scrollTo({
+    top: Math.max(0, targetTop),
+    behavior: 'smooth',
+  });
 }
 
 // ============================================================================
@@ -565,19 +623,18 @@ function initializeUI(): void {
       e.preventDefault();
       e.stopPropagation();
 
-      if (href.startsWith('http://') || href.startsWith('https://')) {
+      if (isExternalUrl(href)) {
         obsidianBridge.postMessage('OPEN_URL', { url: href });
       } else if (href.startsWith('#')) {
         const el = document.getElementById(decodeURIComponent(href.slice(1)));
         if (el) el.scrollIntoView({ behavior: 'smooth' });
       } else {
-        // Split hash fragment from path (e.g., ./file.md#section → path + fragment)
-        const hashIndex = href.indexOf('#');
-        if (hashIndex >= 0) {
-          pendingFragment = decodeURIComponent(href.slice(hashIndex + 1));
-          obsidianBridge.postMessage('OPEN_RELATIVE_FILE', { path: href.slice(0, hashIndex) });
+        const { path, fragment } = splitPathAndFragment(href);
+        if (fragment !== undefined) {
+          pendingFragment = decodeURIComponent(fragment);
+          obsidianBridge.postMessage('OPEN_RELATIVE_FILE', { path });
         } else {
-          obsidianBridge.postMessage('OPEN_RELATIVE_FILE', { path: href });
+          obsidianBridge.postMessage('OPEN_RELATIVE_FILE', { path });
         }
       }
     });
@@ -599,6 +656,7 @@ function initializeUI(): void {
       await Localization.setPreferredLocale(locale);
       await platform.settings.set('locale', locale);
       settingsPanel?.updateLabels();
+      tocPanel?.updateLocalization();
       await loadThemesForSettings();
       if (currentMarkdown) {
         await handleUpdateContent({ content: currentMarkdown, filename: currentFilename });
@@ -641,6 +699,22 @@ function initializeUI(): void {
   });
   if (rootContainer) {
     rootContainer.appendChild(settingsPanel.getElement());
+  }
+
+  tocPanel = createTocPanel({
+    onSelectHeading: (headingId) => {
+      scrollToHeadingById(headingId);
+    }
+  });
+  if (rootContainer) {
+    rootContainer.appendChild(tocPanel.getElement());
+  }
+
+  const wrapper = rootContainer?.querySelector('#markdown-wrapper');
+  if (wrapper) {
+    wrapper.addEventListener('scroll', () => {
+      updateActiveTocHeading();
+    });
   }
 }
 
