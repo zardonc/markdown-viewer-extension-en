@@ -18,8 +18,10 @@ export interface SlidevViewerOptions {
   container: HTMLElement
   /** Render a diagram via the platform renderer (with built-in caching) */
   renderDiagram: (type: string, code: string) => Promise<{ base64: string; width: number; height: number }>
-  /** Provide the shell iframe source */
-  getShellSource: () => Promise<string>
+  /** Provide the shell iframe source URL (for extension/page URL based hosts) */
+  getShellSource?: () => Promise<string>
+  /** Provide the shell iframe HTML content directly (for VS Code srcdoc loading) */
+  getShellHtml?: () => Promise<string>
   /** Provide theme IIFE code by name (for eval — works in blob-URL contexts like VSCode) */
   getThemeCode?: (name: string) => Promise<string | undefined>
   /** Provide theme IIFE URL by name (for <script src> — works under strict CSP like Chrome) */
@@ -39,7 +41,7 @@ export interface SlidevViewerOptions {
  * Parses slides, creates iframe, and renders diagrams asynchronously.
  */
 export async function initSlidevViewer(options: SlidevViewerOptions): Promise<void> {
-  const { rawContent, container, renderDiagram, getShellSource, getThemeCode, getThemeUrl, onParsed, onThemeReady, mode = 'presentation' } = options
+  const { rawContent, container, renderDiagram, getShellSource, getShellHtml, getThemeCode, getThemeUrl, onParsed, onThemeReady, mode = 'presentation' } = options
 
   if (!rawContent.trim()) return
 
@@ -61,12 +63,18 @@ export async function initSlidevViewer(options: SlidevViewerOptions): Promise<vo
     'margin:0;padding:0;width:100%;height:100%;overflow:hidden'
 
   // Create iframe
-  const shellUrl = await getShellSource()
   const iframe = document.createElement('iframe')
   iframe.id = 'slidev-frame'
   iframe.allow = 'fullscreen'
   iframe.style.cssText = 'width:100%;height:100%;border:none'
-  iframe.src = shellUrl
+  if (getShellHtml) {
+    // Use srcdoc in VS Code webviews to avoid blob iframe loading failures.
+    iframe.srcdoc = await getShellHtml()
+  } else if (getShellSource) {
+    iframe.src = await getShellSource()
+  } else {
+    throw new Error('Either getShellSource or getShellHtml must be provided')
+  }
   container.appendChild(iframe)
 
   // Resolve theme (code or URL) AND wait for shell ready in parallel

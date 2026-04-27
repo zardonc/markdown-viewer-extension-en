@@ -3,14 +3,14 @@
 
 import { platform } from './index';
 import { startViewer } from '../../../chrome/src/webview/viewer-main';
-import { createPluginRenderer } from '../../../src/core/viewer/viewer-host';
+import { initializeViewerBase } from '../../../src/core/viewer/viewer-bootstrap';
 
-// Create plugin renderer using shared utility from viewer-host
-const pluginRenderer = createPluginRenderer(platform);
-
-// Start the viewer with Firefox-specific configuration
-startViewer({
-  platform,
-  pluginRenderer,
-  themeConfigRenderer: platform.renderer,
+void initializeViewerBase(platform).then((pluginRenderer) => {
+  startViewer({
+    platform,
+    pluginRenderer,
+    themeConfigRenderer: platform.renderer,
+  });
+}).catch((error) => {
+  console.error('[main] viewer base init failed', error);
 });
